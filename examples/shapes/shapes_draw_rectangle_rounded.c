@@ -28,7 +28,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shapes] example - draw rectangle rounded");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shapes] example - draw rectangle rounded");
 
     float roundness = 0.2f;
     float width = 200.0f;
@@ -40,54 +40,54 @@ int main(void)
     bool drawRoundedRect = true;
     bool drawRoundedLines = false;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        Rectangle rec = { ((float)GetScreenWidth() - width - 250)/2, (GetScreenHeight() - height)/2.0f, (float)width, (float)height };
+        rlRectangle rec = { ((float)rlGetScreenWidth() - width - 250)/2, (rlGetScreenHeight() - height)/2.0f, (float)width, (float)height };
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawLine(560, 0, 560, GetScreenHeight(), Fade(LIGHTGRAY, 0.6f));
-            DrawRectangle(560, 0, GetScreenWidth() - 500, GetScreenHeight(), Fade(LIGHTGRAY, 0.3f));
+            rlDrawLine(560, 0, 560, rlGetScreenHeight(), rlFade(LIGHTGRAY, 0.6f));
+            rlDrawRectangle(560, 0, rlGetScreenWidth() - 500, rlGetScreenHeight(), rlFade(LIGHTGRAY, 0.3f));
 
-            if (drawRect) DrawRectangleRec(rec, Fade(GOLD, 0.6f));
-            if (drawRoundedRect) DrawRectangleRounded(rec, roundness, (int)segments, Fade(MAROON, 0.2f));
-            if (drawRoundedLines) DrawRectangleRoundedLinesEx(rec, roundness, (int)segments, lineThick, Fade(MAROON, 0.4f));
+            if (drawRect) rlDrawRectangleRec(rec, rlFade(GOLD, 0.6f));
+            if (drawRoundedRect) rlDrawRectangleRounded(rec, roundness, (int)segments, rlFade(MAROON, 0.2f));
+            if (drawRoundedLines) rlDrawRectangleRoundedLinesEx(rec, roundness, (int)segments, lineThick, rlFade(MAROON, 0.4f));
 
             // Draw GUI controls
             //------------------------------------------------------------------------------
-            GuiSliderBar((Rectangle){ 640, 40, 105, 20 }, "Width", TextFormat("%.2f", width), &width, 0, (float)GetScreenWidth() - 300);
-            GuiSliderBar((Rectangle){ 640, 70, 105, 20 }, "Height", TextFormat("%.2f", height), &height, 0, (float)GetScreenHeight() - 50);
-            GuiSliderBar((Rectangle){ 640, 140, 105, 20 }, "Roundness", TextFormat("%.2f", roundness), &roundness, 0.0f, 1.0f);
-            GuiSliderBar((Rectangle){ 640, 170, 105, 20 }, "Thickness", TextFormat("%.2f", lineThick), &lineThick, 0, 20);
-            GuiSliderBar((Rectangle){ 640, 240, 105, 20}, "Segments", TextFormat("%.2f", segments), &segments, 0, 60);
+            GuiSliderBar((rlRectangle){ 640, 40, 105, 20 }, "Width", rlTextFormat("%.2f", width), &width, 0, (float)rlGetScreenWidth() - 300);
+            GuiSliderBar((rlRectangle){ 640, 70, 105, 20 }, "Height", rlTextFormat("%.2f", height), &height, 0, (float)rlGetScreenHeight() - 50);
+            GuiSliderBar((rlRectangle){ 640, 140, 105, 20 }, "Roundness", rlTextFormat("%.2f", roundness), &roundness, 0.0f, 1.0f);
+            GuiSliderBar((rlRectangle){ 640, 170, 105, 20 }, "Thickness", rlTextFormat("%.2f", lineThick), &lineThick, 0, 20);
+            GuiSliderBar((rlRectangle){ 640, 240, 105, 20}, "Segments", rlTextFormat("%.2f", segments), &segments, 0, 60);
 
-            GuiCheckBox((Rectangle){ 640, 320, 20, 20 }, "DrawRoundedRect", &drawRoundedRect);
-            GuiCheckBox((Rectangle){ 640, 350, 20, 20 }, "DrawRoundedLines", &drawRoundedLines);
-            GuiCheckBox((Rectangle){ 640, 380, 20, 20}, "DrawRect", &drawRect);
+            GuiCheckBox((rlRectangle){ 640, 320, 20, 20 }, "DrawRoundedRect", &drawRoundedRect);
+            GuiCheckBox((rlRectangle){ 640, 350, 20, 20 }, "DrawRoundedLines", &drawRoundedLines);
+            GuiCheckBox((rlRectangle){ 640, 380, 20, 20}, "DrawRect", &drawRect);
             //------------------------------------------------------------------------------
 
-            DrawText(TextFormat("MODE: %s", (segments >= 4)? "MANUAL" : "AUTO"), 640, 280, 10, (segments >= 4)? MAROON : DARKGRAY);
+            rlDrawText(rlTextFormat("MODE: %s", (segments >= 4)? "MANUAL" : "AUTO"), 640, 280, 10, (segments >= 4)? MAROON : DARKGRAY);
 
-            DrawFPS(10, 10);
+            rlDrawFPS(10, 10);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

@@ -27,29 +27,29 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shapes] example - rectangle scaling mouse");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shapes] example - rectangle scaling mouse");
 
-    Rectangle rec = { 100, 100, 200, 80 };
+    rlRectangle rec = { 100, 100, 200, 80 };
 
-    Vector2 mousePosition = { 0 };
+    rlVector2 mousePosition = { 0 };
 
     bool mouseScaleReady = false;
     bool mouseScaleMode = false;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        mousePosition = GetMousePosition();
+        mousePosition = rlGetMousePosition();
 
-        if (CheckCollisionPointRec(mousePosition, (Rectangle){ rec.x + rec.width - MOUSE_SCALE_MARK_SIZE, rec.y + rec.height - MOUSE_SCALE_MARK_SIZE, MOUSE_SCALE_MARK_SIZE, MOUSE_SCALE_MARK_SIZE }))
+        if (rlCheckCollisionPointRec(mousePosition, (rlRectangle){ rec.x + rec.width - MOUSE_SCALE_MARK_SIZE, rec.y + rec.height - MOUSE_SCALE_MARK_SIZE, MOUSE_SCALE_MARK_SIZE, MOUSE_SCALE_MARK_SIZE }))
         {
             mouseScaleReady = true;
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) mouseScaleMode = true;
+            if (rlIsMouseButtonPressed(MOUSE_BUTTON_LEFT)) mouseScaleMode = true;
         }
         else mouseScaleReady = false;
 
@@ -65,38 +65,38 @@ int main(void)
             if (rec.height < MOUSE_SCALE_MARK_SIZE) rec.height = MOUSE_SCALE_MARK_SIZE;
             
             // Check maximum rec size
-            if (rec.width > (GetScreenWidth() - rec.x)) rec.width = GetScreenWidth() - rec.x;
-            if (rec.height > (GetScreenHeight() - rec.y)) rec.height = GetScreenHeight() - rec.y;
+            if (rec.width > (rlGetScreenWidth() - rec.x)) rec.width = rlGetScreenWidth() - rec.x;
+            if (rec.height > (rlGetScreenHeight() - rec.y)) rec.height = rlGetScreenHeight() - rec.y;
 
-            if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) mouseScaleMode = false;
+            if (rlIsMouseButtonReleased(MOUSE_BUTTON_LEFT)) mouseScaleMode = false;
         }
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawText("Scale rectangle dragging from bottom-right corner!", 10, 10, 20, GRAY);
+            rlDrawText("Scale rectangle dragging from bottom-right corner!", 10, 10, 20, GRAY);
 
-            DrawRectangleRec(rec, Fade(GREEN, 0.5f));
+            rlDrawRectangleRec(rec, rlFade(GREEN, 0.5f));
 
             if (mouseScaleReady)
             {
-                DrawRectangleLinesEx(rec, 1, RED);
-                DrawTriangle((Vector2){ rec.x + rec.width - MOUSE_SCALE_MARK_SIZE, rec.y + rec.height },
-                             (Vector2){ rec.x + rec.width, rec.y + rec.height },
-                             (Vector2){ rec.x + rec.width, rec.y + rec.height - MOUSE_SCALE_MARK_SIZE }, RED);
+                rlDrawRectangleLinesEx(rec, 1, RED);
+                rlDrawTriangle((rlVector2){ rec.x + rec.width - MOUSE_SCALE_MARK_SIZE, rec.y + rec.height },
+                             (rlVector2){ rec.x + rec.width, rec.y + rec.height },
+                             (rlVector2){ rec.x + rec.width, rec.y + rec.height - MOUSE_SCALE_MARK_SIZE }, RED);
             }
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

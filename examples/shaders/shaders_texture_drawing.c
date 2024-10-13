@@ -1,6 +1,6 @@
 /*******************************************************************************************
 *
-*   raylib [textures] example - Texture drawing
+*   raylib [textures] example - rlTexture drawing
 *
 *   NOTE: This example illustrates how to draw into a blank texture using a shader
 *
@@ -33,53 +33,53 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shaders] example - texture drawing");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shaders] example - texture drawing");
 
-    Image imBlank = GenImageColor(1024, 1024, BLANK);
-    Texture2D texture = LoadTextureFromImage(imBlank);  // Load blank texture to fill on shader
-    UnloadImage(imBlank);
+    rlImage imBlank = rlGenImageColor(1024, 1024, BLANK);
+    Texture2D texture = rlLoadTextureFromImage(imBlank);  // Load blank texture to fill on shader
+    rlUnloadImage(imBlank);
 
     // NOTE: Using GLSL 330 shader version, on OpenGL ES 2.0 use GLSL 100 shader version
-    Shader shader = LoadShader(0, TextFormat("resources/shaders/glsl%i/cubes_panning.fs", GLSL_VERSION));
+    rlShader shader = rlLoadShader(0, rlTextFormat("resources/shaders/glsl%i/cubes_panning.fs", GLSL_VERSION));
 
     float time = 0.0f;
-    int timeLoc = GetShaderLocation(shader, "uTime");
-    SetShaderValue(shader, timeLoc, &time, SHADER_UNIFORM_FLOAT);
+    int timeLoc = rlGetShaderLocation(shader, "uTime");
+    rlSetShaderValue(shader, timeLoc, &time, SHADER_UNIFORM_FLOAT);
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     // -------------------------------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        time = (float)GetTime();
-        SetShaderValue(shader, timeLoc, &time, SHADER_UNIFORM_FLOAT);
+        time = (float)rlGetTime();
+        rlSetShaderValue(shader, timeLoc, &time, SHADER_UNIFORM_FLOAT);
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            BeginShaderMode(shader);    // Enable our custom shader for next shapes/textures drawings
-                DrawTexture(texture, 0, 0, WHITE);  // Drawing BLANK texture, all magic happens on shader
-            EndShaderMode();            // Disable our custom shader, return to default shader
+            rlBeginShaderMode(shader);    // Enable our custom shader for next shapes/textures drawings
+                rlDrawTexture(texture, 0, 0, WHITE);  // Drawing BLANK texture, all magic happens on shader
+            rlEndShaderMode();            // Disable our custom shader, return to default shader
 
-            DrawText("BACKGROUND is PAINTED and ANIMATED on SHADER!", 10, 10, 20, MAROON);
+            rlDrawText("BACKGROUND is PAINTED and ANIMATED on SHADER!", 10, 10, 20, MAROON);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadShader(shader);
+    rlUnloadShader(shader);
     UnloadTexture(texture);
 
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

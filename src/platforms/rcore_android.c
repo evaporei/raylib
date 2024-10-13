@@ -49,7 +49,7 @@
 #include <android_native_app_glue.h>    // Required for: android_app struct and activity management
 #include <android/window.h>             // Required for: AWINDOW_FLAG_FULLSCREEN definition and others
 //#include <android/sensor.h>           // Required for: Android sensors functions (accelerometer, gyroscope, light...)
-#include <jni.h>                        // Required for: JNIEnv and JavaVM [Used in OpenURL()]
+#include <jni.h>                        // Required for: JNIEnv and JavaVM [Used in rlOpenURL()]
 
 #include <EGL/egl.h>                    // Native platform windowing system interface
 
@@ -307,246 +307,246 @@ struct android_app *GetAndroidApp(void)
 //----------------------------------------------------------------------------------
 
 // Check if application should close
-bool WindowShouldClose(void)
+bool rlWindowShouldClose(void)
 {
     if (CORE.Window.ready) return CORE.Window.shouldClose;
     else return true;
 }
 
 // Toggle fullscreen mode
-void ToggleFullscreen(void)
+void rlToggleFullscreen(void)
 {
-    TRACELOG(LOG_WARNING, "ToggleFullscreen() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlToggleFullscreen() not available on target platform");
 }
 
 // Toggle borderless windowed mode
-void ToggleBorderlessWindowed(void)
+void rlToggleBorderlessWindowed(void)
 {
-    TRACELOG(LOG_WARNING, "ToggleBorderlessWindowed() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlToggleBorderlessWindowed() not available on target platform");
 }
 
 // Set window state: maximized, if resizable
-void MaximizeWindow(void)
+void rlMaximizeWindow(void)
 {
-    TRACELOG(LOG_WARNING, "MaximizeWindow() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlMaximizeWindow() not available on target platform");
 }
 
 // Set window state: minimized
-void MinimizeWindow(void)
+void rlMinimizeWindow(void)
 {
-    TRACELOG(LOG_WARNING, "MinimizeWindow() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlMinimizeWindow() not available on target platform");
 }
 
 // Set window state: not minimized/maximized
-void RestoreWindow(void)
+void rlRestoreWindow(void)
 {
-    TRACELOG(LOG_WARNING, "RestoreWindow() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlRestoreWindow() not available on target platform");
 }
 
 // Set window configuration state using flags
-void SetWindowState(unsigned int flags)
+void rlSetWindowState(unsigned int flags)
 {
-    TRACELOG(LOG_WARNING, "SetWindowState() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowState() not available on target platform");
 }
 
 // Clear window configuration state flags
-void ClearWindowState(unsigned int flags)
+void rlClearWindowState(unsigned int flags)
 {
-    TRACELOG(LOG_WARNING, "ClearWindowState() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlClearWindowState() not available on target platform");
 }
 
 // Set icon for window
-void SetWindowIcon(Image image)
+void rlSetWindowIcon(rlImage image)
 {
-    TRACELOG(LOG_WARNING, "SetWindowIcon() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowIcon() not available on target platform");
 }
 
 // Set icon for window
-void SetWindowIcons(Image *images, int count)
+void rlSetWindowIcons(rlImage *images, int count)
 {
-    TRACELOG(LOG_WARNING, "SetWindowIcons() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowIcons() not available on target platform");
 }
 
 // Set title for window
-void SetWindowTitle(const char *title)
+void rlSetWindowTitle(const char *title)
 {
     CORE.Window.title = title;
 }
 
 // Set window position on screen (windowed mode)
-void SetWindowPosition(int x, int y)
+void rlSetWindowPosition(int x, int y)
 {
-    TRACELOG(LOG_WARNING, "SetWindowPosition() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowPosition() not available on target platform");
 }
 
 // Set monitor for the current window
-void SetWindowMonitor(int monitor)
+void rlSetWindowMonitor(int monitor)
 {
-    TRACELOG(LOG_WARNING, "SetWindowMonitor() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowMonitor() not available on target platform");
 }
 
 // Set window minimum dimensions (FLAG_WINDOW_RESIZABLE)
-void SetWindowMinSize(int width, int height)
+void rlSetWindowMinSize(int width, int height)
 {
     CORE.Window.screenMin.width = width;
     CORE.Window.screenMin.height = height;
 }
 
 // Set window maximum dimensions (FLAG_WINDOW_RESIZABLE)
-void SetWindowMaxSize(int width, int height)
+void rlSetWindowMaxSize(int width, int height)
 {
     CORE.Window.screenMax.width = width;
     CORE.Window.screenMax.height = height;
 }
 
 // Set window dimensions
-void SetWindowSize(int width, int height)
+void rlSetWindowSize(int width, int height)
 {
-    TRACELOG(LOG_WARNING, "SetWindowSize() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowSize() not available on target platform");
 }
 
 // Set window opacity, value opacity is between 0.0 and 1.0
-void SetWindowOpacity(float opacity)
+void rlSetWindowOpacity(float opacity)
 {
-    TRACELOG(LOG_WARNING, "SetWindowOpacity() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowOpacity() not available on target platform");
 }
 
 // Set window focused
-void SetWindowFocused(void)
+void rlSetWindowFocused(void)
 {
-    TRACELOG(LOG_WARNING, "SetWindowFocused() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowFocused() not available on target platform");
 }
 
 // Get native window handle
-void *GetWindowHandle(void)
+void *rlGetWindowHandle(void)
 {
-    TRACELOG(LOG_WARNING, "GetWindowHandle() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetWindowHandle() not implemented on target platform");
     return NULL;
 }
 
 // Get number of monitors
-int GetMonitorCount(void)
+int rlGetMonitorCount(void)
 {
-    TRACELOG(LOG_WARNING, "GetMonitorCount() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetMonitorCount() not implemented on target platform");
     return 1;
 }
 
 // Get number of monitors
-int GetCurrentMonitor(void)
+int rlGetCurrentMonitor(void)
 {
-    TRACELOG(LOG_WARNING, "GetCurrentMonitor() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetCurrentMonitor() not implemented on target platform");
     return 0;
 }
 
 // Get selected monitor position
-Vector2 GetMonitorPosition(int monitor)
+rlVector2 rlGetMonitorPosition(int monitor)
 {
-    TRACELOG(LOG_WARNING, "GetMonitorPosition() not implemented on target platform");
-    return (Vector2){ 0, 0 };
+    TRACELOG(LOG_WARNING, "rlGetMonitorPosition() not implemented on target platform");
+    return (rlVector2){ 0, 0 };
 }
 
 // Get selected monitor width (currently used by monitor)
-int GetMonitorWidth(int monitor)
+int rlGetMonitorWidth(int monitor)
 {
-    TRACELOG(LOG_WARNING, "GetMonitorWidth() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetMonitorWidth() not implemented on target platform");
     return 0;
 }
 
 // Get selected monitor height (currently used by monitor)
-int GetMonitorHeight(int monitor)
+int rlGetMonitorHeight(int monitor)
 {
-    TRACELOG(LOG_WARNING, "GetMonitorHeight() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetMonitorHeight() not implemented on target platform");
     return 0;
 }
 
 // Get selected monitor physical width in millimetres
-int GetMonitorPhysicalWidth(int monitor)
+int rlGetMonitorPhysicalWidth(int monitor)
 {
-    TRACELOG(LOG_WARNING, "GetMonitorPhysicalWidth() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetMonitorPhysicalWidth() not implemented on target platform");
     return 0;
 }
 
 // Get selected monitor physical height in millimetres
-int GetMonitorPhysicalHeight(int monitor)
+int rlGetMonitorPhysicalHeight(int monitor)
 {
-    TRACELOG(LOG_WARNING, "GetMonitorPhysicalHeight() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetMonitorPhysicalHeight() not implemented on target platform");
     return 0;
 }
 
 // Get selected monitor refresh rate
-int GetMonitorRefreshRate(int monitor)
+int rlGetMonitorRefreshRate(int monitor)
 {
-    TRACELOG(LOG_WARNING, "GetMonitorRefreshRate() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetMonitorRefreshRate() not implemented on target platform");
     return 0;
 }
 
 // Get the human-readable, UTF-8 encoded name of the selected monitor
-const char *GetMonitorName(int monitor)
+const char *rlGetMonitorName(int monitor)
 {
-    TRACELOG(LOG_WARNING, "GetMonitorName() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetMonitorName() not implemented on target platform");
     return "";
 }
 
 // Get window position XY on monitor
-Vector2 GetWindowPosition(void)
+rlVector2 rlGetWindowPosition(void)
 {
-    TRACELOG(LOG_WARNING, "GetWindowPosition() not implemented on target platform");
-    return (Vector2){ 0, 0 };
+    TRACELOG(LOG_WARNING, "rlGetWindowPosition() not implemented on target platform");
+    return (rlVector2){ 0, 0 };
 }
 
 // Get window scale DPI factor for current monitor
-Vector2 GetWindowScaleDPI(void)
+rlVector2 rlGetWindowScaleDPI(void)
 {
-    TRACELOG(LOG_WARNING, "GetWindowScaleDPI() not implemented on target platform");
-    return (Vector2){ 1.0f, 1.0f };
+    TRACELOG(LOG_WARNING, "rlGetWindowScaleDPI() not implemented on target platform");
+    return (rlVector2){ 1.0f, 1.0f };
 }
 
 // Set clipboard text content
-void SetClipboardText(const char *text)
+void rlSetClipboardText(const char *text)
 {
-    TRACELOG(LOG_WARNING, "SetClipboardText() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlSetClipboardText() not implemented on target platform");
 }
 
 // Get clipboard text content
 // NOTE: returned string is allocated and freed by GLFW
-const char *GetClipboardText(void)
+const char *rlGetClipboardText(void)
 {
-    TRACELOG(LOG_WARNING, "GetClipboardText() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetClipboardText() not implemented on target platform");
     return NULL;
 }
 
 // Show mouse cursor
-void ShowCursor(void)
+void rlShowCursor(void)
 {
     CORE.Input.Mouse.cursorHidden = false;
 }
 
 // Hides mouse cursor
-void HideCursor(void)
+void rlHideCursor(void)
 {
     CORE.Input.Mouse.cursorHidden = true;
 }
 
 // Enables cursor (unlock cursor)
-void EnableCursor(void)
+void rlEnableCursor(void)
 {
     // Set cursor position in the middle
-    SetMousePosition(CORE.Window.screen.width/2, CORE.Window.screen.height/2);
+    rlSetMousePosition(CORE.Window.screen.width/2, CORE.Window.screen.height/2);
 
     CORE.Input.Mouse.cursorHidden = false;
 }
 
 // Disables cursor (lock cursor)
-void DisableCursor(void)
+void rlDisableCursor(void)
 {
     // Set cursor position in the middle
-    SetMousePosition(CORE.Window.screen.width/2, CORE.Window.screen.height/2);
+    rlSetMousePosition(CORE.Window.screen.width/2, CORE.Window.screen.height/2);
 
     CORE.Input.Mouse.cursorHidden = true;
 }
 
 // Swap back buffer with front buffer (screen drawing)
-void SwapScreenBuffer(void)
+void rlSwapScreenBuffer(void)
 {
     eglSwapBuffers(platform.device, platform.surface);
 }
@@ -556,7 +556,7 @@ void SwapScreenBuffer(void)
 //----------------------------------------------------------------------------------
 
 // Get elapsed time measure in seconds since InitTimer()
-double GetTime(void)
+double rlGetTime(void)
 {
     double time = 0.0;
     struct timespec ts = { 0 };
@@ -573,7 +573,7 @@ double GetTime(void)
 // A user could craft a malicious string performing another action.
 // Only call this function yourself not with user input or make sure to check the string yourself.
 // Ref: https://github.com/raysan5/raylib/issues/686
-void OpenURL(const char *url)
+void rlOpenURL(const char *url)
 {
     // Security check to (partially) avoid malicious code
     if (strchr(url, '\'') != NULL) TRACELOG(LOG_WARNING, "SYSTEM: Provided URL could be potentially malicious, avoid [\'] character");
@@ -608,29 +608,29 @@ void OpenURL(const char *url)
 //----------------------------------------------------------------------------------
 
 // Set internal gamepad mappings
-int SetGamepadMappings(const char *mappings)
+int rlSetGamepadMappings(const char *mappings)
 {
-    TRACELOG(LOG_WARNING, "SetGamepadMappings() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlSetGamepadMappings() not implemented on target platform");
     return 0;
 }
 
 // Set gamepad vibration
-void SetGamepadVibration(int gamepad, float leftMotor, float rightMotor)
+void rlSetGamepadVibration(int gamepad, float leftMotor, float rightMotor)
 {
     TRACELOG(LOG_WARNING, "GamepadSetVibration() not implemented on target platform");
 }
 
 // Set mouse position XY
-void SetMousePosition(int x, int y)
+void rlSetMousePosition(int x, int y)
 {
-    CORE.Input.Mouse.currentPosition = (Vector2){ (float)x, (float)y };
+    CORE.Input.Mouse.currentPosition = (rlVector2){ (float)x, (float)y };
     CORE.Input.Mouse.previousPosition = CORE.Input.Mouse.currentPosition;
 }
 
 // Set mouse cursor
-void SetMouseCursor(int cursor)
+void rlSetMouseCursor(int cursor)
 {
-    TRACELOG(LOG_WARNING, "SetMouseCursor() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlSetMouseCursor() not implemented on target platform");
 }
 
 // Get physical key name.
@@ -641,7 +641,7 @@ const char *GetKeyName(int key)
 }
 
 // Register all input events
-void PollInputEvents(void)
+void rlPollInputEvents(void)
 {
 #if defined(SUPPORT_GESTURES_SYSTEM)
     // NOTE: Gestures update must be called every frame to reset gestures correctly
@@ -673,7 +673,7 @@ void PollInputEvents(void)
     for (int i = 0; i < MAX_TOUCH_POINTS; i++) CORE.Input.Touch.previousTouchState[i] = CORE.Input.Touch.currentTouchState[i];
 
     // Reset touch positions
-    //for (int i = 0; i < MAX_TOUCH_POINTS; i++) CORE.Input.Touch.position[i] = (Vector2){ 0, 0 };
+    //for (int i = 0; i < MAX_TOUCH_POINTS; i++) CORE.Input.Touch.position[i] = (rlVector2){ 0, 0 };
 
     // Register previous keys states
     // NOTE: Android supports up to 260 keys
@@ -938,7 +938,7 @@ static int InitGraphicsDevice(void)
 
     CORE.Window.ready = true;
 
-    if ((CORE.Window.flags & FLAG_WINDOW_MINIMIZED) > 0) MinimizeWindow();
+    if ((CORE.Window.flags & FLAG_WINDOW_MINIMIZED) > 0) rlMinimizeWindow();
 
     return 0;
 }
@@ -1004,16 +1004,16 @@ static void AndroidCommandCallback(struct android_app *app, int32_t cmd)
                     #if defined(SUPPORT_MODULE_RSHAPES)
                     // Set font white rectangle for shapes drawing, so shapes and text can be batched together
                     // WARNING: rshapes module is required, if not available, default internal white rectangle is used
-                    Rectangle rec = GetFontDefault().recs[95];
+                    rlRectangle rec = rlGetFontDefault().recs[95];
                     if (CORE.Window.flags & FLAG_MSAA_4X_HINT)
                     {
                         // NOTE: We try to maxime rec padding to avoid pixel bleeding on MSAA filtering
-                        SetShapesTexture(GetFontDefault().texture, (Rectangle){ rec.x + 2, rec.y + 2, 1, 1 });
+                        rlSetShapesTexture(rlGetFontDefault().texture, (rlRectangle){ rec.x + 2, rec.y + 2, 1, 1 });
                     }
                     else
                     {
                         // NOTE: We set up a 1px padding on char rectangle to avoid pixel bleeding
-                        SetShapesTexture(GetFontDefault().texture, (Rectangle){ rec.x + 1, rec.y + 1, rec.width - 2, rec.height - 2 });
+                        rlSetShapesTexture(rlGetFontDefault().texture, (rlRectangle){ rec.x + 1, rec.y + 1, rec.width - 2, rec.height - 2 });
                     }
                     #endif
                 #else
@@ -1021,12 +1021,12 @@ static void AndroidCommandCallback(struct android_app *app, int32_t cmd)
                     // Set default texture and rectangle to be used for shapes drawing
                     // NOTE: rlgl default texture is a 1x1 pixel UNCOMPRESSED_R8G8B8A8
                     Texture2D texture = { rlGetTextureIdDefault(), 1, 1, 1, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8 };
-                    SetShapesTexture(texture, (Rectangle){ 0.0f, 0.0f, 1.0f, 1.0f });    // WARNING: Module required: rshapes
+                    rlSetShapesTexture(texture, (rlRectangle){ 0.0f, 0.0f, 1.0f, 1.0f });    // WARNING: Module required: rshapes
                     #endif
                 #endif
 
                     // Initialize random seed
-                    SetRandomSeed((unsigned int)time(NULL));
+                    rlSetRandomSeed((unsigned int)time(NULL));
 
                     // TODO: GPU assets reload in case of lost focus (lost context)
                     // NOTE: This problem has been solved just unbinding and rebinding context from display
@@ -1049,14 +1049,14 @@ static void AndroidCommandCallback(struct android_app *app, int32_t cmd)
         {
             platform.appEnabled = true;
             CORE.Window.flags &= ~FLAG_WINDOW_UNFOCUSED;
-            //ResumeMusicStream();
+            //rlResumeMusicStream();
         } break;
         case APP_CMD_PAUSE: break;
         case APP_CMD_LOST_FOCUS:
         {
             platform.appEnabled = false;
             CORE.Window.flags |= FLAG_WINDOW_UNFOCUSED;
-            //PauseMusicStream();
+            //rlPauseMusicStream();
         } break;
         case APP_CMD_TERM_WINDOW:
         {
@@ -1077,7 +1077,7 @@ static void AndroidCommandCallback(struct android_app *app, int32_t cmd)
                 platform.contextRebindRequired = true;
             }
             // If 'platform.device' is already set to 'EGL_NO_DISPLAY'
-            // this means that the user has already called 'CloseWindow()'
+            // this means that the user has already called 'rlCloseWindow()'
 
         } break;
         case APP_CMD_SAVE_STATE: break;
@@ -1264,7 +1264,7 @@ static int32_t AndroidInputCallback(struct android_app *app, AInputEvent *event)
         CORE.Input.Touch.pointId[i] = AMotionEvent_getPointerId(event, i);
 
         // Register touch points position
-        CORE.Input.Touch.position[i] = (Vector2){ AMotionEvent_getX(event, i), AMotionEvent_getY(event, i) };
+        CORE.Input.Touch.position[i] = (rlVector2){ AMotionEvent_getX(event, i), AMotionEvent_getY(event, i) };
 
         // Normalize CORE.Input.Touch.position[i] for CORE.Window.screen.width and CORE.Window.screen.height
         float widthRatio = (float)(CORE.Window.screen.width + CORE.Window.renderOffset.x)/(float)CORE.Window.display.width;
@@ -1291,8 +1291,8 @@ static int32_t AndroidInputCallback(struct android_app *app, AInputEvent *event)
     {
         gestureEvent.pointId[i] = CORE.Input.Touch.pointId[i];
         gestureEvent.position[i] = CORE.Input.Touch.position[i];
-        gestureEvent.position[i].x /= (float)GetScreenWidth();
-        gestureEvent.position[i].y /= (float)GetScreenHeight();
+        gestureEvent.position[i].x /= (float)rlGetScreenWidth();
+        gestureEvent.position[i].y /= (float)rlGetScreenHeight();
     }
 
     // Gesture data is sent to gestures system for processing
@@ -1331,7 +1331,7 @@ static int32_t AndroidInputCallback(struct android_app *app, AInputEvent *event)
 
     // Map touch[0] as mouse input for convenience
     CORE.Input.Mouse.currentPosition = CORE.Input.Touch.position[0];
-    CORE.Input.Mouse.currentWheelMove = (Vector2){ 0.0f, 0.0f };
+    CORE.Input.Mouse.currentWheelMove = (rlVector2){ 0.0f, 0.0f };
 
     return 0;
 }

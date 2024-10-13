@@ -29,7 +29,7 @@
 *
 *       #define SUPPORT_IMAGE_MANIPULATION
 *           Support multiple image editing functions to scale, adjust colors, flip, draw on images, crop...
-*           If not defined only some image editing functions supported: ImageFormat(), ImageAlphaMask(), ImageResize*()
+*           If not defined only some image editing functions supported: rlImageFormat(), rlImageAlphaMask(), rlImageResize*()
 *
 *       #define SUPPORT_IMAGE_GENERATION
 *           Support procedural image generation functionality (gradient, spot, perlin-noise, cellular)
@@ -74,9 +74,9 @@
 #include "rlgl.h"               // OpenGL abstraction layer to multiple versions
 
 #include <stdlib.h>             // Required for: malloc(), calloc(), free()
-#include <string.h>             // Required for: strlen() [Used in ImageTextEx()], strcmp() [Used in LoadImageFromMemory()/LoadImageAnimFromMemory()/ExportImageToMemory()]
-#include <math.h>               // Required for: fabsf() [Used in DrawTextureRec()]
-#include <stdio.h>              // Required for: sprintf() [Used in ExportImageAsCode()]
+#include <string.h>             // Required for: strlen() [Used in rlImageTextEx()], strcmp() [Used in rlLoadImageFromMemory()/rlLoadImageAnimFromMemory()/rlExportImageToMemory()]
+#include <math.h>               // Required for: fabsf() [Used in rlDrawTextureRec()]
+#include <stdio.h>              // Required for: sprintf() [Used in rlExportImageAsCode()]
 
 // Support only desired texture formats on stb_image
 #if !defined(SUPPORT_FILEFORMAT_BMP)
@@ -89,7 +89,7 @@
     #define STBI_NO_TGA
 #endif
 #if !defined(SUPPORT_FILEFORMAT_JPG)
-    #define STBI_NO_JPEG        // Image format .jpg and .jpeg
+    #define STBI_NO_JPEG        // rlImage format .jpg and .jpeg
 #endif
 #if !defined(SUPPORT_FILEFORMAT_PSD)
     #define STBI_NO_PSD
@@ -123,7 +123,7 @@
     #define RL_GPUTEX_SUPPORT_ASTC
 #endif
 
-// Image fileformats not supported by default
+// rlImage fileformats not supported by default
 #if defined(__TINYC__)
     #define STBI_NO_SIMD
 #endif
@@ -219,7 +219,7 @@
 #endif
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "external/stb_image_resize2.h"     // Required for: stbir_resize_uint8_linear() [ImageResize()]
+#include "external/stb_image_resize2.h"     // Required for: stbir_resize_uint8_linear() [rlImageResize()]
 
 #if defined(__GNUC__) // GCC and Clang
     #pragma GCC diagnostic pop
@@ -249,23 +249,23 @@
 //----------------------------------------------------------------------------------
 // Other Modules Functions Declaration (required by text)
 //----------------------------------------------------------------------------------
-extern void LoadFontDefault(void);          // [Module: text] Loads default font, required by ImageDrawText()
+extern void LoadFontDefault(void);          // [Module: text] Loads default font, required by rlImageDrawText()
 
 //----------------------------------------------------------------------------------
 // Module specific Functions Declaration
 //----------------------------------------------------------------------------------
 static float HalfToFloat(unsigned short x);
 static unsigned short FloatToHalf(float x);
-static Vector4 *LoadImageDataNormalized(Image image);       // Load pixel data from image as Vector4 array (float normalized)
+static rlVector4 *LoadImageDataNormalized(rlImage image);       // Load pixel data from image as rlVector4 array (float normalized)
 
 //----------------------------------------------------------------------------------
 // Module Functions Definition
 //----------------------------------------------------------------------------------
 
 // Load image from file into CPU memory (RAM)
-Image LoadImage(const char *fileName)
+rlImage rlLoadImage(const char *fileName)
 {
-    Image image = { 0 };
+    rlImage image = { 0 };
 
 #if defined(SUPPORT_FILEFORMAT_PNG) || \
     defined(SUPPORT_FILEFORMAT_BMP) || \
@@ -282,26 +282,26 @@ Image LoadImage(const char *fileName)
 
     // Loading file to memory
     int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fileName, &dataSize);
+    unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
 
     // Loading image from memory data
     if (fileData != NULL)
     {
-        image = LoadImageFromMemory(GetFileExtension(fileName), fileData, dataSize);
+        image = rlLoadImageFromMemory(rlGetFileExtension(fileName), fileData, dataSize);
 
-        UnloadFileData(fileData);
+        rlUnloadFileData(fileData);
     }
 
     return image;
 }
 
 // Load an image from RAW file data
-Image LoadImageRaw(const char *fileName, int width, int height, int format, int headerSize)
+rlImage rlLoadImageRaw(const char *fileName, int width, int height, int format, int headerSize)
 {
-    Image image = { 0 };
+    rlImage image = { 0 };
 
     int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fileName, &dataSize);
+    unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
 
     if (fileData != NULL)
     {
@@ -321,27 +321,27 @@ Image LoadImageRaw(const char *fileName, int width, int height, int format, int 
             image.format = format;
         }
 
-        UnloadFileData(fileData);
+        rlUnloadFileData(fileData);
     }
 
     return image;
 }
 
 // Load animated image data
-//  - Image.data buffer includes all frames: [image#0][image#1][image#2][...]
+//  - rlImage.data buffer includes all frames: [image#0][image#1][image#2][...]
 //  - Number of frames is returned through 'frames' parameter
 //  - All frames are returned in RGBA format
 //  - Frames delay data is discarded
-Image LoadImageAnim(const char *fileName, int *frames)
+rlImage rlLoadImageAnim(const char *fileName, int *frames)
 {
-    Image image = { 0 };
+    rlImage image = { 0 };
     int frameCount = 0;
 
 #if defined(SUPPORT_FILEFORMAT_GIF)
-    if (IsFileExtension(fileName, ".gif"))
+    if (rlIsFileExtension(fileName, ".gif"))
     {
         int dataSize = 0;
-        unsigned char *fileData = LoadFileData(fileName, &dataSize);
+        unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
 
         if (fileData != NULL)
         {
@@ -352,7 +352,7 @@ Image LoadImageAnim(const char *fileName, int *frames)
             image.mipmaps = 1;
             image.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-            UnloadFileData(fileData);
+            rlUnloadFileData(fileData);
             RL_FREE(delays);        // NOTE: Frames delays are discarded
         }
     }
@@ -361,7 +361,7 @@ Image LoadImageAnim(const char *fileName, int *frames)
 #endif
     else
     {
-        image = LoadImage(fileName);
+        image = rlLoadImage(fileName);
         frameCount = 1;
     }
 
@@ -370,13 +370,13 @@ Image LoadImageAnim(const char *fileName, int *frames)
 }
 
 // Load animated image data
-//  - Image.data buffer includes all frames: [image#0][image#1][image#2][...]
+//  - rlImage.data buffer includes all frames: [image#0][image#1][image#2][...]
 //  - Number of frames is returned through 'frames' parameter
 //  - All frames are returned in RGBA format
 //  - Frames delay data is discarded
-Image LoadImageAnimFromMemory(const char *fileType, const unsigned char *fileData, int dataSize, int *frames)
+rlImage rlLoadImageAnimFromMemory(const char *fileType, const unsigned char *fileData, int dataSize, int *frames)
 {
-    Image image = { 0 };
+    rlImage image = { 0 };
     int frameCount = 0;
 
     // Security check for input data
@@ -402,7 +402,7 @@ Image LoadImageAnimFromMemory(const char *fileType, const unsigned char *fileDat
 #endif
     else
     {
-        image = LoadImageFromMemory(fileType, fileData, dataSize);
+        image = rlLoadImageFromMemory(fileType, fileData, dataSize);
         frameCount = 1;
     }
 
@@ -412,9 +412,9 @@ Image LoadImageAnimFromMemory(const char *fileType, const unsigned char *fileDat
 
 // Load image from memory buffer, fileType refers to extension: i.e. ".png"
 // WARNING: File extension must be provided in lower-case
-Image LoadImageFromMemory(const char *fileType, const unsigned char *fileData, int dataSize)
+rlImage rlLoadImageFromMemory(const char *fileType, const unsigned char *fileData, int dataSize)
 {
-    Image image = { 0 };
+    rlImage image = { 0 };
 
     // Security check for input data
     if ((fileData == NULL) || (dataSize == 0))
@@ -494,7 +494,7 @@ Image LoadImageFromMemory(const char *fileType, const unsigned char *fileData, i
             else
             {
                 TRACELOG(LOG_WARNING, "IMAGE: HDR file format not supported");
-                UnloadImage(image);
+                rlUnloadImage(image);
             }
         }
 #endif
@@ -554,9 +554,9 @@ Image LoadImageFromMemory(const char *fileType, const unsigned char *fileData, i
 
 // Load image from GPU texture data
 // NOTE: Compressed texture formats not supported
-Image LoadImageFromTexture(Texture2D texture)
+rlImage rlLoadImageFromTexture(Texture2D texture)
 {
-    Image image = { 0 };
+    rlImage image = { 0 };
 
     if (texture.format < PIXELFORMAT_COMPRESSED_DXT1_RGB)
     {
@@ -585,13 +585,13 @@ Image LoadImageFromTexture(Texture2D texture)
 }
 
 // Load image from screen buffer and (screenshot)
-Image LoadImageFromScreen(void)
+rlImage rlLoadImageFromScreen(void)
 {
-    Vector2 scale = GetWindowScaleDPI();
-    Image image = { 0 };
+    rlVector2 scale = rlGetWindowScaleDPI();
+    rlImage image = { 0 };
 
-    image.width = (int)(GetScreenWidth()*scale.x);
-    image.height = (int)(GetScreenHeight()*scale.y);
+    image.width = (int)(rlGetScreenWidth()*scale.x);
+    image.height = (int)(rlGetScreenHeight()*scale.y);
     image.mipmaps = 1;
     image.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
     image.data = rlReadScreenPixels(image.width, image.height);
@@ -600,7 +600,7 @@ Image LoadImageFromScreen(void)
 }
 
 // Check if an image is ready
-bool IsImageReady(Image image)
+bool rlIsImageReady(rlImage image)
 {
     bool result = false;
 
@@ -614,14 +614,14 @@ bool IsImageReady(Image image)
 }
 
 // Unload image from CPU memory (RAM)
-void UnloadImage(Image image)
+void rlUnloadImage(rlImage image)
 {
     RL_FREE(image.data);
 }
 
 // Export image data to file
 // NOTE: File format depends on fileName extension
-bool ExportImage(Image image, const char *fileName)
+bool rlExportImage(rlImage image, const char *fileName)
 {
     int result = 0;
 
@@ -639,39 +639,39 @@ bool ExportImage(Image image, const char *fileName)
     else if (image.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8A8) channels = 4;
     else
     {
-        // NOTE: Getting Color array as RGBA unsigned char values
-        imgData = (unsigned char *)LoadImageColors(image);
+        // NOTE: Getting rlColor array as RGBA unsigned char values
+        imgData = (unsigned char *)rlLoadImageColors(image);
         allocatedData = true;
     }
 
 #if defined(SUPPORT_FILEFORMAT_PNG)
-    if (IsFileExtension(fileName, ".png"))
+    if (rlIsFileExtension(fileName, ".png"))
     {
         int dataSize = 0;
         unsigned char *fileData = stbi_write_png_to_mem((const unsigned char *)imgData, image.width*channels, image.width, image.height, channels, &dataSize);
-        result = SaveFileData(fileName, fileData, dataSize);
+        result = rlSaveFileData(fileName, fileData, dataSize);
         RL_FREE(fileData);
     }
 #else
     if (false) { }
 #endif
 #if defined(SUPPORT_FILEFORMAT_BMP)
-    else if (IsFileExtension(fileName, ".bmp")) result = stbi_write_bmp(fileName, image.width, image.height, channels, imgData);
+    else if (rlIsFileExtension(fileName, ".bmp")) result = stbi_write_bmp(fileName, image.width, image.height, channels, imgData);
 #endif
 #if defined(SUPPORT_FILEFORMAT_TGA)
-    else if (IsFileExtension(fileName, ".tga")) result = stbi_write_tga(fileName, image.width, image.height, channels, imgData);
+    else if (rlIsFileExtension(fileName, ".tga")) result = stbi_write_tga(fileName, image.width, image.height, channels, imgData);
 #endif
 #if defined(SUPPORT_FILEFORMAT_JPG)
-    else if (IsFileExtension(fileName, ".jpg") ||
-             IsFileExtension(fileName, ".jpeg")) result = stbi_write_jpg(fileName, image.width, image.height, channels, imgData, 90);  // JPG quality: between 1 and 100
+    else if (rlIsFileExtension(fileName, ".jpg") ||
+             rlIsFileExtension(fileName, ".jpeg")) result = stbi_write_jpg(fileName, image.width, image.height, channels, imgData, 90);  // JPG quality: between 1 and 100
 #endif
 #if defined(SUPPORT_FILEFORMAT_QOI)
-    else if (IsFileExtension(fileName, ".qoi"))
+    else if (rlIsFileExtension(fileName, ".qoi"))
     {
         channels = 0;
         if (image.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8) channels = 3;
         else if (image.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8A8) channels = 4;
-        else TRACELOG(LOG_WARNING, "IMAGE: Image pixel format must be R8G8B8 or R8G8B8A8");
+        else TRACELOG(LOG_WARNING, "IMAGE: rlImage pixel format must be R8G8B8 or R8G8B8A8");
 
         if ((channels == 3) || (channels == 4))
         {
@@ -686,29 +686,29 @@ bool ExportImage(Image image, const char *fileName)
     }
 #endif
 #if defined(SUPPORT_FILEFORMAT_KTX)
-    else if (IsFileExtension(fileName, ".ktx"))
+    else if (rlIsFileExtension(fileName, ".ktx"))
     {
         result = rl_save_ktx(fileName, image.data, image.width, image.height, image.format, image.mipmaps);
     }
 #endif
-    else if (IsFileExtension(fileName, ".raw"))
+    else if (rlIsFileExtension(fileName, ".raw"))
     {
         // Export raw pixel data (without header)
         // NOTE: It's up to the user to track image parameters
-        result = SaveFileData(fileName, image.data, GetPixelDataSize(image.width, image.height, image.format));
+        result = rlSaveFileData(fileName, image.data, GetPixelDataSize(image.width, image.height, image.format));
     }
 
     if (allocatedData) RL_FREE(imgData);
 #endif      // SUPPORT_IMAGE_EXPORT
 
-    if (result != 0) TRACELOG(LOG_INFO, "FILEIO: [%s] Image exported successfully", fileName);
+    if (result != 0) TRACELOG(LOG_INFO, "FILEIO: [%s] rlImage exported successfully", fileName);
     else TRACELOG(LOG_WARNING, "FILEIO: [%s] Failed to export image", fileName);
 
     return result;
 }
 
 // Export image to memory buffer
-unsigned char *ExportImageToMemory(Image image, const char *fileType, int *dataSize)
+unsigned char *rlExportImageToMemory(rlImage image, const char *fileType, int *dataSize)
 {
     unsigned char *fileData = NULL;
     *dataSize = 0;
@@ -737,7 +737,7 @@ unsigned char *ExportImageToMemory(Image image, const char *fileType, int *dataS
 }
 
 // Export image as code file (.h) defining an array of bytes
-bool ExportImageAsCode(Image image, const char *fileName)
+bool rlExportImageAsCode(rlImage image, const char *fileName)
 {
     bool success = false;
 
@@ -756,7 +756,7 @@ bool ExportImageAsCode(Image image, const char *fileName)
     int byteCount = 0;
     byteCount += sprintf(txtData + byteCount, "////////////////////////////////////////////////////////////////////////////////////////\n");
     byteCount += sprintf(txtData + byteCount, "//                                                                                    //\n");
-    byteCount += sprintf(txtData + byteCount, "// ImageAsCode exporter v1.0 - Image pixel data exported as an array of bytes         //\n");
+    byteCount += sprintf(txtData + byteCount, "// ImageAsCode exporter v1.0 - rlImage pixel data exported as an array of bytes         //\n");
     byteCount += sprintf(txtData + byteCount, "//                                                                                    //\n");
     byteCount += sprintf(txtData + byteCount, "// more info and bugs-report:  github.com/raysan5/raylib                              //\n");
     byteCount += sprintf(txtData + byteCount, "// feedback and support:       ray[at]raylib.com                                      //\n");
@@ -767,11 +767,11 @@ bool ExportImageAsCode(Image image, const char *fileName)
 
     // Get file name from path and convert variable name to uppercase
     char varFileName[256] = { 0 };
-    strcpy(varFileName, GetFileNameWithoutExt(fileName));
+    strcpy(varFileName, rlGetFileNameWithoutExt(fileName));
     for (int i = 0; varFileName[i] != '\0'; i++) if ((varFileName[i] >= 'a') && (varFileName[i] <= 'z')) { varFileName[i] = varFileName[i] - 32; }
 
     // Add image information
-    byteCount += sprintf(txtData + byteCount, "// Image data information\n");
+    byteCount += sprintf(txtData + byteCount, "// rlImage data information\n");
     byteCount += sprintf(txtData + byteCount, "#define %s_WIDTH    %i\n", varFileName, image.width);
     byteCount += sprintf(txtData + byteCount, "#define %s_HEIGHT   %i\n", varFileName, image.height);
     byteCount += sprintf(txtData + byteCount, "#define %s_FORMAT   %i          // raylib internal pixel format\n\n", varFileName, image.format);
@@ -781,29 +781,29 @@ bool ExportImageAsCode(Image image, const char *fileName)
     byteCount += sprintf(txtData + byteCount, "0x%x };\n", ((unsigned char *)image.data)[dataSize - 1]);
 
     // NOTE: Text data size exported is determined by '\0' (NULL) character
-    success = SaveFileText(fileName, txtData);
+    success = rlSaveFileText(fileName, txtData);
 
     RL_FREE(txtData);
 
 #endif      // SUPPORT_IMAGE_EXPORT
 
-    if (success != 0) TRACELOG(LOG_INFO, "FILEIO: [%s] Image as code exported successfully", fileName);
+    if (success != 0) TRACELOG(LOG_INFO, "FILEIO: [%s] rlImage as code exported successfully", fileName);
     else TRACELOG(LOG_WARNING, "FILEIO: [%s] Failed to export image as code", fileName);
 
     return success;
 }
 
 //------------------------------------------------------------------------------------
-// Image generation functions
+// rlImage generation functions
 //------------------------------------------------------------------------------------
 // Generate image: plain color
-Image GenImageColor(int width, int height, Color color)
+rlImage rlGenImageColor(int width, int height, rlColor color)
 {
-    Color *pixels = (Color *)RL_CALLOC(width*height, sizeof(Color));
+    rlColor *pixels = (rlColor *)RL_CALLOC(width*height, sizeof(rlColor));
 
     for (int i = 0; i < width*height; i++) pixels[i] = color;
 
-    Image image = {
+    rlImage image = {
         .data = pixels,
         .width = width,
         .height = height,
@@ -819,9 +819,9 @@ Image GenImageColor(int width, int height, Color color)
 // The direction value specifies the direction of the gradient (in degrees)
 // with 0 being vertical (from top to bottom), 90 being horizontal (from left to right)
 // The gradient effectively rotates counter-clockwise by the specified amount
-Image GenImageGradientLinear(int width, int height, int direction, Color start, Color end)
+rlImage rlGenImageGradientLinear(int width, int height, int direction, rlColor start, rlColor end)
 {
-    Color *pixels = (Color *)RL_MALLOC(width*height*sizeof(Color));
+    rlColor *pixels = (rlColor *)RL_MALLOC(width*height*sizeof(rlColor));
 
     float radianDirection = (float)(90 - direction)/180.f*3.14159f;
     float cosDir = cosf(radianDirection);
@@ -846,7 +846,7 @@ Image GenImageGradientLinear(int width, int height, int direction, Color start, 
         }
     }
 
-    Image image = {
+    rlImage image = {
         .data = pixels,
         .width = width,
         .height = height,
@@ -858,9 +858,9 @@ Image GenImageGradientLinear(int width, int height, int direction, Color start, 
 }
 
 // Generate image: radial gradient
-Image GenImageGradientRadial(int width, int height, float density, Color inner, Color outer)
+rlImage rlGenImageGradientRadial(int width, int height, float density, rlColor inner, rlColor outer)
 {
-    Color *pixels = (Color *)RL_MALLOC(width*height*sizeof(Color));
+    rlColor *pixels = (rlColor *)RL_MALLOC(width*height*sizeof(rlColor));
     float radius = (width < height)? (float)width/2.0f : (float)height/2.0f;
 
     float centerX = (float)width/2.0f;
@@ -883,7 +883,7 @@ Image GenImageGradientRadial(int width, int height, float density, Color inner, 
         }
     }
 
-    Image image = {
+    rlImage image = {
         .data = pixels,
         .width = width,
         .height = height,
@@ -895,9 +895,9 @@ Image GenImageGradientRadial(int width, int height, float density, Color inner, 
 }
 
 // Generate image: square gradient
-Image GenImageGradientSquare(int width, int height, float density, Color inner, Color outer)
+rlImage rlGenImageGradientSquare(int width, int height, float density, rlColor inner, rlColor outer)
 {
-    Color *pixels = (Color *)RL_MALLOC(width*height*sizeof(Color));
+    rlColor *pixels = (rlColor *)RL_MALLOC(width*height*sizeof(rlColor));
 
     float centerX = (float)width/2.0f;
     float centerY = (float)height/2.0f;
@@ -932,7 +932,7 @@ Image GenImageGradientSquare(int width, int height, float density, Color inner, 
         }
     }
 
-    Image image = {
+    rlImage image = {
         .data = pixels,
         .width = width,
         .height = height,
@@ -944,9 +944,9 @@ Image GenImageGradientSquare(int width, int height, float density, Color inner, 
 }
 
 // Generate image: checked
-Image GenImageChecked(int width, int height, int checksX, int checksY, Color col1, Color col2)
+rlImage rlGenImageChecked(int width, int height, int checksX, int checksY, rlColor col1, rlColor col2)
 {
-    Color *pixels = (Color *)RL_MALLOC(width*height*sizeof(Color));
+    rlColor *pixels = (rlColor *)RL_MALLOC(width*height*sizeof(rlColor));
 
     for (int y = 0; y < height; y++)
     {
@@ -957,7 +957,7 @@ Image GenImageChecked(int width, int height, int checksX, int checksY, Color col
         }
     }
 
-    Image image = {
+    rlImage image = {
         .data = pixels,
         .width = width,
         .height = height,
@@ -969,18 +969,18 @@ Image GenImageChecked(int width, int height, int checksX, int checksY, Color col
 }
 
 // Generate image: white noise
-// NOTE: It requires GetRandomValue(), defined in [rcore]
-Image GenImageWhiteNoise(int width, int height, float factor)
+// NOTE: It requires rlGetRandomValue(), defined in [rcore]
+rlImage rlGenImageWhiteNoise(int width, int height, float factor)
 {
-    Color *pixels = (Color *)RL_MALLOC(width*height*sizeof(Color));
+    rlColor *pixels = (rlColor *)RL_MALLOC(width*height*sizeof(rlColor));
 
     for (int i = 0; i < width*height; i++)
     {
-        if (GetRandomValue(0, 99) < (int)(factor*100.0f)) pixels[i] = WHITE;
+        if (rlGetRandomValue(0, 99) < (int)(factor*100.0f)) pixels[i] = WHITE;
         else pixels[i] = BLACK;
     }
 
-    Image image = {
+    rlImage image = {
         .data = pixels,
         .width = width,
         .height = height,
@@ -992,9 +992,9 @@ Image GenImageWhiteNoise(int width, int height, float factor)
 }
 
 // Generate image: perlin noise
-Image GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float scale)
+rlImage rlGenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float scale)
 {
-    Color *pixels = (Color *)RL_MALLOC(width*height*sizeof(Color));
+    rlColor *pixels = (rlColor *)RL_MALLOC(width*height*sizeof(rlColor));
 
     float aspectRatio = (float)width / (float)height;
     for (int y = 0; y < height; y++)
@@ -1026,11 +1026,11 @@ Image GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float
             float np = (p + 1.0f)/2.0f;
 
             int intensity = (int)(np*255.0f);
-            pixels[y*width + x] = (Color){ intensity, intensity, intensity, 255 };
+            pixels[y*width + x] = (rlColor){ intensity, intensity, intensity, 255 };
         }
     }
 
-    Image image = {
+    rlImage image = {
         .data = pixels,
         .width = width,
         .height = height,
@@ -1042,21 +1042,21 @@ Image GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float
 }
 
 // Generate image: cellular algorithm. Bigger tileSize means bigger cells
-Image GenImageCellular(int width, int height, int tileSize)
+rlImage rlGenImageCellular(int width, int height, int tileSize)
 {
-    Color *pixels = (Color *)RL_MALLOC(width*height*sizeof(Color));
+    rlColor *pixels = (rlColor *)RL_MALLOC(width*height*sizeof(rlColor));
 
     int seedsPerRow = width/tileSize;
     int seedsPerCol = height/tileSize;
     int seedCount = seedsPerRow*seedsPerCol;
 
-    Vector2 *seeds = (Vector2 *)RL_MALLOC(seedCount*sizeof(Vector2));
+    rlVector2 *seeds = (rlVector2 *)RL_MALLOC(seedCount*sizeof(rlVector2));
 
     for (int i = 0; i < seedCount; i++)
     {
-        int y = (i/seedsPerRow)*tileSize + GetRandomValue(0, tileSize - 1);
-        int x = (i%seedsPerRow)*tileSize + GetRandomValue(0, tileSize - 1);
-        seeds[i] = (Vector2){ (float)x, (float)y };
+        int y = (i/seedsPerRow)*tileSize + rlGetRandomValue(0, tileSize - 1);
+        int x = (i%seedsPerRow)*tileSize + rlGetRandomValue(0, tileSize - 1);
+        seeds[i] = (rlVector2){ (float)x, (float)y };
     }
 
     for (int y = 0; y < height; y++)
@@ -1078,7 +1078,7 @@ Image GenImageCellular(int width, int height, int tileSize)
                 {
                     if ((tileY + j < 0) || (tileY + j >= seedsPerCol)) continue;
 
-                    Vector2 neighborSeed = seeds[(tileY + j)*seedsPerRow + tileX + i];
+                    rlVector2 neighborSeed = seeds[(tileY + j)*seedsPerRow + tileX + i];
 
                     float dist = (float)hypot(x - (int)neighborSeed.x, y - (int)neighborSeed.y);
                     minDistance = (float)fmin(minDistance, dist);
@@ -1089,13 +1089,13 @@ Image GenImageCellular(int width, int height, int tileSize)
             int intensity = (int)(minDistance*256.0f/tileSize);
             if (intensity > 255) intensity = 255;
 
-            pixels[y*width + x] = (Color){ intensity, intensity, intensity, 255 };
+            pixels[y*width + x] = (rlColor){ intensity, intensity, intensity, 255 };
         }
     }
 
     RL_FREE(seeds);
 
-    Image image = {
+    rlImage image = {
         .data = pixels,
         .width = width,
         .height = height,
@@ -1107,12 +1107,12 @@ Image GenImageCellular(int width, int height, int tileSize)
 }
 
 // Generate image: grayscale image from text data
-Image GenImageText(int width, int height, const char *text)
+rlImage rlGenImageText(int width, int height, const char *text)
 {
-    Image image = { 0 };
+    rlImage image = { 0 };
 
 #if defined(SUPPORT_MODULE_RTEXT)
-    int textLength = TextLength(text);
+    int textLength = rlTextLength(text);
     int imageViewSize = width*height;
 
     image.width = width;
@@ -1123,8 +1123,8 @@ Image GenImageText(int width, int height, const char *text)
 
     memcpy(image.data, text, (textLength > imageViewSize)? imageViewSize : textLength);
 #else
-    TRACELOG(LOG_WARNING, "IMAGE: GenImageText() requires module: rtext");
-    image = GenImageColor(width, height, BLACK);     // Generating placeholder black image rectangle
+    TRACELOG(LOG_WARNING, "IMAGE: rlGenImageText() requires module: rtext");
+    image = rlGenImageColor(width, height, BLACK);     // Generating placeholder black image rectangle
 #endif
 
     return image;
@@ -1132,12 +1132,12 @@ Image GenImageText(int width, int height, const char *text)
 #endif      // SUPPORT_IMAGE_GENERATION
 
 //------------------------------------------------------------------------------------
-// Image manipulation functions
+// rlImage manipulation functions
 //------------------------------------------------------------------------------------
 // Copy an image to a new image
-Image ImageCopy(Image image)
+rlImage rlImageCopy(rlImage image)
 {
-    Image newImage = { 0 };
+    rlImage newImage = { 0 };
 
     int width = image.width;
     int height = image.height;
@@ -1172,9 +1172,9 @@ Image ImageCopy(Image image)
 }
 
 // Create an image from another image piece
-Image ImageFromImage(Image image, Rectangle rec)
+rlImage rlImageFromImage(rlImage image, rlRectangle rec)
 {
-    Image result = { 0 };
+    rlImage result = { 0 };
 
     int bytesPerPixel = GetPixelDataSize(1, 1, image.format);
 
@@ -1194,7 +1194,7 @@ Image ImageFromImage(Image image, Rectangle rec)
 
 // Crop an image to area defined by a rectangle
 // NOTE: Security checks are performed in case rectangle goes out of bounds
-void ImageCrop(Image *image, Rectangle crop)
+void rlImageCrop(rlImage *image, rlRectangle crop)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
@@ -1210,8 +1210,8 @@ void ImageCrop(Image *image, Rectangle crop)
         return;
     }
 
-    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "Image manipulation only applied to base mipmap level");
-    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image manipulation not supported for compressed formats");
+    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "rlImage manipulation only applied to base mipmap level");
+    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "rlImage manipulation not supported for compressed formats");
     else
     {
         int bytesPerPixel = GetPixelDataSize(1, 1, image->format);
@@ -1245,7 +1245,7 @@ void ImageCrop(Image *image, Rectangle crop)
 }
 
 // Convert image data to desired format
-void ImageFormat(Image *image, int newFormat)
+void rlImageFormat(rlImage *image, int newFormat)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
@@ -1254,7 +1254,7 @@ void ImageFormat(Image *image, int newFormat)
     {
         if ((image->format < PIXELFORMAT_COMPRESSED_DXT1_RGB) && (newFormat < PIXELFORMAT_COMPRESSED_DXT1_RGB))
         {
-            Vector4 *pixels = LoadImageDataNormalized(*image);     // Supports 8 to 32 bit per channel
+            rlVector4 *pixels = LoadImageDataNormalized(*image);     // Supports 8 to 32 bit per channel
 
             RL_FREE(image->data);      // WARNING! We loose mipmaps data --> Regenerated at the end...
             image->data = NULL;
@@ -1366,7 +1366,7 @@ void ImageFormat(Image *image, int newFormat)
                 } break;
                 case PIXELFORMAT_UNCOMPRESSED_R32:
                 {
-                    // WARNING: Image is converted to GRAYSCALE equivalent 32bit
+                    // WARNING: rlImage is converted to GRAYSCALE equivalent 32bit
 
                     image->data = (float *)RL_MALLOC(image->width*image->height*sizeof(float));
 
@@ -1400,7 +1400,7 @@ void ImageFormat(Image *image, int newFormat)
                 } break;
                 case PIXELFORMAT_UNCOMPRESSED_R16:
                 {
-                    // WARNING: Image is converted to GRAYSCALE equivalent 16bit
+                    // WARNING: rlImage is converted to GRAYSCALE equivalent 16bit
 
                     image->data = (unsigned short *)RL_MALLOC(image->width*image->height*sizeof(unsigned short));
 
@@ -1444,7 +1444,7 @@ void ImageFormat(Image *image, int newFormat)
             {
                 image->mipmaps = 1;
             #if defined(SUPPORT_IMAGE_MANIPULATION)
-                if (image->data != NULL) ImageMipmaps(image);
+                if (image->data != NULL) rlImageMipmaps(image);
             #endif
             }
         }
@@ -1453,45 +1453,45 @@ void ImageFormat(Image *image, int newFormat)
 }
 
 // Create an image from text (default font)
-Image ImageText(const char *text, int fontSize, Color color)
+rlImage rlImageText(const char *text, int fontSize, rlColor color)
 {
-    Image imText = { 0 };
+    rlImage imText = { 0 };
 #if defined(SUPPORT_MODULE_RTEXT)
-    int defaultFontSize = 10;   // Default Font chars height in pixel
+    int defaultFontSize = 10;   // Default rlFont chars height in pixel
     if (fontSize < defaultFontSize) fontSize = defaultFontSize;
     int spacing = fontSize/defaultFontSize;
-    imText = ImageTextEx(GetFontDefault(), text, (float)fontSize, (float)spacing, color);   // WARNING: Module required: rtext
+    imText = rlImageTextEx(rlGetFontDefault(), text, (float)fontSize, (float)spacing, color);   // WARNING: Module required: rtext
 #else
-    imText = GenImageColor(200, 60, BLACK);     // Generating placeholder black image rectangle
-    TRACELOG(LOG_WARNING, "IMAGE: ImageTextEx() requires module: rtext");
+    imText = rlGenImageColor(200, 60, BLACK);     // Generating placeholder black image rectangle
+    TRACELOG(LOG_WARNING, "IMAGE: rlImageTextEx() requires module: rtext");
 #endif
     return imText;
 }
 
 // Create an image from text (custom sprite font)
 // WARNING: Module required: rtext
-Image ImageTextEx(Font font, const char *text, float fontSize, float spacing, Color tint)
+rlImage rlImageTextEx(rlFont font, const char *text, float fontSize, float spacing, rlColor tint)
 {
-    Image imText = { 0 };
+    rlImage imText = { 0 };
 #if defined(SUPPORT_MODULE_RTEXT)
     int size = (int)strlen(text);   // Get size in bytes of text
 
-    int textOffsetX = 0;            // Image drawing position X
+    int textOffsetX = 0;            // rlImage drawing position X
     int textOffsetY = 0;            // Offset between lines (on linebreak '\n')
 
     // NOTE: Text image is generated at font base size, later scaled to desired font size
-    Vector2 imSize = MeasureTextEx(font, text, (float)font.baseSize, spacing);  // WARNING: Module required: rtext
-    Vector2 textSize = MeasureTextEx(font, text, fontSize, spacing);
+    rlVector2 imSize = rlMeasureTextEx(font, text, (float)font.baseSize, spacing);  // WARNING: Module required: rtext
+    rlVector2 textSize = rlMeasureTextEx(font, text, fontSize, spacing);
 
     // Create image to store text
-    imText = GenImageColor((int)imSize.x, (int)imSize.y, BLANK);
+    imText = rlGenImageColor((int)imSize.x, (int)imSize.y, BLANK);
 
     for (int i = 0; i < size;)
     {
         // Get next codepoint from byte string and glyph index in font
         int codepointByteCount = 0;
-        int codepoint = GetCodepointNext(&text[i], &codepointByteCount);    // WARNING: Module required: rtext
-        int index = GetGlyphIndex(font, codepoint);                         // WARNING: Module required: rtext
+        int codepoint = rlGetCodepointNext(&text[i], &codepointByteCount);    // WARNING: Module required: rtext
+        int index = rlGetGlyphIndex(font, codepoint);                         // WARNING: Module required: rtext
 
         if (codepoint == '\n')
         {
@@ -1504,8 +1504,8 @@ Image ImageTextEx(Font font, const char *text, float fontSize, float spacing, Co
         {
             if ((codepoint != ' ') && (codepoint != '\t'))
             {
-                Rectangle rec = { (float)(textOffsetX + font.glyphs[index].offsetX), (float)(textOffsetY + font.glyphs[index].offsetY), (float)font.recs[index].width, (float)font.recs[index].height };
-                ImageDraw(&imText, font.glyphs[index].image, (Rectangle){ 0, 0, (float)font.glyphs[index].image.width, (float)font.glyphs[index].image.height }, rec, tint);
+                rlRectangle rec = { (float)(textOffsetX + font.glyphs[index].offsetX), (float)(textOffsetY + font.glyphs[index].offsetY), (float)font.recs[index].width, (float)font.recs[index].height };
+                rlImageDraw(&imText, font.glyphs[index].image, (rlRectangle){ 0, 0, (float)font.glyphs[index].image.width, (float)font.glyphs[index].image.height }, rec, tint);
             }
 
             if (font.glyphs[index].advanceX == 0) textOffsetX += (int)(font.recs[index].width + spacing);
@@ -1523,20 +1523,20 @@ Image ImageTextEx(Font font, const char *text, float fontSize, float spacing, Co
 
         // Using nearest-neighbor scaling algorithm for default font
         // TODO: Allow defining the preferred scaling mechanism externally
-        if (font.texture.id == GetFontDefault().texture.id) ImageResizeNN(&imText, (int)(imSize.x*scaleFactor), (int)(imSize.y*scaleFactor));
-        else ImageResize(&imText, (int)(imSize.x*scaleFactor), (int)(imSize.y*scaleFactor));
+        if (font.texture.id == rlGetFontDefault().texture.id) rlImageResizeNN(&imText, (int)(imSize.x*scaleFactor), (int)(imSize.y*scaleFactor));
+        else rlImageResize(&imText, (int)(imSize.x*scaleFactor), (int)(imSize.y*scaleFactor));
     }
 #else
-    imText = GenImageColor(200, 60, BLACK);     // Generating placeholder black image rectangle
-    TRACELOG(LOG_WARNING, "IMAGE: ImageTextEx() requires module: rtext");
+    imText = rlGenImageColor(200, 60, BLACK);     // Generating placeholder black image rectangle
+    TRACELOG(LOG_WARNING, "IMAGE: rlImageTextEx() requires module: rtext");
 #endif
     return imText;
 }
 
 // Create an image from a selected channel of another image
-Image ImageFromChannel(Image image, int selectedChannel)
+rlImage rlImageFromChannel(rlImage image, int selectedChannel)
 {
-    Image result = { 0 };
+    rlImage result = { 0 };
 
     // Security check to avoid program crash
     if ((image.data == NULL) || (image.width == 0) || (image.height == 0)) return result;
@@ -1581,7 +1581,7 @@ Image ImageFromChannel(Image image, int selectedChannel)
     // Check for RGBA formats
     if (selectedChannel > 3)
     {
-        TRACELOG(LOG_WARNING, "ImageFromChannel supports channels 0 to 3 (rgba). Setting channel to alpha.");
+        TRACELOG(LOG_WARNING, "rlImageFromChannel supports channels 0 to 3 (rgba). Setting channel to alpha.");
         selectedChannel = 3;
     }
 
@@ -1702,13 +1702,13 @@ Image ImageFromChannel(Image image, int selectedChannel)
 }
 
 // Resize and image to new size using Nearest-Neighbor scaling algorithm
-void ImageResizeNN(Image *image,int newWidth,int newHeight)
+void rlImageResizeNN(rlImage *image,int newWidth,int newHeight)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    Color *pixels = LoadImageColors(*image);
-    Color *output = (Color *)RL_MALLOC(newWidth*newHeight*sizeof(Color));
+    rlColor *pixels = rlLoadImageColors(*image);
+    rlColor *output = (rlColor *)RL_MALLOC(newWidth*newHeight*sizeof(rlColor));
 
     // EDIT: added +1 to account for an early rounding problem
     int xRatio = (int)((image->width << 16)/newWidth) + 1;
@@ -1735,16 +1735,16 @@ void ImageResizeNN(Image *image,int newWidth,int newHeight)
     image->height = newHeight;
     image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-    ImageFormat(image, format);  // Reformat 32bit RGBA image to original format
+    rlImageFormat(image, format);  // Reformat 32bit RGBA image to original format
 
-    UnloadImageColors(pixels);
+    rlUnloadImageColors(pixels);
 }
 
 // Resize and image to new size
 // NOTE: Uses stb default scaling filters (both bicubic):
 // STBIR_DEFAULT_FILTER_UPSAMPLE    STBIR_FILTER_CATMULLROM
 // STBIR_DEFAULT_FILTER_DOWNSAMPLE  STBIR_FILTER_MITCHELL   (high-quality Catmull-Rom)
-void ImageResize(Image *image, int newWidth, int newHeight)
+void rlImageResize(rlImage *image, int newWidth, int newHeight)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
@@ -1775,16 +1775,16 @@ void ImageResize(Image *image, int newWidth, int newHeight)
     }
     else
     {
-        // Get data as Color pixels array to work with it
-        Color *pixels = LoadImageColors(*image);
-        Color *output = (Color *)RL_MALLOC(newWidth*newHeight*sizeof(Color));
+        // Get data as rlColor pixels array to work with it
+        rlColor *pixels = rlLoadImageColors(*image);
+        rlColor *output = (rlColor *)RL_MALLOC(newWidth*newHeight*sizeof(rlColor));
 
-        // NOTE: Color data is cast to (unsigned char *), there shouldn't been any problem...
+        // NOTE: rlColor data is cast to (unsigned char *), there shouldn't been any problem...
         stbir_resize_uint8_linear((unsigned char *)pixels, image->width, image->height, 0, (unsigned char *)output, newWidth, newHeight, 0, (stbir_pixel_layout)4);
 
         int format = image->format;
 
-        UnloadImageColors(pixels);
+        rlUnloadImageColors(pixels);
         RL_FREE(image->data);
 
         image->data = output;
@@ -1792,23 +1792,23 @@ void ImageResize(Image *image, int newWidth, int newHeight)
         image->height = newHeight;
         image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-        ImageFormat(image, format);  // Reformat 32bit RGBA image to original format
+        rlImageFormat(image, format);  // Reformat 32bit RGBA image to original format
     }
 }
 
 // Resize canvas and fill with color
 // NOTE: Resize offset is relative to the top-left corner of the original image
-void ImageResizeCanvas(Image *image, int newWidth, int newHeight, int offsetX, int offsetY, Color fill)
+void rlImageResizeCanvas(rlImage *image, int newWidth, int newHeight, int offsetX, int offsetY, rlColor fill)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "Image manipulation only applied to base mipmap level");
-    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image manipulation not supported for compressed formats");
+    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "rlImage manipulation only applied to base mipmap level");
+    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "rlImage manipulation not supported for compressed formats");
     else if ((newWidth != image->width) || (newHeight != image->height))
     {
-        Rectangle srcRec = { 0, 0, (float)image->width, (float)image->height };
-        Vector2 dstPos = { (float)offsetX, (float)offsetY };
+        rlRectangle srcRec = { 0, 0, (float)image->width, (float)image->height };
+        rlVector2 dstPos = { (float)offsetX, (float)offsetY };
 
         if (offsetX < 0)
         {
@@ -1834,7 +1834,7 @@ void ImageResizeCanvas(Image *image, int newWidth, int newHeight, int offsetX, i
 
         // Fill resized canvas with fill color
         // Set first pixel with image->format
-        SetPixelColor(resizedData, fill, image->format);
+        rlSetPixelColor(resizedData, fill, image->format);
 
         // Fill remaining bytes of first row
         for (int x = 1; x < newWidth; x++)
@@ -1866,7 +1866,7 @@ void ImageResizeCanvas(Image *image, int newWidth, int newHeight, int offsetX, i
 #if defined(SUPPORT_IMAGE_MANIPULATION)
 // Convert image to POT (power-of-two)
 // NOTE: It could be useful on OpenGL ES 2.0 (RPI, HTML5)
-void ImageToPOT(Image *image, Color fill)
+void rlImageToPOT(rlImage *image, rlColor fill)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
@@ -1877,31 +1877,31 @@ void ImageToPOT(Image *image, Color fill)
     int potHeight = (int)powf(2, ceilf(logf((float)image->height)/logf(2)));
 
     // Check if POT texture generation is required (if texture is not already POT)
-    if ((potWidth != image->width) || (potHeight != image->height)) ImageResizeCanvas(image, potWidth, potHeight, 0, 0, fill);
+    if ((potWidth != image->width) || (potHeight != image->height)) rlImageResizeCanvas(image, potWidth, potHeight, 0, 0, fill);
 }
 
 // Crop image depending on alpha value
 // NOTE: Threshold is defined as a percentage: 0.0f -> 1.0f
-void ImageAlphaCrop(Image *image, float threshold)
+void rlImageAlphaCrop(rlImage *image, float threshold)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    Rectangle crop = GetImageAlphaBorder(*image, threshold);
+    rlRectangle crop = rlGetImageAlphaBorder(*image, threshold);
 
     // Crop if rectangle is valid
-    if (((int)crop.width != 0) && ((int)crop.height != 0)) ImageCrop(image, crop);
+    if (((int)crop.width != 0) && ((int)crop.height != 0)) rlImageCrop(image, crop);
 }
 
 // Clear alpha channel to desired color
 // NOTE: Threshold defines the alpha limit, 0.0f to 1.0f
-void ImageAlphaClear(Image *image, Color color, float threshold)
+void rlImageAlphaClear(rlImage *image, rlColor color, float threshold)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "Image manipulation only applied to base mipmap level");
-    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image manipulation not supported for compressed formats");
+    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "rlImage manipulation only applied to base mipmap level");
+    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "rlImage manipulation not supported for compressed formats");
     else
     {
         switch (image->format)
@@ -2000,7 +2000,7 @@ void ImageAlphaClear(Image *image, Color color, float threshold)
 // Apply alpha mask to image
 // NOTE 1: Returned image is GRAY_ALPHA (16bit) or RGBA (32bit)
 // NOTE 2: alphaMask should be same size as image
-void ImageAlphaMask(Image *image, Image alphaMask)
+void rlImageAlphaMask(rlImage *image, rlImage alphaMask)
 {
     if ((image->width != alphaMask.width) || (image->height != alphaMask.height))
     {
@@ -2013,8 +2013,8 @@ void ImageAlphaMask(Image *image, Image alphaMask)
     else
     {
         // Force mask to be Grayscale
-        Image mask = ImageCopy(alphaMask);
-        if (mask.format != PIXELFORMAT_UNCOMPRESSED_GRAYSCALE) ImageFormat(&mask, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
+        rlImage mask = rlImageCopy(alphaMask);
+        if (mask.format != PIXELFORMAT_UNCOMPRESSED_GRAYSCALE) rlImageFormat(&mask, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
 
         // In case image is only grayscale, we just add alpha channel
         if (image->format == PIXELFORMAT_UNCOMPRESSED_GRAYSCALE)
@@ -2035,7 +2035,7 @@ void ImageAlphaMask(Image *image, Image alphaMask)
         else
         {
             // Convert image to RGBA
-            if (image->format != PIXELFORMAT_UNCOMPRESSED_R8G8B8A8) ImageFormat(image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+            if (image->format != PIXELFORMAT_UNCOMPRESSED_R8G8B8A8) rlImageFormat(image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
 
             // Apply alpha mask to alpha channel
             for (int i = 0, k = 3; (i < mask.width*mask.height) || (i < image->width*image->height); i++, k += 4)
@@ -2044,18 +2044,18 @@ void ImageAlphaMask(Image *image, Image alphaMask)
             }
         }
 
-        UnloadImage(mask);
+        rlUnloadImage(mask);
     }
 }
 
 // Premultiply alpha channel
-void ImageAlphaPremultiply(Image *image)
+void rlImageAlphaPremultiply(rlImage *image)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
     float alpha = 0.0f;
-    Color *pixels = LoadImageColors(*image);
+    rlColor *pixels = rlLoadImageColors(*image);
 
     for (int i = 0; i < image->width*image->height; i++)
     {
@@ -2080,22 +2080,22 @@ void ImageAlphaPremultiply(Image *image)
     image->data = pixels;
     image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-    ImageFormat(image, format);
+    rlImageFormat(image, format);
 }
 
 // Apply box blur to image
-void ImageBlurGaussian(Image *image, int blurSize)
+void rlImageBlurGaussian(rlImage *image, int blurSize)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    ImageAlphaPremultiply(image);
+    rlImageAlphaPremultiply(image);
 
-    Color *pixels = LoadImageColors(*image);
+    rlColor *pixels = rlLoadImageColors(*image);
 
     // Loop switches between pixelsCopy1 and pixelsCopy2
-    Vector4 *pixelsCopy1 = RL_MALLOC((image->height)*(image->width)*sizeof(Vector4));
-    Vector4 *pixelsCopy2 = RL_MALLOC((image->height)*(image->width)*sizeof(Vector4));
+    rlVector4 *pixelsCopy1 = RL_MALLOC((image->height)*(image->width)*sizeof(rlVector4));
+    rlVector4 *pixelsCopy2 = RL_MALLOC((image->height)*(image->width)*sizeof(rlVector4));
 
     for (int i = 0; i < (image->height*image->width); i++)
     {
@@ -2224,12 +2224,12 @@ void ImageBlurGaussian(Image *image, int blurSize)
     image->data = pixels;
     image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-    ImageFormat(image, format);
+    rlImageFormat(image, format);
 }
 
 // Apply custom square convolution kernel to image
 // NOTE: The convolution kernel matrix is expected to be square
-void ImageKernelConvolution(Image *image, const float *kernel, int kernelSize)
+void rlImageKernelConvolution(rlImage *image, const float *kernel, int kernelSize)
 {
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0) || kernel == NULL) return;
 
@@ -2241,10 +2241,10 @@ void ImageKernelConvolution(Image *image, const float *kernel, int kernelSize)
         return;
     }
 
-    Color *pixels = LoadImageColors(*image);
+    rlColor *pixels = rlLoadImageColors(*image);
 
-    Vector4 *imageCopy2 = RL_MALLOC((image->height)*(image->width)*sizeof(Vector4));
-    Vector4 *temp = RL_MALLOC(kernelSize*sizeof(Vector4));
+    rlVector4 *imageCopy2 = RL_MALLOC((image->height)*(image->width)*sizeof(rlVector4));
+    rlVector4 *temp = RL_MALLOC(kernelSize*sizeof(rlVector4));
 
     for (int i = 0; i < kernelSize; i++)
     {
@@ -2354,14 +2354,14 @@ void ImageKernelConvolution(Image *image, const float *kernel, int kernelSize)
 
     image->data = pixels;
     image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
-    ImageFormat(image, format);
+    rlImageFormat(image, format);
 }
 
 // Generate all mipmap levels for a provided image
 // NOTE 1: Supports POT and NPOT images
 // NOTE 2: image.data is scaled to include mipmap levels
 // NOTE 3: Mipmaps format is the same as base image
-void ImageMipmaps(Image *image)
+void rlImageMipmaps(rlImage *image)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
@@ -2369,7 +2369,7 @@ void ImageMipmaps(Image *image)
     int mipCount = 1;                   // Required mipmap levels count (including base level)
     int mipWidth = image->width;        // Base image width
     int mipHeight = image->height;      // Base image height
-    int mipSize = GetPixelDataSize(mipWidth, mipHeight, image->format);  // Image data size (in bytes)
+    int mipSize = GetPixelDataSize(mipWidth, mipHeight, image->format);  // rlImage data size (in bytes)
 
     // Count mipmap levels required
     while ((mipWidth != 1) || (mipHeight != 1))
@@ -2400,13 +2400,13 @@ void ImageMipmaps(Image *image)
         mipWidth = image->width/2;
         mipHeight = image->height/2;
         mipSize = GetPixelDataSize(mipWidth, mipHeight, image->format);
-        Image imCopy = ImageCopy(*image);
+        rlImage imCopy = rlImageCopy(*image);
 
         for (int i = 1; i < mipCount; i++)
         {
             TRACELOGD("IMAGE: Generating mipmap level: %i (%i x %i) - size: %i - offset: 0x%x", i, mipWidth, mipHeight, mipSize, nextmip);
 
-            ImageResize(&imCopy, mipWidth, mipHeight);  // Uses internally Mitchell cubic downscale filter
+            rlImageResize(&imCopy, mipWidth, mipHeight);  // Uses internally Mitchell cubic downscale filter
 
             memcpy(nextmip, imCopy.data, mipSize);
             nextmip += mipSize;
@@ -2422,7 +2422,7 @@ void ImageMipmaps(Image *image)
             mipSize = GetPixelDataSize(mipWidth, mipHeight, image->format);
         }
 
-        UnloadImage(imCopy);
+        rlUnloadImage(imCopy);
     }
     else TRACELOG(LOG_WARNING, "IMAGE: Mipmaps already available");
 }
@@ -2430,7 +2430,7 @@ void ImageMipmaps(Image *image)
 // Dither image data to 16bpp or lower (Floyd-Steinberg dithering)
 // NOTE: In case selected bpp do not represent a known 16bit format,
 // dithered data is stored in the LSB part of the unsigned short
-void ImageDither(Image *image, int rBpp, int gBpp, int bBpp, int aBpp)
+void rlImageDither(rlImage *image, int rBpp, int gBpp, int bBpp, int aBpp)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
@@ -2447,7 +2447,7 @@ void ImageDither(Image *image, int rBpp, int gBpp, int bBpp, int aBpp)
     }
     else
     {
-        Color *pixels = LoadImageColors(*image);
+        rlColor *pixels = rlLoadImageColors(*image);
 
         RL_FREE(image->data);      // free old image data
 
@@ -2469,8 +2469,8 @@ void ImageDither(Image *image, int rBpp, int gBpp, int bBpp, int aBpp)
         // NOTE: We will store the dithered data as unsigned short (16bpp)
         image->data = (unsigned short *)RL_MALLOC(image->width*image->height*sizeof(unsigned short));
 
-        Color oldPixel = WHITE;
-        Color newPixel = WHITE;
+        rlColor oldPixel = WHITE;
+        rlColor newPixel = WHITE;
 
         int rError, gError, bError;
         unsigned short rPixel, gPixel, bPixel, aPixel;   // Used for 16bit pixel composition
@@ -2483,7 +2483,7 @@ void ImageDither(Image *image, int rBpp, int gBpp, int bBpp, int aBpp)
             {
                 oldPixel = pixels[y*image->width + x];
 
-                // NOTE: New pixel obtained by bits truncate, it would be better to round values (check ImageFormat())
+                // NOTE: New pixel obtained by bits truncate, it would be better to round values (check rlImageFormat())
                 newPixel.r = oldPixel.r >> (8 - rBpp);     // R bits
                 newPixel.g = oldPixel.g >> (8 - gBpp);     // G bits
                 newPixel.b = oldPixel.b >> (8 - bBpp);     // B bits
@@ -2535,18 +2535,18 @@ void ImageDither(Image *image, int rBpp, int gBpp, int bBpp, int aBpp)
             }
         }
 
-        UnloadImageColors(pixels);
+        rlUnloadImageColors(pixels);
     }
 }
 
 // Flip image vertically
-void ImageFlipVertical(Image *image)
+void rlImageFlipVertical(rlImage *image)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "Image manipulation only applied to base mipmap level");
-    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image manipulation not supported for compressed formats");
+    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "rlImage manipulation only applied to base mipmap level");
+    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "rlImage manipulation not supported for compressed formats");
     else
     {
         int bytesPerPixel = GetPixelDataSize(1, 1, image->format);
@@ -2564,13 +2564,13 @@ void ImageFlipVertical(Image *image)
 }
 
 // Flip image horizontally
-void ImageFlipHorizontal(Image *image)
+void rlImageFlipHorizontal(rlImage *image)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "Image manipulation only applied to base mipmap level");
-    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image manipulation not supported for compressed formats");
+    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "rlImage manipulation only applied to base mipmap level");
+    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "rlImage manipulation not supported for compressed formats");
     else
     {
         int bytesPerPixel = GetPixelDataSize(1, 1, image->format);
@@ -2609,13 +2609,13 @@ void ImageFlipHorizontal(Image *image)
 }
 
 // Rotate image in degrees
-void ImageRotate(Image *image, int degrees)
+void rlImageRotate(rlImage *image, int degrees)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "Image manipulation only applied to base mipmap level");
-    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image manipulation not supported for compressed formats");
+    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "rlImage manipulation only applied to base mipmap level");
+    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "rlImage manipulation not supported for compressed formats");
     else
     {
         float rad = degrees*PI/180.0f;
@@ -2668,13 +2668,13 @@ void ImageRotate(Image *image, int degrees)
 }
 
 // Rotate image clockwise 90deg
-void ImageRotateCW(Image *image)
+void rlImageRotateCW(rlImage *image)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "Image manipulation only applied to base mipmap level");
-    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image manipulation not supported for compressed formats");
+    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "rlImage manipulation only applied to base mipmap level");
+    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "rlImage manipulation not supported for compressed formats");
     else
     {
         int bytesPerPixel = GetPixelDataSize(1, 1, image->format);
@@ -2700,13 +2700,13 @@ void ImageRotateCW(Image *image)
 }
 
 // Rotate image counter-clockwise 90deg
-void ImageRotateCCW(Image *image)
+void rlImageRotateCCW(rlImage *image)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "Image manipulation only applied to base mipmap level");
-    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image manipulation not supported for compressed formats");
+    if (image->mipmaps > 1) TRACELOG(LOG_WARNING, "rlImage manipulation only applied to base mipmap level");
+    if (image->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "rlImage manipulation not supported for compressed formats");
     else
     {
         int bytesPerPixel = GetPixelDataSize(1, 1, image->format);
@@ -2732,12 +2732,12 @@ void ImageRotateCCW(Image *image)
 }
 
 // Modify image color: tint
-void ImageColorTint(Image *image, Color color)
+void rlImageColorTint(rlImage *image, rlColor color)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    Color *pixels = LoadImageColors(*image);
+    rlColor *pixels = rlLoadImageColors(*image);
 
     for (int i = 0; i < image->width*image->height; i++)
     {
@@ -2758,16 +2758,16 @@ void ImageColorTint(Image *image, Color color)
     image->data = pixels;
     image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-    ImageFormat(image, format);
+    rlImageFormat(image, format);
 }
 
 // Modify image color: invert
-void ImageColorInvert(Image *image)
+void rlImageColorInvert(rlImage *image)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    Color *pixels = LoadImageColors(*image);
+    rlColor *pixels = rlLoadImageColors(*image);
 
     for (int i = 0; i < image->width*image->height; i++)
     {
@@ -2782,18 +2782,18 @@ void ImageColorInvert(Image *image)
     image->data = pixels;
     image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-    ImageFormat(image, format);
+    rlImageFormat(image, format);
 }
 
 // Modify image color: grayscale
-void ImageColorGrayscale(Image *image)
+void rlImageColorGrayscale(rlImage *image)
 {
-    ImageFormat(image, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
+    rlImageFormat(image, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE);
 }
 
 // Modify image color: contrast
 // NOTE: Contrast values between -100 and 100
-void ImageColorContrast(Image *image, float contrast)
+void rlImageColorContrast(rlImage *image, float contrast)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
@@ -2804,7 +2804,7 @@ void ImageColorContrast(Image *image, float contrast)
     contrast = (100.0f + contrast)/100.0f;
     contrast *= contrast;
 
-    Color *pixels = LoadImageColors(*image);
+    rlColor *pixels = rlLoadImageColors(*image);
 
     for (int i = 0; i < image->width*image->height; i++)
     {
@@ -2843,12 +2843,12 @@ void ImageColorContrast(Image *image, float contrast)
     image->data = pixels;
     image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-    ImageFormat(image, format);
+    rlImageFormat(image, format);
 }
 
 // Modify image color: brightness
 // NOTE: Brightness values between -255 and 255
-void ImageColorBrightness(Image *image, int brightness)
+void rlImageColorBrightness(rlImage *image, int brightness)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
@@ -2856,7 +2856,7 @@ void ImageColorBrightness(Image *image, int brightness)
     if (brightness < -255) brightness = -255;
     if (brightness > 255) brightness = 255;
 
-    Color *pixels = LoadImageColors(*image);
+    rlColor *pixels = rlLoadImageColors(*image);
 
     for (int i = 0; i < image->width*image->height; i++)
     {
@@ -2884,16 +2884,16 @@ void ImageColorBrightness(Image *image, int brightness)
     image->data = pixels;
     image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-    ImageFormat(image, format);
+    rlImageFormat(image, format);
 }
 
 // Modify image color: replace color
-void ImageColorReplace(Image *image, Color color, Color replace)
+void rlImageColorReplace(rlImage *image, rlColor color, rlColor replace)
 {
     // Security check to avoid program crash
     if ((image->data == NULL) || (image->width == 0) || (image->height == 0)) return;
 
-    Color *pixels = LoadImageColors(*image);
+    rlColor *pixels = rlLoadImageColors(*image);
 
     for (int i = 0; i < image->width*image->height; i++)
     {
@@ -2915,17 +2915,17 @@ void ImageColorReplace(Image *image, Color color, Color replace)
     image->data = pixels;
     image->format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 
-    ImageFormat(image, format);
+    rlImageFormat(image, format);
 }
 #endif      // SUPPORT_IMAGE_MANIPULATION
 
-// Load color data from image as a Color array (RGBA - 32bit)
-// NOTE: Memory allocated should be freed using UnloadImageColors();
-Color *LoadImageColors(Image image)
+// Load color data from image as a rlColor array (RGBA - 32bit)
+// NOTE: Memory allocated should be freed using rlUnloadImageColors();
+rlColor *rlLoadImageColors(rlImage image)
 {
     if ((image.width == 0) || (image.height == 0)) return NULL;
 
-    Color *pixels = (Color *)RL_MALLOC(image.width*image.height*sizeof(Color));
+    rlColor *pixels = (rlColor *)RL_MALLOC(image.width*image.height*sizeof(rlColor));
 
     if (image.format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "IMAGE: Pixel data retrieval not supported for compressed image formats");
     else
@@ -3069,19 +3069,19 @@ Color *LoadImageColors(Image image)
     return pixels;
 }
 
-// Load colors palette from image as a Color array (RGBA - 32bit)
-// NOTE: Memory allocated should be freed using UnloadImagePalette()
-Color *LoadImagePalette(Image image, int maxPaletteSize, int *colorCount)
+// Load colors palette from image as a rlColor array (RGBA - 32bit)
+// NOTE: Memory allocated should be freed using rlUnloadImagePalette()
+rlColor *rlLoadImagePalette(rlImage image, int maxPaletteSize, int *colorCount)
 {
     #define COLOR_EQUAL(col1, col2) ((col1.r == col2.r)&&(col1.g == col2.g)&&(col1.b == col2.b)&&(col1.a == col2.a))
 
     int palCount = 0;
-    Color *palette = NULL;
-    Color *pixels = LoadImageColors(image);
+    rlColor *palette = NULL;
+    rlColor *pixels = rlLoadImageColors(image);
 
     if (pixels != NULL)
     {
-        palette = (Color *)RL_MALLOC(maxPaletteSize*sizeof(Color));
+        palette = (rlColor *)RL_MALLOC(maxPaletteSize*sizeof(rlColor));
 
         for (int i = 0; i < maxPaletteSize; i++) palette[i] = BLANK;   // Set all colors to BLANK
 
@@ -3117,7 +3117,7 @@ Color *LoadImagePalette(Image image, int maxPaletteSize, int *colorCount)
             }
         }
 
-        UnloadImageColors(pixels);
+        rlUnloadImageColors(pixels);
     }
 
     *colorCount = palCount;
@@ -3125,25 +3125,25 @@ Color *LoadImagePalette(Image image, int maxPaletteSize, int *colorCount)
     return palette;
 }
 
-// Unload color data loaded with LoadImageColors()
-void UnloadImageColors(Color *colors)
+// Unload color data loaded with rlLoadImageColors()
+void rlUnloadImageColors(rlColor *colors)
 {
     RL_FREE(colors);
 }
 
-// Unload colors palette loaded with LoadImagePalette()
-void UnloadImagePalette(Color *colors)
+// Unload colors palette loaded with rlLoadImagePalette()
+void rlUnloadImagePalette(rlColor *colors)
 {
     RL_FREE(colors);
 }
 
 // Get image alpha border rectangle
 // NOTE: Threshold is defined as a percentage: 0.0f -> 1.0f
-Rectangle GetImageAlphaBorder(Image image, float threshold)
+rlRectangle rlGetImageAlphaBorder(rlImage image, float threshold)
 {
-    Rectangle crop = { 0 };
+    rlRectangle crop = { 0 };
 
-    Color *pixels = LoadImageColors(image);
+    rlColor *pixels = rlLoadImageColors(image);
 
     if (pixels != NULL)
     {
@@ -3169,19 +3169,19 @@ Rectangle GetImageAlphaBorder(Image image, float threshold)
         // Check for empty blank image
         if ((xMin != 65536) && (xMax != 65536))
         {
-            crop = (Rectangle){ (float)xMin, (float)yMin, (float)((xMax + 1) - xMin), (float)((yMax + 1) - yMin) };
+            crop = (rlRectangle){ (float)xMin, (float)yMin, (float)((xMax + 1) - xMin), (float)((yMax + 1) - yMin) };
         }
 
-        UnloadImageColors(pixels);
+        rlUnloadImageColors(pixels);
     }
 
     return crop;
 }
 
 // Get image pixel color at (x, y) position
-Color GetImageColor(Image image, int x, int y)
+rlColor rlGetImageColor(rlImage image, int x, int y)
 {
-    Color color = { 0 };
+    rlColor color = { 0 };
 
     if ((x >=0) && (x < image.width) && (y >= 0) && (y < image.height))
     {
@@ -3306,16 +3306,16 @@ Color GetImageColor(Image image, int x, int y)
 }
 
 //------------------------------------------------------------------------------------
-// Image drawing functions
+// rlImage drawing functions
 //------------------------------------------------------------------------------------
 // Clear image background with given color
-void ImageClearBackground(Image *dst, Color color)
+void rlImageClearBackground(rlImage *dst, rlColor color)
 {
     // Security check to avoid program crash
     if ((dst->data == NULL) || (dst->width == 0) || (dst->height == 0)) return;
 
     // Fill in first pixel based on image format
-    ImageDrawPixel(dst, 0, 0, color);
+    rlImageDrawPixel(dst, 0, 0, color);
 
     unsigned char *pSrcPixel = (unsigned char *)dst->data;
     int bytesPerPixel = GetPixelDataSize(1, 1, dst->format);
@@ -3329,7 +3329,7 @@ void ImageClearBackground(Image *dst, Color color)
 
 // Draw pixel within an image
 // NOTE: Compressed image formats not supported
-void ImageDrawPixel(Image *dst, int x, int y, Color color)
+void rlImageDrawPixel(rlImage *dst, int x, int y, rlColor color)
 {
     // Security check to avoid program crash
     if ((dst->data == NULL) || (x < 0) || (x >= dst->width) || (y < 0) || (y >= dst->height)) return;
@@ -3339,7 +3339,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_GRAYSCALE:
         {
             // NOTE: Calculate grayscale equivalent color
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
             unsigned char gray = (unsigned char)((coln.x*0.299f + coln.y*0.587f + coln.z*0.114f)*255.0f);
 
             ((unsigned char *)dst->data)[y*dst->width + x] = gray;
@@ -3348,7 +3348,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA:
         {
             // NOTE: Calculate grayscale equivalent color
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
             unsigned char gray = (unsigned char)((coln.x*0.299f + coln.y*0.587f + coln.z*0.114f)*255.0f);
 
             ((unsigned char *)dst->data)[(y*dst->width + x)*2] = gray;
@@ -3358,7 +3358,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_R5G6B5:
         {
             // NOTE: Calculate R5G6B5 equivalent color
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
 
             unsigned char r = (unsigned char)(round(coln.x*31.0f));
             unsigned char g = (unsigned char)(round(coln.y*63.0f));
@@ -3370,7 +3370,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_R5G5B5A1:
         {
             // NOTE: Calculate R5G5B5A1 equivalent color
-            Vector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
+            rlVector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
 
             unsigned char r = (unsigned char)(round(coln.x*31.0f));
             unsigned char g = (unsigned char)(round(coln.y*31.0f));
@@ -3383,7 +3383,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_R4G4B4A4:
         {
             // NOTE: Calculate R5G5B5A1 equivalent color
-            Vector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
+            rlVector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
 
             unsigned char r = (unsigned char)(round(coln.x*15.0f));
             unsigned char g = (unsigned char)(round(coln.y*15.0f));
@@ -3411,7 +3411,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_R32:
         {
             // NOTE: Calculate grayscale equivalent color (normalized to 32bit)
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
 
             ((float *)dst->data)[y*dst->width + x] = coln.x*0.299f + coln.y*0.587f + coln.z*0.114f;
 
@@ -3419,7 +3419,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_R32G32B32:
         {
             // NOTE: Calculate R32G32B32 equivalent color (normalized to 32bit)
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
 
             ((float *)dst->data)[(y*dst->width + x)*3] = coln.x;
             ((float *)dst->data)[(y*dst->width + x)*3 + 1] = coln.y;
@@ -3428,7 +3428,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_R32G32B32A32:
         {
             // NOTE: Calculate R32G32B32A32 equivalent color (normalized to 32bit)
-            Vector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
+            rlVector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
 
             ((float *)dst->data)[(y*dst->width + x)*4] = coln.x;
             ((float *)dst->data)[(y*dst->width + x)*4 + 1] = coln.y;
@@ -3439,7 +3439,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_R16:
         {
             // NOTE: Calculate grayscale equivalent color (normalized to 32bit)
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
 
             ((unsigned short*)dst->data)[y*dst->width + x] = FloatToHalf(coln.x*0.299f + coln.y*0.587f + coln.z*0.114f);
 
@@ -3447,7 +3447,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_R16G16B16:
         {
             // NOTE: Calculate R32G32B32 equivalent color (normalized to 32bit)
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
 
             ((unsigned short *)dst->data)[(y*dst->width + x)*3] = FloatToHalf(coln.x);
             ((unsigned short *)dst->data)[(y*dst->width + x)*3 + 1] = FloatToHalf(coln.y);
@@ -3456,7 +3456,7 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
         case PIXELFORMAT_UNCOMPRESSED_R16G16B16A16:
         {
             // NOTE: Calculate R32G32B32A32 equivalent color (normalized to 32bit)
-            Vector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
+            rlVector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
 
             ((unsigned short *)dst->data)[(y*dst->width + x)*4] = FloatToHalf(coln.x);
             ((unsigned short *)dst->data)[(y*dst->width + x)*4 + 1] = FloatToHalf(coln.y);
@@ -3469,13 +3469,13 @@ void ImageDrawPixel(Image *dst, int x, int y, Color color)
 }
 
 // Draw pixel within an image (Vector version)
-void ImageDrawPixelV(Image *dst, Vector2 position, Color color)
+void rlImageDrawPixelV(rlImage *dst, rlVector2 position, rlColor color)
 {
-    ImageDrawPixel(dst, (int)position.x, (int)position.y, color);
+    rlImageDrawPixel(dst, (int)position.x, (int)position.y, color);
 }
 
 // Draw line within an image
-void ImageDrawLine(Image *dst, int startPosX, int startPosY, int endPosX, int endPosY, Color color)
+void rlImageDrawLine(rlImage *dst, int startPosX, int startPosY, int endPosX, int endPosY, rlColor color)
 {
     // Calculate differences in coordinates
     int shortLen = endPosY - startPosY;
@@ -3513,7 +3513,7 @@ void ImageDrawLine(Image *dst, int startPosX, int startPosY, int endPosX, int en
         for (int i = 0, j = 0; i != endVal; i += sgnInc, j += decInc)
         {
             // Calculate pixel position and draw it
-            ImageDrawPixel(dst, startPosX + (j >> 16), startPosY + i, color);
+            rlImageDrawPixel(dst, startPosX + (j >> 16), startPosY + i, color);
         }
     }
     else
@@ -3522,13 +3522,13 @@ void ImageDrawLine(Image *dst, int startPosX, int startPosY, int endPosX, int en
         for (int i = 0, j = 0; i != endVal; i += sgnInc, j += decInc)
         {
             // Calculate pixel position and draw it
-            ImageDrawPixel(dst, startPosX + i, startPosY + (j >> 16), color);
+            rlImageDrawPixel(dst, startPosX + i, startPosY + (j >> 16), color);
         }
     }
 }
 
 // Draw line within an image (Vector version)
-void ImageDrawLineV(Image *dst, Vector2 start, Vector2 end, Color color)
+void rlImageDrawLineV(rlImage *dst, rlVector2 start, rlVector2 end, rlColor color)
 {
     // Round start and end positions to nearest integer coordinates
     int x1 = (int)(start.x + 0.5f);
@@ -3536,12 +3536,12 @@ void ImageDrawLineV(Image *dst, Vector2 start, Vector2 end, Color color)
     int x2 = (int)(end.x + 0.5f);
     int y2 = (int)(end.y + 0.5f);
 
-    // Draw a vertical line using ImageDrawLine function
-    ImageDrawLine(dst, x1, y1, x2, y2, color);
+    // Draw a vertical line using rlImageDrawLine function
+    rlImageDrawLine(dst, x1, y1, x2, y2, color);
 }
 
 // Draw a line defining thickness within an image
-void ImageDrawLineEx(Image *dst, Vector2 start, Vector2 end, int thick, Color color)
+void rlImageDrawLineEx(rlImage *dst, rlVector2 start, rlVector2 end, int thick, rlColor color)
 {
     // Round start and end positions to nearest integer coordinates
     int x1 = (int)(start.x + 0.5f);
@@ -3554,7 +3554,7 @@ void ImageDrawLineEx(Image *dst, Vector2 start, Vector2 end, int thick, Color co
     int dy = y2 - y1;
 
     // Draw the main line between (x1, y1) and (x2, y2)
-    ImageDrawLine(dst, x1, y1, x2, y2, color);
+    rlImageDrawLine(dst, x1, y1, x2, y2, color);
 
     // Determine if the line is more horizontal or vertical
     if (dx != 0 && abs(dy/dx) < 1)
@@ -3566,8 +3566,8 @@ void ImageDrawLineEx(Image *dst, Vector2 start, Vector2 end, int thick, Color co
         // Draw additional lines above and below the main line
         for (int i = 1; i <= wy; i++)
         {
-            ImageDrawLine(dst, x1, y1 - i, x2, y2 - i, color); // Draw above the main line
-            ImageDrawLine(dst, x1, y1 + i, x2, y2 + i, color); // Draw below the main line
+            rlImageDrawLine(dst, x1, y1 - i, x2, y2 - i, color); // Draw above the main line
+            rlImageDrawLine(dst, x1, y1 + i, x2, y2 + i, color); // Draw below the main line
         }
     }
     else if (dy != 0)
@@ -3579,14 +3579,14 @@ void ImageDrawLineEx(Image *dst, Vector2 start, Vector2 end, int thick, Color co
         // Draw additional lines to the left and right of the main line
         for (int i = 1; i <= wx; i++)
         {
-            ImageDrawLine(dst, x1 - i, y1, x2 - i, y2, color); // Draw left of the main line
-            ImageDrawLine(dst, x1 + i, y1, x2 + i, y2, color); // Draw right of the main line
+            rlImageDrawLine(dst, x1 - i, y1, x2 - i, y2, color); // Draw left of the main line
+            rlImageDrawLine(dst, x1 + i, y1, x2 + i, y2, color); // Draw right of the main line
         }
     }
 }
 
 // Draw circle within an image
-void ImageDrawCircle(Image* dst, int centerX, int centerY, int radius, Color color)
+void rlImageDrawCircle(rlImage* dst, int centerX, int centerY, int radius, rlColor color)
 {
     int x = 0;
     int y = radius;
@@ -3594,10 +3594,10 @@ void ImageDrawCircle(Image* dst, int centerX, int centerY, int radius, Color col
 
     while (y >= x)
     {
-        ImageDrawRectangle(dst, centerX - x, centerY + y, x*2, 1, color);
-        ImageDrawRectangle(dst, centerX - x, centerY - y, x*2, 1, color);
-        ImageDrawRectangle(dst, centerX - y, centerY + x, y*2, 1, color);
-        ImageDrawRectangle(dst, centerX - y, centerY - x, y*2, 1, color);
+        rlImageDrawRectangle(dst, centerX - x, centerY + y, x*2, 1, color);
+        rlImageDrawRectangle(dst, centerX - x, centerY - y, x*2, 1, color);
+        rlImageDrawRectangle(dst, centerX - y, centerY + x, y*2, 1, color);
+        rlImageDrawRectangle(dst, centerX - y, centerY - x, y*2, 1, color);
         x++;
 
         if (decesionParameter > 0)
@@ -3610,13 +3610,13 @@ void ImageDrawCircle(Image* dst, int centerX, int centerY, int radius, Color col
 }
 
 // Draw circle within an image (Vector version)
-void ImageDrawCircleV(Image* dst, Vector2 center, int radius, Color color)
+void rlImageDrawCircleV(rlImage* dst, rlVector2 center, int radius, rlColor color)
 {
-    ImageDrawCircle(dst, (int)center.x, (int)center.y, radius, color);
+    rlImageDrawCircle(dst, (int)center.x, (int)center.y, radius, color);
 }
 
 // Draw circle outline within an image
-void ImageDrawCircleLines(Image *dst, int centerX, int centerY, int radius, Color color)
+void rlImageDrawCircleLines(rlImage *dst, int centerX, int centerY, int radius, rlColor color)
 {
     int x = 0;
     int y = radius;
@@ -3624,14 +3624,14 @@ void ImageDrawCircleLines(Image *dst, int centerX, int centerY, int radius, Colo
 
     while (y >= x)
     {
-        ImageDrawPixel(dst, centerX + x, centerY + y, color);
-        ImageDrawPixel(dst, centerX - x, centerY + y, color);
-        ImageDrawPixel(dst, centerX + x, centerY - y, color);
-        ImageDrawPixel(dst, centerX - x, centerY - y, color);
-        ImageDrawPixel(dst, centerX + y, centerY + x, color);
-        ImageDrawPixel(dst, centerX - y, centerY + x, color);
-        ImageDrawPixel(dst, centerX + y, centerY - x, color);
-        ImageDrawPixel(dst, centerX - y, centerY - x, color);
+        rlImageDrawPixel(dst, centerX + x, centerY + y, color);
+        rlImageDrawPixel(dst, centerX - x, centerY + y, color);
+        rlImageDrawPixel(dst, centerX + x, centerY - y, color);
+        rlImageDrawPixel(dst, centerX - x, centerY - y, color);
+        rlImageDrawPixel(dst, centerX + y, centerY + x, color);
+        rlImageDrawPixel(dst, centerX - y, centerY + x, color);
+        rlImageDrawPixel(dst, centerX + y, centerY - x, color);
+        rlImageDrawPixel(dst, centerX - y, centerY - x, color);
         x++;
 
         if (decesionParameter > 0)
@@ -3644,25 +3644,25 @@ void ImageDrawCircleLines(Image *dst, int centerX, int centerY, int radius, Colo
 }
 
 // Draw circle outline within an image (Vector version)
-void ImageDrawCircleLinesV(Image *dst, Vector2 center, int radius, Color color)
+void rlImageDrawCircleLinesV(rlImage *dst, rlVector2 center, int radius, rlColor color)
 {
-    ImageDrawCircleLines(dst, (int)center.x, (int)center.y, radius, color);
+    rlImageDrawCircleLines(dst, (int)center.x, (int)center.y, radius, color);
 }
 
 // Draw rectangle within an image
-void ImageDrawRectangle(Image *dst, int posX, int posY, int width, int height, Color color)
+void rlImageDrawRectangle(rlImage *dst, int posX, int posY, int width, int height, rlColor color)
 {
-    ImageDrawRectangleRec(dst, (Rectangle){ (float)posX, (float)posY, (float)width, (float)height }, color);
+    rlImageDrawRectangleRec(dst, (rlRectangle){ (float)posX, (float)posY, (float)width, (float)height }, color);
 }
 
 // Draw rectangle within an image (Vector version)
-void ImageDrawRectangleV(Image *dst, Vector2 position, Vector2 size, Color color)
+void rlImageDrawRectangleV(rlImage *dst, rlVector2 position, rlVector2 size, rlColor color)
 {
-    ImageDrawRectangle(dst, (int)position.x, (int)position.y, (int)size.x, (int)size.y, color);
+    rlImageDrawRectangle(dst, (int)position.x, (int)position.y, (int)size.x, (int)size.y, color);
 }
 
 // Draw rectangle within an image
-void ImageDrawRectangleRec(Image *dst, Rectangle rec, Color color)
+void rlImageDrawRectangleRec(rlImage *dst, rlRectangle rec, rlColor color)
 {
     // Security check to avoid program crash
     if ((dst->data == NULL) || (dst->width == 0) || (dst->height == 0)) return;
@@ -3687,7 +3687,7 @@ void ImageDrawRectangleRec(Image *dst, Rectangle rec, Color color)
     int bytesPerPixel = GetPixelDataSize(1, 1, dst->format);
 
     // Fill in the first pixel of the first row based on image format
-    ImageDrawPixel(dst, sx, sy, color);
+    rlImageDrawPixel(dst, sx, sy, color);
 
     int bytesOffset = ((sy*dst->width) + sx)*bytesPerPixel;
     unsigned char *pSrcPixel = (unsigned char *)dst->data + bytesOffset;
@@ -3707,16 +3707,16 @@ void ImageDrawRectangleRec(Image *dst, Rectangle rec, Color color)
 }
 
 // Draw rectangle lines within an image
-void ImageDrawRectangleLines(Image *dst, Rectangle rec, int thick, Color color)
+void rlImageDrawRectangleLines(rlImage *dst, rlRectangle rec, int thick, rlColor color)
 {
-    ImageDrawRectangle(dst, (int)rec.x, (int)rec.y, (int)rec.width, thick, color);
-    ImageDrawRectangle(dst, (int)rec.x, (int)(rec.y + thick), thick, (int)(rec.height - thick*2), color);
-    ImageDrawRectangle(dst, (int)(rec.x + rec.width - thick), (int)(rec.y + thick), thick, (int)(rec.height - thick*2), color);
-    ImageDrawRectangle(dst, (int)rec.x, (int)(rec.y + rec.height - thick), (int)rec.width, thick, color);
+    rlImageDrawRectangle(dst, (int)rec.x, (int)rec.y, (int)rec.width, thick, color);
+    rlImageDrawRectangle(dst, (int)rec.x, (int)(rec.y + thick), thick, (int)(rec.height - thick*2), color);
+    rlImageDrawRectangle(dst, (int)(rec.x + rec.width - thick), (int)(rec.y + thick), thick, (int)(rec.height - thick*2), color);
+    rlImageDrawRectangle(dst, (int)rec.x, (int)(rec.y + rec.height - thick), (int)rec.width, thick, color);
 }
 
 // Draw triangle within an image
-void ImageDrawTriangle(Image *dst, Vector2 v1, Vector2 v2, Vector2 v3, Color color)
+void rlImageDrawTriangle(rlImage *dst, rlVector2 v1, rlVector2 v2, rlVector2 v3, rlColor color)
 {
     // Calculate the 2D bounding box of the triangle
     // Determine the minimum and maximum x and y coordinates of the triangle vertices
@@ -3767,7 +3767,7 @@ void ImageDrawTriangle(Image *dst, Vector2 v1, Vector2 v2, Vector2 v3, Color col
         {
             // Check if the pixel is inside the triangle using barycentric coordinates
             // If it is then we can draw the pixel with the given color
-            if ((w1 | w2 | w3) >= 0) ImageDrawPixel(dst, x, y, color);
+            if ((w1 | w2 | w3) >= 0) rlImageDrawPixel(dst, x, y, color);
 
             // Increment the barycentric coordinates for the next pixel
             w1 += w1XStep;
@@ -3783,7 +3783,7 @@ void ImageDrawTriangle(Image *dst, Vector2 v1, Vector2 v2, Vector2 v3, Color col
 }
 
 // Draw triangle with interpolated colors within an image
-void ImageDrawTriangleEx(Image *dst, Vector2 v1, Vector2 v2, Vector2 v3, Color c1, Color c2, Color c3)
+void rlImageDrawTriangleEx(rlImage *dst, rlVector2 v1, rlVector2 v2, rlVector2 v3, rlColor c1, rlColor c2, rlColor c3)
 {
     // Calculate the 2D bounding box of the triangle
     // Determine the minimum and maximum x and y coordinates of the triangle vertices
@@ -3847,14 +3847,14 @@ void ImageDrawTriangleEx(Image *dst, Vector2 v1, Vector2 v2, Vector2 v3, Color c
                 unsigned char aW3 = (unsigned char)((float)w3*wInvSum);
 
                 // Interpolate the color using the barycentric coordinates
-                Color finalColor = { 0 };
+                rlColor finalColor = { 0 };
                 finalColor.r = (c1.r*aW1 + c2.r*aW2 + c3.r*aW3)/255;
                 finalColor.g = (c1.g*aW1 + c2.g*aW2 + c3.g*aW3)/255;
                 finalColor.b = (c1.b*aW1 + c2.b*aW2 + c3.b*aW3)/255;
                 finalColor.a = (c1.a*aW1 + c2.a*aW2 + c3.a*aW3)/255;
 
                 // Draw the pixel with the interpolated color
-                ImageDrawPixel(dst, x, y, finalColor);
+                rlImageDrawPixel(dst, x, y, finalColor);
             }
 
             // Increment the barycentric coordinates for the next pixel
@@ -3871,52 +3871,52 @@ void ImageDrawTriangleEx(Image *dst, Vector2 v1, Vector2 v2, Vector2 v3, Color c
 }
 
 // Draw triangle outline within an image
-void ImageDrawTriangleLines(Image *dst, Vector2 v1, Vector2 v2, Vector2 v3, Color color)
+void rlImageDrawTriangleLines(rlImage *dst, rlVector2 v1, rlVector2 v2, rlVector2 v3, rlColor color)
 {
-    ImageDrawLine(dst, (int)v1.x, (int)v1.y, (int)v2.x, (int)v2.y, color);
-    ImageDrawLine(dst, (int)v2.x, (int)v2.y, (int)v3.x, (int)v3.y, color);
-    ImageDrawLine(dst, (int)v3.x, (int)v3.y, (int)v1.x, (int)v1.y, color);
+    rlImageDrawLine(dst, (int)v1.x, (int)v1.y, (int)v2.x, (int)v2.y, color);
+    rlImageDrawLine(dst, (int)v2.x, (int)v2.y, (int)v3.x, (int)v3.y, color);
+    rlImageDrawLine(dst, (int)v3.x, (int)v3.y, (int)v1.x, (int)v1.y, color);
 }
 
 // Draw a triangle fan defined by points within an image (first vertex is the center)
-void ImageDrawTriangleFan(Image *dst, Vector2 *points, int pointCount, Color color)
+void rlImageDrawTriangleFan(rlImage *dst, rlVector2 *points, int pointCount, rlColor color)
 {
     if (pointCount >= 3)
     {
         for (int i = 1; i < pointCount - 1; i++)
         {
-            ImageDrawTriangle(dst, points[0], points[i], points[i + 1], color);
+            rlImageDrawTriangle(dst, points[0], points[i], points[i + 1], color);
         }
     }
 }
 
 // Draw a triangle strip defined by points within an image
-void ImageDrawTriangleStrip(Image *dst, Vector2 *points, int pointCount, Color color)
+void rlImageDrawTriangleStrip(rlImage *dst, rlVector2 *points, int pointCount, rlColor color)
 {
     if (pointCount >= 3)
     {
         for (int i = 2; i < pointCount; i++)
         {
-            if ((i%2) == 0) ImageDrawTriangle(dst, points[i], points[i - 2], points[i - 1], color);
-            else ImageDrawTriangle(dst, points[i], points[i - 1], points[i - 2], color);
+            if ((i%2) == 0) rlImageDrawTriangle(dst, points[i], points[i - 2], points[i - 1], color);
+            else rlImageDrawTriangle(dst, points[i], points[i - 1], points[i - 2], color);
         }
     }
 }
 
 // Draw an image (source) within an image (destination)
-// NOTE: Color tint is applied to source image
-void ImageDraw(Image *dst, Image src, Rectangle srcRec, Rectangle dstRec, Color tint)
+// NOTE: rlColor tint is applied to source image
+void rlImageDraw(rlImage *dst, rlImage src, rlRectangle srcRec, rlRectangle dstRec, rlColor tint)
 {
     // Security check to avoid program crash
     if ((dst->data == NULL) || (dst->width == 0) || (dst->height == 0) ||
         (src.data == NULL) || (src.width == 0) || (src.height == 0)) return;
 
-    if (dst->mipmaps > 1) TRACELOG(LOG_WARNING, "Image drawing only applied to base mipmap level");
-    if (dst->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "Image drawing not supported for compressed formats");
+    if (dst->mipmaps > 1) TRACELOG(LOG_WARNING, "rlImage drawing only applied to base mipmap level");
+    if (dst->format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "rlImage drawing not supported for compressed formats");
     else
     {
-        Image srcMod = { 0 };       // Source copy (in case it was required)
-        Image *srcPtr = &src;       // Pointer to source image
+        rlImage srcMod = { 0 };       // Source copy (in case it was required)
+        rlImage *srcPtr = &src;       // Pointer to source image
         bool useSrcMod = false;     // Track source copy required
 
         // Source rectangle out-of-bounds security checks
@@ -3929,9 +3929,9 @@ void ImageDraw(Image *dst, Image src, Rectangle srcRec, Rectangle dstRec, Color 
         // In that case, we make a copy of source, and we apply all required transform
         if (((int)srcRec.width != (int)dstRec.width) || ((int)srcRec.height != (int)dstRec.height))
         {
-            srcMod = ImageFromImage(src, srcRec);   // Create image from another image
-            ImageResize(&srcMod, (int)dstRec.width, (int)dstRec.height);   // Resize to destination rectangle
-            srcRec = (Rectangle){ 0, 0, (float)srcMod.width, (float)srcMod.height };
+            srcMod = rlImageFromImage(src, srcRec);   // Create image from another image
+            rlImageResize(&srcMod, (int)dstRec.width, (int)dstRec.height);   // Resize to destination rectangle
+            srcRec = (rlRectangle){ 0, 0, (float)srcMod.width, (float)srcMod.height };
 
             srcPtr = &srcMod;
             useSrcMod = true;
@@ -3961,17 +3961,17 @@ void ImageDraw(Image *dst, Image src, Rectangle srcRec, Rectangle dstRec, Color 
         // for every pixel -> [get_src_format/get_dst_format -> blend -> format_to_dst]
         // Some optimization ideas:
         //    [x] Avoid creating source copy if not required (no resize required)
-        //    [x] Optimize ImageResize() for pixel format (alternative: ImageResizeNN())
-        //    [x] Optimize ColorAlphaBlend() to avoid processing (alpha = 0) and (alpha = 1)
-        //    [x] Optimize ColorAlphaBlend() for faster operations (maybe avoiding divs?)
+        //    [x] Optimize rlImageResize() for pixel format (alternative: rlImageResizeNN())
+        //    [x] Optimize rlColorAlphaBlend() to avoid processing (alpha = 0) and (alpha = 1)
+        //    [x] Optimize rlColorAlphaBlend() for faster operations (maybe avoiding divs?)
         //    [x] Consider fast path: no alpha blending required cases (src has no alpha)
         //    [x] Consider fast path: same src/dst format with no alpha -> direct line copy
-        //    [-] GetPixelColor(): Get Vector4 instead of Color, easier for ColorAlphaBlend()
+        //    [-] rlGetPixelColor(): Get rlVector4 instead of rlColor, easier for rlColorAlphaBlend()
         //    [ ] Support f32bit channels drawing
 
         // TODO: Support PIXELFORMAT_UNCOMPRESSED_R32, PIXELFORMAT_UNCOMPRESSED_R32G32B32, PIXELFORMAT_UNCOMPRESSED_R32G32B32A32 and 16-bit equivalents
 
-        Color colSrc, colDst, blend;
+        rlColor colSrc, colDst, blend;
         bool blendRequired = true;
 
         // Fast path: Avoid blend if source has no alpha to blend
@@ -3997,14 +3997,14 @@ void ImageDraw(Image *dst, Image src, Rectangle srcRec, Rectangle dstRec, Color 
             {
                 for (int x = 0; x < (int)srcRec.width; x++)
                 {
-                    colSrc = GetPixelColor(pSrc, srcPtr->format);
-                    colDst = GetPixelColor(pDst, dst->format);
+                    colSrc = rlGetPixelColor(pSrc, srcPtr->format);
+                    colDst = rlGetPixelColor(pDst, dst->format);
 
                     // Fast path: Avoid blend if source has no alpha to blend
-                    if (blendRequired) blend = ColorAlphaBlend(colDst, colSrc, tint);
+                    if (blendRequired) blend = rlColorAlphaBlend(colDst, colSrc, tint);
                     else blend = colSrc;
 
-                    SetPixelColor(pDst, blend, dst->format);
+                    rlSetPixelColor(pDst, blend, dst->format);
 
                     pDst += bytesPerPixelDst;
                     pSrc += bytesPerPixelSrc;
@@ -4015,51 +4015,51 @@ void ImageDraw(Image *dst, Image src, Rectangle srcRec, Rectangle dstRec, Color 
             pDstBase += strideDst;
         }
 
-        if (useSrcMod) UnloadImage(srcMod);     // Unload source modified image
+        if (useSrcMod) rlUnloadImage(srcMod);     // Unload source modified image
     }
 }
 
 // Draw text (default font) within an image (destination)
-void ImageDrawText(Image *dst, const char *text, int posX, int posY, int fontSize, Color color)
+void rlImageDrawText(rlImage *dst, const char *text, int posX, int posY, int fontSize, rlColor color)
 {
 #if defined(SUPPORT_MODULE_RTEXT) && defined(SUPPORT_DEFAULT_FONT)
     // Make sure default font is loaded to be used on image text drawing
-    if (GetFontDefault().texture.id == 0) LoadFontDefault();
+    if (rlGetFontDefault().texture.id == 0) LoadFontDefault();
 
-    Vector2 position = { (float)posX, (float)posY };
-    ImageDrawTextEx(dst, GetFontDefault(), text, position, (float)fontSize, 1.0f, color);   // WARNING: Module required: rtext
+    rlVector2 position = { (float)posX, (float)posY };
+    rlImageDrawTextEx(dst, rlGetFontDefault(), text, position, (float)fontSize, 1.0f, color);   // WARNING: Module required: rtext
 #else
-    TRACELOG(LOG_WARNING, "IMAGE: ImageDrawText() requires module: rtext");
+    TRACELOG(LOG_WARNING, "IMAGE: rlImageDrawText() requires module: rtext");
 #endif
 }
 
 // Draw text (custom sprite font) within an image (destination)
-void ImageDrawTextEx(Image *dst, Font font, const char *text, Vector2 position, float fontSize, float spacing, Color tint)
+void rlImageDrawTextEx(rlImage *dst, rlFont font, const char *text, rlVector2 position, float fontSize, float spacing, rlColor tint)
 {
-    Image imText = ImageTextEx(font, text, fontSize, spacing, tint);
+    rlImage imText = rlImageTextEx(font, text, fontSize, spacing, tint);
 
-    Rectangle srcRec = { 0.0f, 0.0f, (float)imText.width, (float)imText.height };
-    Rectangle dstRec = { position.x, position.y, (float)imText.width, (float)imText.height };
+    rlRectangle srcRec = { 0.0f, 0.0f, (float)imText.width, (float)imText.height };
+    rlRectangle dstRec = { position.x, position.y, (float)imText.width, (float)imText.height };
 
-    ImageDraw(dst, imText, srcRec, dstRec, WHITE);
+    rlImageDraw(dst, imText, srcRec, dstRec, WHITE);
 
-    UnloadImage(imText);
+    rlUnloadImage(imText);
 }
 
 //------------------------------------------------------------------------------------
-// Texture loading functions
+// rlTexture loading functions
 //------------------------------------------------------------------------------------
 // Load texture from file into GPU memory (VRAM)
 Texture2D LoadTexture(const char *fileName)
 {
     Texture2D texture = { 0 };
 
-    Image image = LoadImage(fileName);
+    rlImage image = rlLoadImage(fileName);
 
     if (image.data != NULL)
     {
-        texture = LoadTextureFromImage(image);
-        UnloadImage(image);
+        texture = rlLoadTextureFromImage(image);
+        rlUnloadImage(image);
     }
 
     return texture;
@@ -4067,7 +4067,7 @@ Texture2D LoadTexture(const char *fileName)
 
 // Load a texture from image data
 // NOTE: image is not unloaded, it must be done manually
-Texture2D LoadTextureFromImage(Image image)
+Texture2D rlLoadTextureFromImage(rlImage image)
 {
     Texture2D texture = { 0 };
 
@@ -4086,7 +4086,7 @@ Texture2D LoadTextureFromImage(Image image)
 }
 
 // Load cubemap from image, multiple image cubemap layouts supported
-TextureCubemap LoadTextureCubemap(Image image, int layout)
+TextureCubemap LoadTextureCubemap(rlImage image, int layout)
 {
     TextureCubemap cubemap = { 0 };
 
@@ -4121,14 +4121,14 @@ TextureCubemap LoadTextureCubemap(Image image, int layout)
     {
         int size = cubemap.width;
 
-        Image faces = { 0 };                // Vertical column image
-        Rectangle faceRecs[6] = { 0 };      // Face source rectangles
+        rlImage faces = { 0 };                // Vertical column image
+        rlRectangle faceRecs[6] = { 0 };      // Face source rectangles
 
-        for (int i = 0; i < 6; i++) faceRecs[i] = (Rectangle){ 0, 0, (float)size, (float)size };
+        for (int i = 0; i < 6; i++) faceRecs[i] = (rlRectangle){ 0, 0, (float)size, (float)size };
 
         if (layout == CUBEMAP_LAYOUT_LINE_VERTICAL)
         {
-            faces = ImageCopy(image);       // Image data already follows expected convention
+            faces = rlImageCopy(image);       // rlImage data already follows expected convention
         }
         else if (layout == CUBEMAP_LAYOUT_PANORAMA)
         {
@@ -4158,12 +4158,12 @@ TextureCubemap LoadTextureCubemap(Image image, int layout)
             }
 
             // Convert image data to 6 faces in a vertical column, that's the optimum layout for loading
-            faces = GenImageColor(size, size*6, MAGENTA);
-            ImageFormat(&faces, image.format);
+            faces = rlGenImageColor(size, size*6, MAGENTA);
+            rlImageFormat(&faces, image.format);
 
-            // NOTE: Image formatting does not work with compressed textures
+            // NOTE: rlImage formatting does not work with compressed textures
 
-            for (int i = 0; i < 6; i++) ImageDraw(&faces, image, faceRecs[i], (Rectangle){ 0, (float)size*i, (float)size, (float)size }, WHITE);
+            for (int i = 0; i < 6; i++) rlImageDraw(&faces, image, faceRecs[i], (rlRectangle){ 0, (float)size*i, (float)size, (float)size }, WHITE);
         }
 
         // NOTE: Cubemap data is expected to be provided as 6 images in a single data array,
@@ -4177,7 +4177,7 @@ TextureCubemap LoadTextureCubemap(Image image, int layout)
         }
         else TRACELOG(LOG_WARNING, "IMAGE: Failed to load cubemap image");
 
-        UnloadImage(faces);
+        rlUnloadImage(faces);
     }
     else TRACELOG(LOG_WARNING, "IMAGE: Failed to detect cubemap image layout");
 
@@ -4186,7 +4186,7 @@ TextureCubemap LoadTextureCubemap(Image image, int layout)
 
 // Load texture for rendering (framebuffer)
 // NOTE: Render texture is loaded by default with RGBA color attachment and depth RenderBuffer
-RenderTexture2D LoadRenderTexture(int width, int height)
+RenderTexture2D rlLoadRenderTexture(int width, int height)
 {
     RenderTexture2D target = { 0 };
 
@@ -4225,7 +4225,7 @@ RenderTexture2D LoadRenderTexture(int width, int height)
 }
 
 // Check if a texture is ready
-bool IsTextureReady(Texture2D texture)
+bool rlIsTextureReady(Texture2D texture)
 {
     bool result = false;
 
@@ -4252,25 +4252,25 @@ void UnloadTexture(Texture2D texture)
 }
 
 // Check if a render texture is ready
-bool IsRenderTextureReady(RenderTexture2D target)
+bool rlIsRenderTextureReady(RenderTexture2D target)
 {
     bool result = false;
 
     if ((target.id > 0) &&                  // Validate OpenGL id
-        IsTextureReady(target.depth) &&     // Validate FBO depth texture/renderbuffer
-        IsTextureReady(target.texture)) result = true;    // Validate FBO texture
+        rlIsTextureReady(target.depth) &&     // Validate FBO depth texture/renderbuffer
+        rlIsTextureReady(target.texture)) result = true;    // Validate FBO texture
 
     return result;
 }
 
 // Unload render texture from GPU memory (VRAM)
-void UnloadRenderTexture(RenderTexture2D target)
+void rlUnloadRenderTexture(RenderTexture2D target)
 {
     if (target.id > 0)
     {
         if (target.texture.id > 0)
         {
-            // Color texture attached to FBO is deleted
+            // rlColor texture attached to FBO is deleted
             rlUnloadTexture(target.texture.id);
         }
 
@@ -4289,13 +4289,13 @@ void UpdateTexture(Texture2D texture, const void *pixels)
 
 // Update GPU texture rectangle with new data
 // NOTE: pixels data must match texture.format
-void UpdateTextureRec(Texture2D texture, Rectangle rec, const void *pixels)
+void rlUpdateTextureRec(Texture2D texture, rlRectangle rec, const void *pixels)
 {
     rlUpdateTexture(texture.id, (int)rec.x, (int)rec.y, (int)rec.width, (int)rec.height, texture.format, pixels);
 }
 
 //------------------------------------------------------------------------------------
-// Texture configuration functions
+// rlTexture configuration functions
 //------------------------------------------------------------------------------------
 // Generate GPU mipmaps for a texture
 void GenTextureMipmaps(Texture2D *texture)
@@ -4306,7 +4306,7 @@ void GenTextureMipmaps(Texture2D *texture)
 }
 
 // Set texture scaling filter mode
-void SetTextureFilter(Texture2D texture, int filter)
+void rlSetTextureFilter(Texture2D texture, int filter)
 {
     switch (filter)
     {
@@ -4372,7 +4372,7 @@ void SetTextureFilter(Texture2D texture, int filter)
 }
 
 // Set texture wrapping mode
-void SetTextureWrap(Texture2D texture, int wrap)
+void rlSetTextureWrap(Texture2D texture, int wrap)
 {
     switch (wrap)
     {
@@ -4402,42 +4402,42 @@ void SetTextureWrap(Texture2D texture, int wrap)
 }
 
 //------------------------------------------------------------------------------------
-// Texture drawing functions
+// rlTexture drawing functions
 //------------------------------------------------------------------------------------
 // Draw a texture
-void DrawTexture(Texture2D texture, int posX, int posY, Color tint)
+void rlDrawTexture(Texture2D texture, int posX, int posY, rlColor tint)
 {
-    DrawTextureEx(texture, (Vector2){ (float)posX, (float)posY }, 0.0f, 1.0f, tint);
+    rlDrawTextureEx(texture, (rlVector2){ (float)posX, (float)posY }, 0.0f, 1.0f, tint);
 }
 
-// Draw a texture with position defined as Vector2
-void DrawTextureV(Texture2D texture, Vector2 position, Color tint)
+// Draw a texture with position defined as rlVector2
+void rlDrawTextureV(Texture2D texture, rlVector2 position, rlColor tint)
 {
-    DrawTextureEx(texture, position, 0, 1.0f, tint);
+    rlDrawTextureEx(texture, position, 0, 1.0f, tint);
 }
 
 // Draw a texture with extended parameters
-void DrawTextureEx(Texture2D texture, Vector2 position, float rotation, float scale, Color tint)
+void rlDrawTextureEx(Texture2D texture, rlVector2 position, float rotation, float scale, rlColor tint)
 {
-    Rectangle source = { 0.0f, 0.0f, (float)texture.width, (float)texture.height };
-    Rectangle dest = { position.x, position.y, (float)texture.width*scale, (float)texture.height*scale };
-    Vector2 origin = { 0.0f, 0.0f };
+    rlRectangle source = { 0.0f, 0.0f, (float)texture.width, (float)texture.height };
+    rlRectangle dest = { position.x, position.y, (float)texture.width*scale, (float)texture.height*scale };
+    rlVector2 origin = { 0.0f, 0.0f };
 
-    DrawTexturePro(texture, source, dest, origin, rotation, tint);
+    rlDrawTexturePro(texture, source, dest, origin, rotation, tint);
 }
 
 // Draw a part of a texture (defined by a rectangle)
-void DrawTextureRec(Texture2D texture, Rectangle source, Vector2 position, Color tint)
+void rlDrawTextureRec(Texture2D texture, rlRectangle source, rlVector2 position, rlColor tint)
 {
-    Rectangle dest = { position.x, position.y, fabsf(source.width), fabsf(source.height) };
-    Vector2 origin = { 0.0f, 0.0f };
+    rlRectangle dest = { position.x, position.y, fabsf(source.width), fabsf(source.height) };
+    rlVector2 origin = { 0.0f, 0.0f };
 
-    DrawTexturePro(texture, source, dest, origin, 0.0f, tint);
+    rlDrawTexturePro(texture, source, dest, origin, 0.0f, tint);
 }
 
 // Draw a part of a texture (defined by a rectangle) with 'pro' parameters
 // NOTE: origin is relative to destination rectangle size
-void DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2 origin, float rotation, Color tint)
+void rlDrawTexturePro(Texture2D texture, rlRectangle source, rlRectangle dest, rlVector2 origin, float rotation, rlColor tint)
 {
     // Check if texture is valid
     if (texture.id > 0)
@@ -4453,20 +4453,20 @@ void DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2
         if (dest.width < 0) dest.width *= -1;
         if (dest.height < 0) dest.height *= -1;
 
-        Vector2 topLeft = { 0 };
-        Vector2 topRight = { 0 };
-        Vector2 bottomLeft = { 0 };
-        Vector2 bottomRight = { 0 };
+        rlVector2 topLeft = { 0 };
+        rlVector2 topRight = { 0 };
+        rlVector2 bottomLeft = { 0 };
+        rlVector2 bottomRight = { 0 };
 
         // Only calculate rotation if needed
         if (rotation == 0.0f)
         {
             float x = dest.x - origin.x;
             float y = dest.y - origin.y;
-            topLeft = (Vector2){ x, y };
-            topRight = (Vector2){ x + dest.width, y };
-            bottomLeft = (Vector2){ x, y + dest.height };
-            bottomRight = (Vector2){ x + dest.width, y + dest.height };
+            topLeft = (rlVector2){ x, y };
+            topRight = (rlVector2){ x + dest.width, y };
+            bottomLeft = (rlVector2){ x, y + dest.height };
+            bottomRight = (rlVector2){ x + dest.width, y + dest.height };
         }
         else
         {
@@ -4562,7 +4562,7 @@ void DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2
 }
 
 // Draws a texture (or part of it) that stretches or shrinks nicely using n-patch info
-void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest, Vector2 origin, float rotation, Color tint)
+void rlDrawTextureNPatch(Texture2D texture, rlNPatchInfo nPatchInfo, rlRectangle dest, rlVector2 origin, float rotation, rlColor tint)
 {
     if (texture.id > 0)
     {
@@ -4600,7 +4600,7 @@ void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
             bottomBorder = patchHeight - topBorder;
         }
 
-        Vector2 vertA, vertB, vertC, vertD;
+        rlVector2 vertA, vertB, vertC, vertD;
         vertA.x = 0.0f;                             // outer left
         vertA.y = 0.0f;                             // outer top
         vertB.x = leftBorder;                       // inner left
@@ -4610,7 +4610,7 @@ void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
         vertD.x = patchWidth;                       // outer right
         vertD.y = patchHeight;                      // outer bottom
 
-        Vector2 coordA, coordB, coordC, coordD;
+        rlVector2 coordA, coordB, coordC, coordD;
         coordA.x = nPatchInfo.source.x/width;
         coordA.y = nPatchInfo.source.y/height;
         coordB.x = (nPatchInfo.source.x + leftBorder)/width;
@@ -4701,7 +4701,7 @@ void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
                 {
                     // TOP QUAD
                     // -----------------------------------------------------------
-                    // Texture coords                 Vertices
+                    // rlTexture coords                 Vertices
                     rlTexCoord2f(coordA.x, coordB.y); rlVertex2f(vertA.x, vertB.y);  // Bottom-left corner for texture and quad
                     rlTexCoord2f(coordD.x, coordB.y); rlVertex2f(vertD.x, vertB.y);  // Bottom-right corner for texture and quad
                     rlTexCoord2f(coordD.x, coordA.y); rlVertex2f(vertD.x, vertA.y);  // Top-right corner for texture and quad
@@ -4710,7 +4710,7 @@ void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
                     {
                         // MIDDLE QUAD
                         // -----------------------------------------------------------
-                        // Texture coords                 Vertices
+                        // rlTexture coords                 Vertices
                         rlTexCoord2f(coordA.x, coordC.y); rlVertex2f(vertA.x, vertC.y);  // Bottom-left corner for texture and quad
                         rlTexCoord2f(coordD.x, coordC.y); rlVertex2f(vertD.x, vertC.y);  // Bottom-right corner for texture and quad
                         rlTexCoord2f(coordD.x, coordB.y); rlVertex2f(vertD.x, vertB.y);  // Top-right corner for texture and quad
@@ -4718,7 +4718,7 @@ void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
                     }
                     // BOTTOM QUAD
                     // -----------------------------------------------------------
-                    // Texture coords                 Vertices
+                    // rlTexture coords                 Vertices
                     rlTexCoord2f(coordA.x, coordD.y); rlVertex2f(vertA.x, vertD.y);  // Bottom-left corner for texture and quad
                     rlTexCoord2f(coordD.x, coordD.y); rlVertex2f(vertD.x, vertD.y);  // Bottom-right corner for texture and quad
                     rlTexCoord2f(coordD.x, coordC.y); rlVertex2f(vertD.x, vertC.y);  // Top-right corner for texture and quad
@@ -4728,7 +4728,7 @@ void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
                 {
                     // LEFT QUAD
                     // -----------------------------------------------------------
-                    // Texture coords                 Vertices
+                    // rlTexture coords                 Vertices
                     rlTexCoord2f(coordA.x, coordD.y); rlVertex2f(vertA.x, vertD.y);  // Bottom-left corner for texture and quad
                     rlTexCoord2f(coordB.x, coordD.y); rlVertex2f(vertB.x, vertD.y);  // Bottom-right corner for texture and quad
                     rlTexCoord2f(coordB.x, coordA.y); rlVertex2f(vertB.x, vertA.y);  // Top-right corner for texture and quad
@@ -4737,7 +4737,7 @@ void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
                     {
                         // CENTER QUAD
                         // -----------------------------------------------------------
-                        // Texture coords                 Vertices
+                        // rlTexture coords                 Vertices
                         rlTexCoord2f(coordB.x, coordD.y); rlVertex2f(vertB.x, vertD.y);  // Bottom-left corner for texture and quad
                         rlTexCoord2f(coordC.x, coordD.y); rlVertex2f(vertC.x, vertD.y);  // Bottom-right corner for texture and quad
                         rlTexCoord2f(coordC.x, coordA.y); rlVertex2f(vertC.x, vertA.y);  // Top-right corner for texture and quad
@@ -4745,7 +4745,7 @@ void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
                     }
                     // RIGHT QUAD
                     // -----------------------------------------------------------
-                    // Texture coords                 Vertices
+                    // rlTexture coords                 Vertices
                     rlTexCoord2f(coordC.x, coordD.y); rlVertex2f(vertC.x, vertD.y);  // Bottom-left corner for texture and quad
                     rlTexCoord2f(coordD.x, coordD.y); rlVertex2f(vertD.x, vertD.y);  // Bottom-right corner for texture and quad
                     rlTexCoord2f(coordD.x, coordA.y); rlVertex2f(vertD.x, vertA.y);  // Top-right corner for texture and quad
@@ -4759,7 +4759,7 @@ void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
 }
 
 // Check if two colors are equal
-bool ColorIsEqual(Color col1, Color col2)
+bool rlColorIsEqual(rlColor col1, rlColor col2)
 {
     bool result = false;
 
@@ -4769,9 +4769,9 @@ bool ColorIsEqual(Color col1, Color col2)
 }
 
 // Get color with alpha applied, alpha goes from 0.0f to 1.0f
-Color Fade(Color color, float alpha)
+rlColor rlFade(rlColor color, float alpha)
 {
-    Color result = color;
+    rlColor result = color;
 
     if (alpha < 0.0f) alpha = 0.0f;
     else if (alpha > 1.0f) alpha = 1.0f;
@@ -4781,8 +4781,8 @@ Color Fade(Color color, float alpha)
     return result;
 }
 
-// Get hexadecimal value for a Color
-int ColorToInt(Color color)
+// Get hexadecimal value for a rlColor
+int rlColorToInt(rlColor color)
 {
     int result = 0;
 
@@ -4795,9 +4795,9 @@ int ColorToInt(Color color)
 }
 
 // Get color normalized as float [0..1]
-Vector4 ColorNormalize(Color color)
+rlVector4 rlColorNormalize(rlColor color)
 {
-    Vector4 result;
+    rlVector4 result;
 
     result.x = (float)color.r/255.0f;
     result.y = (float)color.g/255.0f;
@@ -4808,9 +4808,9 @@ Vector4 ColorNormalize(Color color)
 }
 
 // Get color from normalized values [0..1]
-Color ColorFromNormalized(Vector4 normalized)
+rlColor rlColorFromNormalized(rlVector4 normalized)
 {
-    Color result;
+    rlColor result;
 
     result.r = (unsigned char)(normalized.x*255.0f);
     result.g = (unsigned char)(normalized.y*255.0f);
@@ -4820,12 +4820,12 @@ Color ColorFromNormalized(Vector4 normalized)
     return result;
 }
 
-// Get HSV values for a Color
+// Get HSV values for a rlColor
 // NOTE: Hue is returned as degrees [0..360]
-Vector3 ColorToHSV(Color color)
+rlVector3 rlColorToHSV(rlColor color)
 {
-    Vector3 hsv = { 0 };
-    Vector3 rgb = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+    rlVector3 hsv = { 0 };
+    rlVector3 rgb = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
     float min, max, delta;
 
     min = rgb.x < rgb.y? rgb.x : rgb.y;
@@ -4872,14 +4872,14 @@ Vector3 ColorToHSV(Color color)
     return hsv;
 }
 
-// Get a Color from HSV values
+// Get a rlColor from HSV values
 // Implementation reference: https://en.wikipedia.org/wiki/HSL_and_HSV#Alternative_HSV_conversion
-// NOTE: Color->HSV->Color conversion will not yield exactly the same color due to rounding errors
+// NOTE: rlColor->HSV->rlColor conversion will not yield exactly the same color due to rounding errors
 // Hue is provided in degrees: [0..360]
 // Saturation/Value are provided normalized: [0.0f..1.0f]
-Color ColorFromHSV(float hue, float saturation, float value)
+rlColor rlColorFromHSV(float hue, float saturation, float value)
 {
-    Color color = { 0, 0, 0, 255 };
+    rlColor color = { 0, 0, 0, 255 };
 
     // Red channel
     float k = fmodf((5.0f + hue/60.0f), 6);
@@ -4909,9 +4909,9 @@ Color ColorFromHSV(float hue, float saturation, float value)
 }
 
 // Get color multiplied with another color
-Color ColorTint(Color color, Color tint)
+rlColor rlColorTint(rlColor color, rlColor tint)
 {
-    Color result = color;
+    rlColor result = color;
 
     unsigned char r = (unsigned char)(((int)color.r*(int)tint.r)/255);
     unsigned char g = (unsigned char)(((int)color.g*(int)tint.g)/255);
@@ -4927,9 +4927,9 @@ Color ColorTint(Color color, Color tint)
 }
 
 // Get color with brightness correction, brightness factor goes from -1.0f to 1.0f
-Color ColorBrightness(Color color, float factor)
+rlColor rlColorBrightness(rlColor color, float factor)
 {
-    Color result = color;
+    rlColor result = color;
 
     if (factor > 1.0f) factor = 1.0f;
     else if (factor < -1.0f) factor = -1.0f;
@@ -4961,9 +4961,9 @@ Color ColorBrightness(Color color, float factor)
 
 // Get color with contrast correction
 // NOTE: Contrast values between -1.0f and 1.0f
-Color ColorContrast(Color color, float contrast)
+rlColor rlColorContrast(rlColor color, float contrast)
 {
-    Color result = color;
+    rlColor result = color;
 
     if (contrast < -1.0f) contrast = -1.0f;
     else if (contrast > 1.0f) contrast = 1.0f;
@@ -5003,9 +5003,9 @@ Color ColorContrast(Color color, float contrast)
 }
 
 // Get color with alpha applied, alpha goes from 0.0f to 1.0f
-Color ColorAlpha(Color color, float alpha)
+rlColor rlColorAlpha(rlColor color, float alpha)
 {
-    Color result = color;
+    rlColor result = color;
 
     if (alpha < 0.0f) alpha = 0.0f;
     else if (alpha > 1.0f) alpha = 1.0f;
@@ -5016,9 +5016,9 @@ Color ColorAlpha(Color color, float alpha)
 }
 
 // Get src alpha-blended into dst color with tint
-Color ColorAlphaBlend(Color dst, Color src, Color tint)
+rlColor rlColorAlphaBlend(rlColor dst, rlColor src, rlColor tint)
 {
-    Color out = WHITE;
+    rlColor out = WHITE;
 
     // Apply color tint to source color
     src.r = (unsigned char)(((unsigned int)src.r*((unsigned int)tint.r+1)) >> 8);
@@ -5049,10 +5049,10 @@ Color ColorAlphaBlend(Color dst, Color src, Color tint)
     else if (src.a == 255) out = src;
     else
     {
-        Vector4 fdst = ColorNormalize(dst);
-        Vector4 fsrc = ColorNormalize(src);
-        Vector4 ftint = ColorNormalize(tint);
-        Vector4 fout = { 0 };
+        rlVector4 fdst = rlColorNormalize(dst);
+        rlVector4 fsrc = rlColorNormalize(src);
+        rlVector4 ftint = rlColorNormalize(tint);
+        rlVector4 fout = { 0 };
 
         fout.w = fsrc.w + fdst.w*(1.0f - fsrc.w);
 
@@ -5063,7 +5063,7 @@ Color ColorAlphaBlend(Color dst, Color src, Color tint)
             fout.z = (fsrc.z*fsrc.w + fdst.z*fdst.w*(1 - fsrc.w))/fout.w;
         }
 
-        out = (Color){ (unsigned char)(fout.x*255.0f), (unsigned char)(fout.y*255.0f), (unsigned char)(fout.z*255.0f), (unsigned char)(fout.w*255.0f) };
+        out = (rlColor){ (unsigned char)(fout.x*255.0f), (unsigned char)(fout.y*255.0f), (unsigned char)(fout.z*255.0f), (unsigned char)(fout.w*255.0f) };
     }
 #endif
 
@@ -5071,9 +5071,9 @@ Color ColorAlphaBlend(Color dst, Color src, Color tint)
 }
 
 // Get color lerp interpolation between two colors, factor [0.0f..1.0f]
-Color ColorLerp(Color color1, Color color2, float factor) 
+rlColor rlColorLerp(rlColor color1, rlColor color2, float factor) 
 { 
-    Color color = { 0 };
+    rlColor color = { 0 };
     
     if (factor < 0.0f) factor = 0.0f;
     else if (factor > 1.0f) factor = 1.0f;
@@ -5086,10 +5086,10 @@ Color ColorLerp(Color color1, Color color2, float factor)
     return color;
 }
 
-// Get a Color struct from hexadecimal value
-Color GetColor(unsigned int hexValue)
+// Get a rlColor struct from hexadecimal value
+rlColor rlGetColor(unsigned int hexValue)
 {
-    Color color;
+    rlColor color;
 
     color.r = (unsigned char)(hexValue >> 24) & 0xFF;
     color.g = (unsigned char)(hexValue >> 16) & 0xFF;
@@ -5100,14 +5100,14 @@ Color GetColor(unsigned int hexValue)
 }
 
 // Get color from a pixel from certain format
-Color GetPixelColor(void *srcPtr, int format)
+rlColor rlGetPixelColor(void *srcPtr, int format)
 {
-    Color color = { 0 };
+    rlColor color = { 0 };
 
     switch (format)
     {
-        case PIXELFORMAT_UNCOMPRESSED_GRAYSCALE: color = (Color){ ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[0], 255 }; break;
-        case PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA: color = (Color){ ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[1] }; break;
+        case PIXELFORMAT_UNCOMPRESSED_GRAYSCALE: color = (rlColor){ ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[0], 255 }; break;
+        case PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA: color = (rlColor){ ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[1] }; break;
         case PIXELFORMAT_UNCOMPRESSED_R5G6B5:
         {
             color.r = (unsigned char)((((unsigned short *)srcPtr)[0] >> 11)*255/31);
@@ -5132,8 +5132,8 @@ Color GetPixelColor(void *srcPtr, int format)
             color.a = (unsigned char)((((unsigned short *)srcPtr)[0] & 0b0000000000001111)*255/15);
 
         } break;
-        case PIXELFORMAT_UNCOMPRESSED_R8G8B8A8: color = (Color){ ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[1], ((unsigned char *)srcPtr)[2], ((unsigned char *)srcPtr)[3] }; break;
-        case PIXELFORMAT_UNCOMPRESSED_R8G8B8: color = (Color){ ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[1], ((unsigned char *)srcPtr)[2], 255 }; break;
+        case PIXELFORMAT_UNCOMPRESSED_R8G8B8A8: color = (rlColor){ ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[1], ((unsigned char *)srcPtr)[2], ((unsigned char *)srcPtr)[3] }; break;
+        case PIXELFORMAT_UNCOMPRESSED_R8G8B8: color = (rlColor){ ((unsigned char *)srcPtr)[0], ((unsigned char *)srcPtr)[1], ((unsigned char *)srcPtr)[2], 255 }; break;
         case PIXELFORMAT_UNCOMPRESSED_R32:
         {
             // NOTE: Pixel normalized float value is converted to [0..255]
@@ -5195,14 +5195,14 @@ Color GetPixelColor(void *srcPtr, int format)
 }
 
 // Set pixel color formatted into destination pointer
-void SetPixelColor(void *dstPtr, Color color, int format)
+void rlSetPixelColor(void *dstPtr, rlColor color, int format)
 {
     switch (format)
     {
         case PIXELFORMAT_UNCOMPRESSED_GRAYSCALE:
         {
             // NOTE: Calculate grayscale equivalent color
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
             unsigned char gray = (unsigned char)((coln.x*0.299f + coln.y*0.587f + coln.z*0.114f)*255.0f);
 
             ((unsigned char *)dstPtr)[0] = gray;
@@ -5211,7 +5211,7 @@ void SetPixelColor(void *dstPtr, Color color, int format)
         case PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA:
         {
             // NOTE: Calculate grayscale equivalent color
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
             unsigned char gray = (unsigned char)((coln.x*0.299f + coln.y*0.587f + coln.z*0.114f)*255.0f);
 
             ((unsigned char *)dstPtr)[0] = gray;
@@ -5221,7 +5221,7 @@ void SetPixelColor(void *dstPtr, Color color, int format)
         case PIXELFORMAT_UNCOMPRESSED_R5G6B5:
         {
             // NOTE: Calculate R5G6B5 equivalent color
-            Vector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
+            rlVector3 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f };
 
             unsigned char r = (unsigned char)(round(coln.x*31.0f));
             unsigned char g = (unsigned char)(round(coln.y*63.0f));
@@ -5233,7 +5233,7 @@ void SetPixelColor(void *dstPtr, Color color, int format)
         case PIXELFORMAT_UNCOMPRESSED_R5G5B5A1:
         {
             // NOTE: Calculate R5G5B5A1 equivalent color
-            Vector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
+            rlVector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
 
             unsigned char r = (unsigned char)(round(coln.x*31.0f));
             unsigned char g = (unsigned char)(round(coln.y*31.0f));
@@ -5246,7 +5246,7 @@ void SetPixelColor(void *dstPtr, Color color, int format)
         case PIXELFORMAT_UNCOMPRESSED_R4G4B4A4:
         {
             // NOTE: Calculate R5G5B5A1 equivalent color
-            Vector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
+            rlVector4 coln = { (float)color.r/255.0f, (float)color.g/255.0f, (float)color.b/255.0f, (float)color.a/255.0f };
 
             unsigned char r = (unsigned char)(round(coln.x*15.0f));
             unsigned char g = (unsigned char)(round(coln.y*15.0f));
@@ -5276,7 +5276,7 @@ void SetPixelColor(void *dstPtr, Color color, int format)
 }
 
 // Get pixel data size in bytes for certain format
-// NOTE: Size can be requested for Image or Texture data
+// NOTE: Size can be requested for rlImage or rlTexture data
 int GetPixelDataSize(int width, int height, int format)
 {
     int dataSize = 0;       // Size in bytes
@@ -5359,10 +5359,10 @@ static unsigned short FloatToHalf(float x)
     return result;
 }
 
-// Get pixel data from image as Vector4 array (float normalized)
-static Vector4 *LoadImageDataNormalized(Image image)
+// Get pixel data from image as rlVector4 array (float normalized)
+static rlVector4 *LoadImageDataNormalized(rlImage image)
 {
-    Vector4 *pixels = (Vector4 *)RL_MALLOC(image.width*image.height*sizeof(Vector4));
+    rlVector4 *pixels = (rlVector4 *)RL_MALLOC(image.width*image.height*sizeof(rlVector4));
 
     if (image.format >= PIXELFORMAT_COMPRESSED_DXT1_RGB) TRACELOG(LOG_WARNING, "IMAGE: Pixel data retrieval not supported for compressed image formats");
     else

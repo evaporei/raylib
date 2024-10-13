@@ -1,6 +1,6 @@
 /*******************************************************************************************
 *
-*   raylib [shaders] example - Model shader
+*   raylib [shaders] example - rlModel shader
 *
 *   NOTE: This example requires raylib OpenGL 3.3 or ES2 versions for shaders support,
 *         OpenGL 1.1 does not support shaders, recompile raylib to OpenGL 3.3 version.
@@ -36,71 +36,71 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    SetConfigFlags(FLAG_MSAA_4X_HINT);      // Enable Multi Sampling Anti Aliasing 4x (if available)
+    rlSetConfigFlags(FLAG_MSAA_4X_HINT);      // Enable Multi Sampling Anti Aliasing 4x (if available)
 
-    InitWindow(screenWidth, screenHeight, "raylib [shaders] example - model shader");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shaders] example - model shader");
 
     // Define the camera to look into our 3d world
     Camera camera = { 0 };
-    camera.position = (Vector3){ 4.0f, 4.0f, 4.0f };    // Camera position
-    camera.target = (Vector3){ 0.0f, 1.0f, -1.0f };     // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    camera.position = (rlVector3){ 4.0f, 4.0f, 4.0f };    // Camera position
+    camera.target = (rlVector3){ 0.0f, 1.0f, -1.0f };     // Camera looking at point
+    camera.up = (rlVector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
-    Model model = LoadModel("resources/models/watermill.obj");                   // Load OBJ model
+    rlModel model = rlLoadModel("resources/models/watermill.obj");                   // Load OBJ model
     Texture2D texture = LoadTexture("resources/models/watermill_diffuse.png");   // Load model texture
 
     // Load shader for model
     // NOTE: Defining 0 (NULL) for vertex shader forces usage of internal default vertex shader
-    Shader shader = LoadShader(0, TextFormat("resources/shaders/glsl%i/grayscale.fs", GLSL_VERSION));
+    rlShader shader = rlLoadShader(0, rlTextFormat("resources/shaders/glsl%i/grayscale.fs", GLSL_VERSION));
 
     model.materials[0].shader = shader;                     // Set shader effect to 3d model
     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture; // Bind texture to model
 
-    Vector3 position = { 0.0f, 0.0f, 0.0f };    // Set model position
+    rlVector3 position = { 0.0f, 0.0f, 0.0f };    // Set model position
 
-    DisableCursor();                    // Limit cursor to relative movement inside the window
-    SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
+    rlDisableCursor();                    // Limit cursor to relative movement inside the window
+    rlSetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())        // Detect window close button or ESC key
+    while (!rlWindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        UpdateCamera(&camera, CAMERA_FIRST_PERSON);
+        rlUpdateCamera(&camera, CAMERA_FIRST_PERSON);
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            BeginMode3D(camera);
+            rlBeginMode3D(camera);
 
-                DrawModel(model, position, 0.2f, WHITE);   // Draw 3d model with texture
+                rlDrawModel(model, position, 0.2f, WHITE);   // Draw 3d model with texture
 
-                DrawGrid(10, 1.0f);     // Draw a grid
+                rlDrawGrid(10, 1.0f);     // Draw a grid
 
-            EndMode3D();
+            rlEndMode3D();
 
-            DrawText("(c) Watermill 3D model by Alberto Cano", screenWidth - 210, screenHeight - 20, 10, GRAY);
+            rlDrawText("(c) Watermill 3D model by Alberto Cano", screenWidth - 210, screenHeight - 20, 10, GRAY);
 
-            DrawFPS(10, 10);
+            rlDrawFPS(10, 10);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadShader(shader);       // Unload shader
+    rlUnloadShader(shader);       // Unload shader
     UnloadTexture(texture);     // Unload texture
-    UnloadModel(model);         // Unload model
+    rlUnloadModel(model);         // Unload model
 
-    CloseWindow();              // Close window and OpenGL context
+    rlCloseWindow();              // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

@@ -1,6 +1,6 @@
 /*******************************************************************************************
 *
-*   raylib [textures] example - Image Rotation
+*   raylib [textures] example - rlImage Rotation
 *
 *   Example originally created with raylib 1.0, last time updated with raylib 1.0
 *
@@ -25,34 +25,34 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [textures] example - texture rotation");
+    rlInitWindow(screenWidth, screenHeight, "raylib [textures] example - texture rotation");
 
     // NOTE: Textures MUST be loaded after Window initialization (OpenGL context is required)
-    Image image45 = LoadImage("resources/raylib_logo.png");
-    Image image90 = LoadImage("resources/raylib_logo.png");
-    Image imageNeg90 = LoadImage("resources/raylib_logo.png");
+    rlImage image45 = rlLoadImage("resources/raylib_logo.png");
+    rlImage image90 = rlLoadImage("resources/raylib_logo.png");
+    rlImage imageNeg90 = rlLoadImage("resources/raylib_logo.png");
 
-    ImageRotate(&image45, 45);
-    ImageRotate(&image90, 90);
-    ImageRotate(&imageNeg90, -90);
+    rlImageRotate(&image45, 45);
+    rlImageRotate(&image90, 90);
+    rlImageRotate(&imageNeg90, -90);
 
     Texture2D textures[NUM_TEXTURES] = { 0 };
 
-    textures[0] = LoadTextureFromImage(image45);
-    textures[1] = LoadTextureFromImage(image90);
-    textures[2] = LoadTextureFromImage(imageNeg90);
+    textures[0] = rlLoadTextureFromImage(image45);
+    textures[1] = rlLoadTextureFromImage(image90);
+    textures[2] = rlLoadTextureFromImage(imageNeg90);
 
     int currentTexture = 0;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //---------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || IsKeyPressed(KEY_RIGHT))
+        if (rlIsMouseButtonPressed(MOUSE_BUTTON_LEFT) || rlIsKeyPressed(KEY_RIGHT))
         {
             currentTexture = (currentTexture + 1)%NUM_TEXTURES; // Cycle between the textures
         }
@@ -60,15 +60,15 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawTexture(textures[currentTexture], screenWidth/2 - textures[currentTexture].width/2, screenHeight/2 - textures[currentTexture].height/2, WHITE);
+            rlDrawTexture(textures[currentTexture], screenWidth/2 - textures[currentTexture].width/2, screenHeight/2 - textures[currentTexture].height/2, WHITE);
 
-            DrawText("Press LEFT MOUSE BUTTON to rotate the image clockwise", 250, 420, 10, DARKGRAY);
+            rlDrawText("Press LEFT MOUSE BUTTON to rotate the image clockwise", 250, 420, 10, DARKGRAY);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
@@ -76,7 +76,7 @@ int main(void)
     //--------------------------------------------------------------------------------------
     for (int i = 0; i < NUM_TEXTURES; i++) UnloadTexture(textures[i]);
 
-    CloseWindow();                // Close window and OpenGL context
+    rlCloseWindow();                // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

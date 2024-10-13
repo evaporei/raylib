@@ -25,7 +25,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shapes] example - easings ball anim");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shapes] example - easings ball anim");
 
     // Ball variable value to be animated with easings
     int ballPositionX = -100;
@@ -35,11 +35,11 @@ int main(void)
     int state = 0;
     int framesCounter = 0;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ int main(void)
         }
         else if (state == 3)        // Reset state to play again
         {
-            if (IsKeyPressed(KEY_ENTER))
+            if (rlIsKeyPressed(KEY_ENTER))
             {
                 // Reset required variables to play again
                 ballPositionX = -100;
@@ -88,27 +88,27 @@ int main(void)
             }
         }
 
-        if (IsKeyPressed(KEY_R)) framesCounter = 0;
+        if (rlIsKeyPressed(KEY_R)) framesCounter = 0;
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            if (state >= 2) DrawRectangle(0, 0, screenWidth, screenHeight, GREEN);
-            DrawCircle(ballPositionX, 200, (float)ballRadius, Fade(RED, 1.0f - ballAlpha));
+            if (state >= 2) rlDrawRectangle(0, 0, screenWidth, screenHeight, GREEN);
+            rlDrawCircle(ballPositionX, 200, (float)ballRadius, rlFade(RED, 1.0f - ballAlpha));
 
-            if (state == 3) DrawText("PRESS [ENTER] TO PLAY AGAIN!", 240, 200, 20, BLACK);
+            if (state == 3) rlDrawText("PRESS [ENTER] TO PLAY AGAIN!", 240, 200, 20, BLACK);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

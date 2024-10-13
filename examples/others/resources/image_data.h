@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                    //
-// ImageAsCode exporter v1.0 - Image pixel data exported as an array of bytes         //
+// ImageAsCode exporter v1.0 - rlImage pixel data exported as an array of bytes         //
 //                                                                                    //
 // more info and bugs-report:  github.com/raysan5/raylib                              //
 // feedback and support:       ray[at]raylib.com                                      //
@@ -9,7 +9,7 @@
 //                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////
 
-// Image data information
+// rlImage data information
 #define IMAGE_WIDTH    256
 #define IMAGE_HEIGHT   256
 #define IMAGE_FORMAT   4          // raylib internal pixel format

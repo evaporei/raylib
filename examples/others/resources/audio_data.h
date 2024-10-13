@@ -1,7 +1,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 //                                                                              //
-// WaveAsCode exporter v1.0 - Wave data exported as an array of bytes           //
+// WaveAsCode exporter v1.0 - rlWave data exported as an array of bytes           //
 //                                                                              //
 // more info and bugs-report:  github.com/raysan5/raylib                        //
 // feedback and support:       ray[at]raylib.com                                //
@@ -10,7 +10,7 @@
 //                                                                              //
 //////////////////////////////////////////////////////////////////////////////////
 
-// Wave data information
+// rlWave data information
 #define AUDIO_FRAME_COUNT     24367
 #define AUDIO_SAMPLE_RATE      44100
 #define AUDIO_SAMPLE_SIZE      32

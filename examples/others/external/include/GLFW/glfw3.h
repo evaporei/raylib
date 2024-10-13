@@ -1704,7 +1704,7 @@ typedef struct GLFWgammaramp
     unsigned int size;
 } GLFWgammaramp;
 
-/*! @brief Image data.
+/*! @brief rlImage data.
  *
  *  This describes a single 2D image.  See the documentation for each related
  *  function what the expected pixel format is.

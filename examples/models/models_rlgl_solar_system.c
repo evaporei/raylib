@@ -21,7 +21,7 @@
 //------------------------------------------------------------------------------------
 // Module Functions Declaration
 //------------------------------------------------------------------------------------
-void DrawSphereBasic(Color color);      // Draw sphere without any matrix transformation
+void DrawSphereBasic(rlColor color);      // Draw sphere without any matrix transformation
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -39,13 +39,13 @@ int main(void)
     const float moonRadius = 0.16f;
     const float moonOrbitRadius = 1.5f;
 
-    InitWindow(screenWidth, screenHeight, "raylib [models] example - rlgl module usage with push/pop matrix transformations");
+    rlInitWindow(screenWidth, screenHeight, "raylib [models] example - rlgl module usage with push/pop matrix transformations");
 
     // Define the camera to look into our 3d world
     Camera camera = { 0 };
-    camera.position = (Vector3){ 16.0f, 16.0f, 16.0f }; // Camera position
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    camera.position = (rlVector3){ 16.0f, 16.0f, 16.0f }; // Camera position
+    camera.target = (rlVector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
+    camera.up = (rlVector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
@@ -56,15 +56,15 @@ int main(void)
     float moonRotation = 0.0f;          // Rotation of moon around itself
     float moonOrbitRotation = 0.0f;     // Rotation of moon around earth in degrees
 
-    SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())        // Detect window close button or ESC key
+    while (!rlWindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        UpdateCamera(&camera, CAMERA_ORBITAL);
+        rlUpdateCamera(&camera, CAMERA_ORBITAL);
 
         earthRotation += (5.0f*rotationSpeed);
         earthOrbitRotation += (365/360.0f*(5.0f*rotationSpeed)*rotationSpeed);
@@ -74,11 +74,11 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            BeginMode3D(camera);
+            rlBeginMode3D(camera);
 
                 rlPushMatrix();
                     rlScalef(sunRadius, sunRadius, sunRadius);          // Scale Sun
@@ -105,21 +105,21 @@ int main(void)
                 rlPopMatrix();
 
                 // Some reference elements (not affected by previous matrix transformations)
-                DrawCircle3D((Vector3){ 0.0f, 0.0f, 0.0f }, earthOrbitRadius, (Vector3){ 1, 0, 0 }, 90.0f, Fade(RED, 0.5f));
-                DrawGrid(20, 1.0f);
+                rlDrawCircle3D((rlVector3){ 0.0f, 0.0f, 0.0f }, earthOrbitRadius, (rlVector3){ 1, 0, 0 }, 90.0f, rlFade(RED, 0.5f));
+                rlDrawGrid(20, 1.0f);
 
-            EndMode3D();
+            rlEndMode3D();
 
-            DrawText("EARTH ORBITING AROUND THE SUN!", 400, 10, 20, MAROON);
-            DrawFPS(10, 10);
+            rlDrawText("EARTH ORBITING AROUND THE SUN!", 400, 10, 20, MAROON);
+            rlDrawFPS(10, 10);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;
@@ -131,7 +131,7 @@ int main(void)
 
 // Draw sphere without any matrix transformation
 // NOTE: Sphere is drawn in world position ( 0, 0, 0 ) with radius 1.0f
-void DrawSphereBasic(Color color)
+void DrawSphereBasic(rlColor color)
 {
     int rings = 16;
     int slices = 16;

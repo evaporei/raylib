@@ -36,9 +36,9 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shapes] example - easings rectangle array");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shapes] example - easings rectangle array");
 
-    Rectangle recs[MAX_RECS_X*MAX_RECS_Y] = { 0 };
+    rlRectangle recs[MAX_RECS_X*MAX_RECS_Y] = { 0 };
 
     for (int y = 0; y < MAX_RECS_Y; y++)
     {
@@ -55,11 +55,11 @@ int main(void)
     int framesCounter = 0;
     int state = 0;                  // Rectangles animation state: 0-Playing, 1-Finished
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ int main(void)
                 rotation = EaseLinearIn((float)framesCounter, 0.0f, 360.0f, PLAY_TIME_IN_FRAMES);
             }
         }
-        else if ((state == 1) && IsKeyPressed(KEY_SPACE))
+        else if ((state == 1) && rlIsKeyPressed(KEY_SPACE))
         {
             // When animation has finished, press space to restart
             framesCounter = 0;
@@ -97,26 +97,26 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
             if (state == 0)
             {
                 for (int i = 0; i < MAX_RECS_X*MAX_RECS_Y; i++)
                 {
-                    DrawRectanglePro(recs[i], (Vector2){ recs[i].width/2, recs[i].height/2 }, rotation, RED);
+                    rlDrawRectanglePro(recs[i], (rlVector2){ recs[i].width/2, recs[i].height/2 }, rotation, RED);
                 }
             }
-            else if (state == 1) DrawText("PRESS [SPACE] TO PLAY AGAIN!", 240, 200, 20, GRAY);
+            else if (state == 1) rlDrawText("PRESS [SPACE] TO PLAY AGAIN!", 240, 200, 20, GRAY);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

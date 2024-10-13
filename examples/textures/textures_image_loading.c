@@ -1,6 +1,6 @@
 /*******************************************************************************************
 *
-*   raylib [textures] example - Image loading and texture creation
+*   raylib [textures] example - rlImage loading and texture creation
 *
 *   NOTE: Images are loaded in CPU memory (RAM); textures are loaded in GPU memory (VRAM)
 *
@@ -25,19 +25,19 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [textures] example - image loading");
+    rlInitWindow(screenWidth, screenHeight, "raylib [textures] example - image loading");
 
     // NOTE: Textures MUST be loaded after Window initialization (OpenGL context is required)
 
-    Image image = LoadImage("resources/raylib_logo.png");     // Loaded in CPU memory (RAM)
-    Texture2D texture = LoadTextureFromImage(image);          // Image converted to texture, GPU memory (VRAM)
-    UnloadImage(image);   // Once image has been converted to texture and uploaded to VRAM, it can be unloaded from RAM
+    rlImage image = rlLoadImage("resources/raylib_logo.png");     // Loaded in CPU memory (RAM)
+    Texture2D texture = rlLoadTextureFromImage(image);          // rlImage converted to texture, GPU memory (VRAM)
+    rlUnloadImage(image);   // Once image has been converted to texture and uploaded to VRAM, it can be unloaded from RAM
 
-    SetTargetFPS(60);     // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);     // Set our game to run at 60 frames-per-second
     //---------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -46,23 +46,23 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
+            rlDrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
 
-            DrawText("this IS a texture loaded from an image!", 300, 370, 10, GRAY);
+            rlDrawText("this IS a texture loaded from an image!", 300, 370, 10, GRAY);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadTexture(texture);       // Texture unloading
+    UnloadTexture(texture);       // rlTexture unloading
 
-    CloseWindow();                // Close window and OpenGL context
+    rlCloseWindow();                // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

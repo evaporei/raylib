@@ -26,12 +26,12 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [textures] example - sprite explosion");
+    rlInitWindow(screenWidth, screenHeight, "raylib [textures] example - sprite explosion");
 
-    InitAudioDevice();
+    rlInitAudioDevice();
 
     // Load explosion sound
-    Sound fxBoom = LoadSound("resources/boom.wav");
+    rlSound fxBoom = rlLoadSound("resources/boom.wav");
 
     // Load explosion texture
     Texture2D explosion = LoadTexture("resources/explosion.png");
@@ -42,31 +42,31 @@ int main(void)
     int currentFrame = 0;
     int currentLine = 0;
 
-    Rectangle frameRec = { 0, 0, frameWidth, frameHeight };
-    Vector2 position = { 0.0f, 0.0f };
+    rlRectangle frameRec = { 0, 0, frameWidth, frameHeight };
+    rlVector2 position = { 0.0f, 0.0f };
 
     bool active = false;
     int framesCounter = 0;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //---------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
 
         // Check for mouse button pressed and activate explosion (if not active)
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !active)
+        if (rlIsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !active)
         {
-            position = GetMousePosition();
+            position = rlGetMousePosition();
             active = true;
 
             position.x -= frameWidth/2.0f;
             position.y -= frameHeight/2.0f;
 
-            PlaySound(fxBoom);
+            rlPlaySound(fxBoom);
         }
 
         // Compute explosion animation frames
@@ -100,25 +100,25 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
             // Draw explosion required frame rectangle
-            if (active) DrawTextureRec(explosion, frameRec, position, WHITE);
+            if (active) rlDrawTextureRec(explosion, frameRec, position, WHITE);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
     UnloadTexture(explosion);   // Unload texture
-    UnloadSound(fxBoom);        // Unload sound
+    rlUnloadSound(fxBoom);        // Unload sound
 
-    CloseAudioDevice();
+    rlCloseAudioDevice();
 
-    CloseWindow();              // Close window and OpenGL context
+    rlCloseWindow();              // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

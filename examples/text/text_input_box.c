@@ -25,34 +25,34 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [text] example - input box");
+    rlInitWindow(screenWidth, screenHeight, "raylib [text] example - input box");
 
     char name[MAX_INPUT_CHARS + 1] = "\0";      // NOTE: One extra space required for null terminator char '\0'
     int letterCount = 0;
 
-    Rectangle textBox = { screenWidth/2.0f - 100, 180, 225, 50 };
+    rlRectangle textBox = { screenWidth/2.0f - 100, 180, 225, 50 };
     bool mouseOnText = false;
 
     int framesCounter = 0;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        if (CheckCollisionPointRec(GetMousePosition(), textBox)) mouseOnText = true;
+        if (rlCheckCollisionPointRec(rlGetMousePosition(), textBox)) mouseOnText = true;
         else mouseOnText = false;
 
         if (mouseOnText)
         {
             // Set the window's cursor to the I-Beam
-            SetMouseCursor(MOUSE_CURSOR_IBEAM);
+            rlSetMouseCursor(MOUSE_CURSOR_IBEAM);
 
             // Get char pressed (unicode character) on the queue
-            int key = GetCharPressed();
+            int key = rlGetCharPressed();
 
             // Check if more characters have been pressed on the same frame
             while (key > 0)
@@ -65,17 +65,17 @@ int main(void)
                     letterCount++;
                 }
 
-                key = GetCharPressed();  // Check next character in the queue
+                key = rlGetCharPressed();  // Check next character in the queue
             }
 
-            if (IsKeyPressed(KEY_BACKSPACE))
+            if (rlIsKeyPressed(KEY_BACKSPACE))
             {
                 letterCount--;
                 if (letterCount < 0) letterCount = 0;
                 name[letterCount] = '\0';
             }
         }
-        else SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+        else rlSetMouseCursor(MOUSE_CURSOR_DEFAULT);
 
         if (mouseOnText) framesCounter++;
         else framesCounter = 0;
@@ -83,37 +83,37 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawText("PLACE MOUSE OVER INPUT BOX!", 240, 140, 20, GRAY);
+            rlDrawText("PLACE MOUSE OVER INPUT BOX!", 240, 140, 20, GRAY);
 
-            DrawRectangleRec(textBox, LIGHTGRAY);
-            if (mouseOnText) DrawRectangleLines((int)textBox.x, (int)textBox.y, (int)textBox.width, (int)textBox.height, RED);
-            else DrawRectangleLines((int)textBox.x, (int)textBox.y, (int)textBox.width, (int)textBox.height, DARKGRAY);
+            rlDrawRectangleRec(textBox, LIGHTGRAY);
+            if (mouseOnText) rlDrawRectangleLines((int)textBox.x, (int)textBox.y, (int)textBox.width, (int)textBox.height, RED);
+            else rlDrawRectangleLines((int)textBox.x, (int)textBox.y, (int)textBox.width, (int)textBox.height, DARKGRAY);
 
-            DrawText(name, (int)textBox.x + 5, (int)textBox.y + 8, 40, MAROON);
+            rlDrawText(name, (int)textBox.x + 5, (int)textBox.y + 8, 40, MAROON);
 
-            DrawText(TextFormat("INPUT CHARS: %i/%i", letterCount, MAX_INPUT_CHARS), 315, 250, 20, DARKGRAY);
+            rlDrawText(rlTextFormat("INPUT CHARS: %i/%i", letterCount, MAX_INPUT_CHARS), 315, 250, 20, DARKGRAY);
 
             if (mouseOnText)
             {
                 if (letterCount < MAX_INPUT_CHARS)
                 {
                     // Draw blinking underscore char
-                    if (((framesCounter/20)%2) == 0) DrawText("_", (int)textBox.x + 8 + MeasureText(name, 40), (int)textBox.y + 12, 40, MAROON);
+                    if (((framesCounter/20)%2) == 0) rlDrawText("_", (int)textBox.x + 8 + rlMeasureText(name, 40), (int)textBox.y + 12, 40, MAROON);
                 }
-                else DrawText("Press BACKSPACE to delete chars...", 230, 300, 20, GRAY);
+                else rlDrawText("Press BACKSPACE to delete chars...", 230, 300, 20, GRAY);
             }
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;
@@ -124,7 +124,7 @@ int main(void)
 bool IsAnyKeyPressed()
 {
     bool keyPressed = false;
-    int key = GetKeyPressed();
+    int key = rlGetKeyPressed();
 
     if ((key >= 32) && (key <= 126)) keyPressed = true;
 

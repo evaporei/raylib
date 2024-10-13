@@ -49,9 +49,9 @@
 
 #if defined(SUPPORT_MODULE_RMODELS)
 
-#include "utils.h"          // Required for: TRACELOG(), LoadFileData(), LoadFileText(), SaveFileText()
+#include "utils.h"          // Required for: TRACELOG(), rlLoadFileData(), rlLoadFileText(), rlSaveFileText()
 #include "rlgl.h"           // OpenGL abstraction layer to OpenGL 1.1, 2.1, 3.3+ or ES2
-#include "raymath.h"        // Required for: Vector3, Quaternion and Matrix functionality
+#include "raymath.h"        // Required for: rlVector3, Quaternion and rlMatrix functionality
 
 #include <stdio.h>          // Required for: sprintf()
 #include <stdlib.h>         // Required for: malloc(), calloc(), free()
@@ -147,25 +147,25 @@
 // Module specific Functions Declaration
 //----------------------------------------------------------------------------------
 #if defined(SUPPORT_FILEFORMAT_OBJ)
-static Model LoadOBJ(const char *fileName);     // Load OBJ mesh data
+static rlModel LoadOBJ(const char *fileName);     // Load OBJ mesh data
 #endif
 #if defined(SUPPORT_FILEFORMAT_IQM)
-static Model LoadIQM(const char *fileName);     // Load IQM mesh data
-static ModelAnimation *LoadModelAnimationsIQM(const char *fileName, int *animCount);   // Load IQM animation data
+static rlModel LoadIQM(const char *fileName);     // Load IQM mesh data
+static rlModelAnimation *LoadModelAnimationsIQM(const char *fileName, int *animCount);   // Load IQM animation data
 #endif
 #if defined(SUPPORT_FILEFORMAT_GLTF)
-static Model LoadGLTF(const char *fileName);    // Load GLTF mesh data
-static ModelAnimation *LoadModelAnimationsGLTF(const char *fileName, int *animCount);  // Load GLTF animation data
+static rlModel LoadGLTF(const char *fileName);    // Load GLTF mesh data
+static rlModelAnimation *LoadModelAnimationsGLTF(const char *fileName, int *animCount);  // Load GLTF animation data
 #endif
 #if defined(SUPPORT_FILEFORMAT_VOX)
-static Model LoadVOX(const char *filename);     // Load VOX mesh data
+static rlModel LoadVOX(const char *filename);     // Load VOX mesh data
 #endif
 #if defined(SUPPORT_FILEFORMAT_M3D)
-static Model LoadM3D(const char *filename);     // Load M3D mesh data
-static ModelAnimation *LoadModelAnimationsM3D(const char *fileName, int *animCount);   // Load M3D animation data
+static rlModel LoadM3D(const char *filename);     // Load M3D mesh data
+static rlModelAnimation *LoadModelAnimationsM3D(const char *fileName, int *animCount);   // Load M3D animation data
 #endif
 #if defined(SUPPORT_FILEFORMAT_OBJ) || defined(SUPPORT_FILEFORMAT_MTL)
-static void ProcessMaterialsOBJ(Material *rayMaterials, tinyobj_material_t *materials, int materialCount);  // Process obj materials
+static void ProcessMaterialsOBJ(rlMaterial *rayMaterials, tinyobj_material_t *materials, int materialCount);  // Process obj materials
 #endif
 
 //----------------------------------------------------------------------------------
@@ -173,7 +173,7 @@ static void ProcessMaterialsOBJ(Material *rayMaterials, tinyobj_material_t *mate
 //----------------------------------------------------------------------------------
 
 // Draw a line in 3D world space
-void DrawLine3D(Vector3 startPos, Vector3 endPos, Color color)
+void rlDrawLine3D(rlVector3 startPos, rlVector3 endPos, rlColor color)
 {
     rlBegin(RL_LINES);
         rlColor4ub(color.r, color.g, color.b, color.a);
@@ -183,7 +183,7 @@ void DrawLine3D(Vector3 startPos, Vector3 endPos, Color color)
 }
 
 // Draw a point in 3D space, actually a small line
-void DrawPoint3D(Vector3 position, Color color)
+void rlDrawPoint3D(rlVector3 position, rlColor color)
 {
     rlPushMatrix();
         rlTranslatef(position.x, position.y, position.z);
@@ -196,7 +196,7 @@ void DrawPoint3D(Vector3 position, Color color)
 }
 
 // Draw a circle in 3D world space
-void DrawCircle3D(Vector3 center, float radius, Vector3 rotationAxis, float rotationAngle, Color color)
+void rlDrawCircle3D(rlVector3 center, float radius, rlVector3 rotationAxis, float rotationAngle, rlColor color)
 {
     rlPushMatrix();
         rlTranslatef(center.x, center.y, center.z);
@@ -215,7 +215,7 @@ void DrawCircle3D(Vector3 center, float radius, Vector3 rotationAxis, float rota
 }
 
 // Draw a color-filled triangle (vertex in counter-clockwise order!)
-void DrawTriangle3D(Vector3 v1, Vector3 v2, Vector3 v3, Color color)
+void rlDrawTriangle3D(rlVector3 v1, rlVector3 v2, rlVector3 v3, rlColor color)
 {
     rlBegin(RL_TRIANGLES);
         rlColor4ub(color.r, color.g, color.b, color.a);
@@ -226,7 +226,7 @@ void DrawTriangle3D(Vector3 v1, Vector3 v2, Vector3 v3, Color color)
 }
 
 // Draw a triangle strip defined by points
-void DrawTriangleStrip3D(const Vector3 *points, int pointCount, Color color)
+void rlDrawTriangleStrip3D(const rlVector3 *points, int pointCount, rlColor color)
 {
     if (pointCount < 3) return; // Security check
 
@@ -253,7 +253,7 @@ void DrawTriangleStrip3D(const Vector3 *points, int pointCount, Color color)
 
 // Draw cube
 // NOTE: Cube position is the center position
-void DrawCube(Vector3 position, float width, float height, float length, Color color)
+void rlDrawCube(rlVector3 position, float width, float height, float length, rlColor color)
 {
     float x = 0.0f;
     float y = 0.0f;
@@ -332,13 +332,13 @@ void DrawCube(Vector3 position, float width, float height, float length, Color c
 }
 
 // Draw cube (Vector version)
-void DrawCubeV(Vector3 position, Vector3 size, Color color)
+void rlDrawCubeV(rlVector3 position, rlVector3 size, rlColor color)
 {
-    DrawCube(position, size.x, size.y, size.z, color);
+    rlDrawCube(position, size.x, size.y, size.z, color);
 }
 
 // Draw cube wires
-void DrawCubeWires(Vector3 position, float width, float height, float length, Color color)
+void rlDrawCubeWires(rlVector3 position, float width, float height, float length, rlColor color)
 {
     float x = 0.0f;
     float y = 0.0f;
@@ -410,19 +410,19 @@ void DrawCubeWires(Vector3 position, float width, float height, float length, Co
 }
 
 // Draw cube wires (vector version)
-void DrawCubeWiresV(Vector3 position, Vector3 size, Color color)
+void rlDrawCubeWiresV(rlVector3 position, rlVector3 size, rlColor color)
 {
-    DrawCubeWires(position, size.x, size.y, size.z, color);
+    rlDrawCubeWires(position, size.x, size.y, size.z, color);
 }
 
 // Draw sphere
-void DrawSphere(Vector3 centerPos, float radius, Color color)
+void rlDrawSphere(rlVector3 centerPos, float radius, rlColor color)
 {
-    DrawSphereEx(centerPos, radius, 16, 16, color);
+    rlDrawSphereEx(centerPos, radius, 16, 16, color);
 }
 
 // Draw sphere with extended parameters
-void DrawSphereEx(Vector3 centerPos, float radius, int rings, int slices, Color color)
+void rlDrawSphereEx(rlVector3 centerPos, float radius, int rings, int slices, rlColor color)
 {
 #if 0
     // Basic implementation, do not use it!
@@ -482,9 +482,9 @@ void DrawSphereEx(Vector3 centerPos, float radius, int rings, int slices, Color 
             float cosslice = cosf(sliceangle);
             float sinslice = sinf(sliceangle);
 
-            Vector3 vertices[4] = { 0 }; // Required to store face vertices
-            vertices[2] = (Vector3){ 0, 1, 0 };
-            vertices[3] = (Vector3){ sinring, cosring, 0 };
+            rlVector3 vertices[4] = { 0 }; // Required to store face vertices
+            vertices[2] = (rlVector3){ 0, 1, 0 };
+            vertices[3] = (rlVector3){ sinring, cosring, 0 };
 
             for (int i = 0; i < rings + 1; i++)
             {
@@ -492,8 +492,8 @@ void DrawSphereEx(Vector3 centerPos, float radius, int rings, int slices, Color 
                 {
                     vertices[0] = vertices[2]; // Rotate around y axis to set up vertices for next face
                     vertices[1] = vertices[3];
-                    vertices[2] = (Vector3){ cosslice*vertices[2].x - sinslice*vertices[2].z, vertices[2].y, sinslice*vertices[2].x + cosslice*vertices[2].z }; // Rotation matrix around y axis
-                    vertices[3] = (Vector3){ cosslice*vertices[3].x - sinslice*vertices[3].z, vertices[3].y, sinslice*vertices[3].x + cosslice*vertices[3].z };
+                    vertices[2] = (rlVector3){ cosslice*vertices[2].x - sinslice*vertices[2].z, vertices[2].y, sinslice*vertices[2].x + cosslice*vertices[2].z }; // Rotation matrix around y axis
+                    vertices[3] = (rlVector3){ cosslice*vertices[3].x - sinslice*vertices[3].z, vertices[3].y, sinslice*vertices[3].x + cosslice*vertices[3].z };
 
                     rlVertex3f(vertices[0].x, vertices[0].y, vertices[0].z);
                     rlVertex3f(vertices[3].x, vertices[3].y, vertices[3].z);
@@ -505,14 +505,14 @@ void DrawSphereEx(Vector3 centerPos, float radius, int rings, int slices, Color 
                 }
 
                 vertices[2] = vertices[3]; // Rotate around z axis to set up  starting vertices for next ring
-                vertices[3] = (Vector3){ cosring*vertices[3].x + sinring*vertices[3].y, -sinring*vertices[3].x + cosring*vertices[3].y, vertices[3].z }; // Rotation matrix around z axis
+                vertices[3] = (rlVector3){ cosring*vertices[3].x + sinring*vertices[3].y, -sinring*vertices[3].x + cosring*vertices[3].y, vertices[3].z }; // Rotation matrix around z axis
             }
         rlEnd();
     rlPopMatrix();
 }
 
 // Draw sphere wires
-void DrawSphereWires(Vector3 centerPos, float radius, int rings, int slices, Color color)
+void rlDrawSphereWires(rlVector3 centerPos, float radius, int rings, int slices, rlColor color)
 {
     rlPushMatrix();
         // NOTE: Transformation is applied in inverse order (scale -> translate)
@@ -554,7 +554,7 @@ void DrawSphereWires(Vector3 centerPos, float radius, int rings, int slices, Col
 
 // Draw a cylinder
 // NOTE: It could be also used for pyramid and cone
-void DrawCylinder(Vector3 position, float radiusTop, float radiusBottom, float height, int sides, Color color)
+void rlDrawCylinder(rlVector3 position, float radiusTop, float radiusBottom, float height, int sides, rlColor color)
 {
     if (sides < 3) sides = 3;
 
@@ -613,16 +613,16 @@ void DrawCylinder(Vector3 position, float radiusTop, float radiusBottom, float h
 
 // Draw a cylinder with base at startPos and top at endPos
 // NOTE: It could be also used for pyramid and cone
-void DrawCylinderEx(Vector3 startPos, Vector3 endPos, float startRadius, float endRadius, int sides, Color color)
+void rlDrawCylinderEx(rlVector3 startPos, rlVector3 endPos, float startRadius, float endRadius, int sides, rlColor color)
 {
     if (sides < 3) sides = 3;
 
-    Vector3 direction = { endPos.x - startPos.x, endPos.y - startPos.y, endPos.z - startPos.z };
+    rlVector3 direction = { endPos.x - startPos.x, endPos.y - startPos.y, endPos.z - startPos.z };
     if ((direction.x == 0) && (direction.y == 0) && (direction.z == 0)) return; // Security check
 
     // Construct a basis of the base and the top face:
-    Vector3 b1 = Vector3Normalize(Vector3Perpendicular(direction));
-    Vector3 b2 = Vector3Normalize(Vector3CrossProduct(b1, direction));
+    rlVector3 b1 = Vector3Normalize(Vector3Perpendicular(direction));
+    rlVector3 b2 = Vector3Normalize(Vector3CrossProduct(b1, direction));
 
     float baseAngle = (2.0f*PI)/sides;
 
@@ -634,16 +634,16 @@ void DrawCylinderEx(Vector3 startPos, Vector3 endPos, float startRadius, float e
             // Compute the four vertices
             float s1 = sinf(baseAngle*(i + 0))*startRadius;
             float c1 = cosf(baseAngle*(i + 0))*startRadius;
-            Vector3 w1 = { startPos.x + s1*b1.x + c1*b2.x, startPos.y + s1*b1.y + c1*b2.y, startPos.z + s1*b1.z + c1*b2.z };
+            rlVector3 w1 = { startPos.x + s1*b1.x + c1*b2.x, startPos.y + s1*b1.y + c1*b2.y, startPos.z + s1*b1.z + c1*b2.z };
             float s2 = sinf(baseAngle*(i + 1))*startRadius;
             float c2 = cosf(baseAngle*(i + 1))*startRadius;
-            Vector3 w2 = { startPos.x + s2*b1.x + c2*b2.x, startPos.y + s2*b1.y + c2*b2.y, startPos.z + s2*b1.z + c2*b2.z };
+            rlVector3 w2 = { startPos.x + s2*b1.x + c2*b2.x, startPos.y + s2*b1.y + c2*b2.y, startPos.z + s2*b1.z + c2*b2.z };
             float s3 = sinf(baseAngle*(i + 0))*endRadius;
             float c3 = cosf(baseAngle*(i + 0))*endRadius;
-            Vector3 w3 = { endPos.x + s3*b1.x + c3*b2.x, endPos.y + s3*b1.y + c3*b2.y, endPos.z + s3*b1.z + c3*b2.z };
+            rlVector3 w3 = { endPos.x + s3*b1.x + c3*b2.x, endPos.y + s3*b1.y + c3*b2.y, endPos.z + s3*b1.z + c3*b2.z };
             float s4 = sinf(baseAngle*(i + 1))*endRadius;
             float c4 = cosf(baseAngle*(i + 1))*endRadius;
-            Vector3 w4 = { endPos.x + s4*b1.x + c4*b2.x, endPos.y + s4*b1.y + c4*b2.y, endPos.z + s4*b1.z + c4*b2.z };
+            rlVector3 w4 = { endPos.x + s4*b1.x + c4*b2.x, endPos.y + s4*b1.y + c4*b2.y, endPos.z + s4*b1.z + c4*b2.z };
 
             if (startRadius > 0)
             {
@@ -672,7 +672,7 @@ void DrawCylinderEx(Vector3 startPos, Vector3 endPos, float startRadius, float e
 
 // Draw a wired cylinder
 // NOTE: It could be also used for pyramid and cone
-void DrawCylinderWires(Vector3 position, float radiusTop, float radiusBottom, float height, int sides, Color color)
+void rlDrawCylinderWires(rlVector3 position, float radiusTop, float radiusBottom, float height, int sides, rlColor color)
 {
     if (sides < 3) sides = 3;
 
@@ -704,16 +704,16 @@ void DrawCylinderWires(Vector3 position, float radiusTop, float radiusBottom, fl
 
 // Draw a wired cylinder with base at startPos and top at endPos
 // NOTE: It could be also used for pyramid and cone
-void DrawCylinderWiresEx(Vector3 startPos, Vector3 endPos, float startRadius, float endRadius, int sides, Color color)
+void rlDrawCylinderWiresEx(rlVector3 startPos, rlVector3 endPos, float startRadius, float endRadius, int sides, rlColor color)
 {
     if (sides < 3) sides = 3;
 
-    Vector3 direction = { endPos.x - startPos.x, endPos.y - startPos.y, endPos.z - startPos.z };
+    rlVector3 direction = { endPos.x - startPos.x, endPos.y - startPos.y, endPos.z - startPos.z };
     if ((direction.x == 0) && (direction.y == 0) && (direction.z == 0)) return; // Security check
 
     // Construct a basis of the base and the top face:
-    Vector3 b1 = Vector3Normalize(Vector3Perpendicular(direction));
-    Vector3 b2 = Vector3Normalize(Vector3CrossProduct(b1, direction));
+    rlVector3 b1 = Vector3Normalize(Vector3Perpendicular(direction));
+    rlVector3 b2 = Vector3Normalize(Vector3CrossProduct(b1, direction));
 
     float baseAngle = (2.0f*PI)/sides;
 
@@ -725,16 +725,16 @@ void DrawCylinderWiresEx(Vector3 startPos, Vector3 endPos, float startRadius, fl
             // Compute the four vertices
             float s1 = sinf(baseAngle*(i + 0))*startRadius;
             float c1 = cosf(baseAngle*(i + 0))*startRadius;
-            Vector3 w1 = { startPos.x + s1*b1.x + c1*b2.x, startPos.y + s1*b1.y + c1*b2.y, startPos.z + s1*b1.z + c1*b2.z };
+            rlVector3 w1 = { startPos.x + s1*b1.x + c1*b2.x, startPos.y + s1*b1.y + c1*b2.y, startPos.z + s1*b1.z + c1*b2.z };
             float s2 = sinf(baseAngle*(i + 1))*startRadius;
             float c2 = cosf(baseAngle*(i + 1))*startRadius;
-            Vector3 w2 = { startPos.x + s2*b1.x + c2*b2.x, startPos.y + s2*b1.y + c2*b2.y, startPos.z + s2*b1.z + c2*b2.z };
+            rlVector3 w2 = { startPos.x + s2*b1.x + c2*b2.x, startPos.y + s2*b1.y + c2*b2.y, startPos.z + s2*b1.z + c2*b2.z };
             float s3 = sinf(baseAngle*(i + 0))*endRadius;
             float c3 = cosf(baseAngle*(i + 0))*endRadius;
-            Vector3 w3 = { endPos.x + s3*b1.x + c3*b2.x, endPos.y + s3*b1.y + c3*b2.y, endPos.z + s3*b1.z + c3*b2.z };
+            rlVector3 w3 = { endPos.x + s3*b1.x + c3*b2.x, endPos.y + s3*b1.y + c3*b2.y, endPos.z + s3*b1.z + c3*b2.z };
             float s4 = sinf(baseAngle*(i + 1))*endRadius;
             float c4 = cosf(baseAngle*(i + 1))*endRadius;
-            Vector3 w4 = { endPos.x + s4*b1.x + c4*b2.x, endPos.y + s4*b1.y + c4*b2.y, endPos.z + s4*b1.z + c4*b2.z };
+            rlVector3 w4 = { endPos.x + s4*b1.x + c4*b2.x, endPos.y + s4*b1.y + c4*b2.y, endPos.z + s4*b1.z + c4*b2.z };
 
             rlVertex3f(w1.x, w1.y, w1.z);
             rlVertex3f(w2.x, w2.y, w2.z);
@@ -749,21 +749,21 @@ void DrawCylinderWiresEx(Vector3 startPos, Vector3 endPos, float startRadius, fl
 }
 
 // Draw a capsule with the center of its sphere caps at startPos and endPos
-void DrawCapsule(Vector3 startPos, Vector3 endPos, float radius, int slices, int rings, Color color)
+void rlDrawCapsule(rlVector3 startPos, rlVector3 endPos, float radius, int slices, int rings, rlColor color)
 {
     if (slices < 3) slices = 3;
 
-    Vector3 direction = { endPos.x - startPos.x, endPos.y - startPos.y, endPos.z - startPos.z };
+    rlVector3 direction = { endPos.x - startPos.x, endPos.y - startPos.y, endPos.z - startPos.z };
 
     // draw a sphere if start and end points are the same
     bool sphereCase = (direction.x == 0) && (direction.y == 0) && (direction.z == 0);
-    if (sphereCase) direction = (Vector3){0.0f, 1.0f, 0.0f};
+    if (sphereCase) direction = (rlVector3){0.0f, 1.0f, 0.0f};
 
     // Construct a basis of the base and the caps:
-    Vector3 b0 = Vector3Normalize(direction);
-    Vector3 b1 = Vector3Normalize(Vector3Perpendicular(direction));
-    Vector3 b2 = Vector3Normalize(Vector3CrossProduct(b1, direction));
-    Vector3 capCenter = endPos;
+    rlVector3 b0 = Vector3Normalize(direction);
+    rlVector3 b1 = Vector3Normalize(Vector3Perpendicular(direction));
+    rlVector3 b2 = Vector3Normalize(Vector3CrossProduct(b1, direction));
+    rlVector3 capCenter = endPos;
 
     float baseSliceAngle = (2.0f*PI)/slices;
     float baseRingAngle  = PI*0.5f/rings;
@@ -787,14 +787,14 @@ void DrawCapsule(Vector3 startPos, Vector3 endPos, float radius, int slices, int
                     // compute the four vertices
                     float ringSin1 = sinf(baseSliceAngle*(j + 0))*cosf(baseRingAngle*( i + 0 ));
                     float ringCos1 = cosf(baseSliceAngle*(j + 0))*cosf(baseRingAngle*( i + 0 ));
-                    Vector3 w1 = (Vector3){
+                    rlVector3 w1 = (rlVector3){
                         capCenter.x + (sinf(baseRingAngle*( i + 0 ))*b0.x + ringSin1*b1.x + ringCos1*b2.x)*radius,
                         capCenter.y + (sinf(baseRingAngle*( i + 0 ))*b0.y + ringSin1*b1.y + ringCos1*b2.y)*radius,
                         capCenter.z + (sinf(baseRingAngle*( i + 0 ))*b0.z + ringSin1*b1.z + ringCos1*b2.z)*radius
                     };
                     float ringSin2 = sinf(baseSliceAngle*(j + 1))*cosf(baseRingAngle*( i + 0 ));
                     float ringCos2 = cosf(baseSliceAngle*(j + 1))*cosf(baseRingAngle*( i + 0 ));
-                    Vector3 w2 = (Vector3){
+                    rlVector3 w2 = (rlVector3){
                         capCenter.x + (sinf(baseRingAngle*( i + 0 ))*b0.x + ringSin2*b1.x + ringCos2*b2.x)*radius,
                         capCenter.y + (sinf(baseRingAngle*( i + 0 ))*b0.y + ringSin2*b1.y + ringCos2*b2.y)*radius,
                         capCenter.z + (sinf(baseRingAngle*( i + 0 ))*b0.z + ringSin2*b1.z + ringCos2*b2.z)*radius
@@ -802,14 +802,14 @@ void DrawCapsule(Vector3 startPos, Vector3 endPos, float radius, int slices, int
 
                     float ringSin3 = sinf(baseSliceAngle*(j + 0))*cosf(baseRingAngle*( i + 1 ));
                     float ringCos3 = cosf(baseSliceAngle*(j + 0))*cosf(baseRingAngle*( i + 1 ));
-                    Vector3 w3 = (Vector3){
+                    rlVector3 w3 = (rlVector3){
                         capCenter.x + (sinf(baseRingAngle*( i + 1 ))*b0.x + ringSin3*b1.x + ringCos3*b2.x)*radius,
                         capCenter.y + (sinf(baseRingAngle*( i + 1 ))*b0.y + ringSin3*b1.y + ringCos3*b2.y)*radius,
                         capCenter.z + (sinf(baseRingAngle*( i + 1 ))*b0.z + ringSin3*b1.z + ringCos3*b2.z)*radius
                     };
                     float ringSin4 = sinf(baseSliceAngle*(j + 1))*cosf(baseRingAngle*( i + 1 ));
                     float ringCos4 = cosf(baseSliceAngle*(j + 1))*cosf(baseRingAngle*( i + 1 ));
-                    Vector3 w4 = (Vector3){
+                    rlVector3 w4 = (rlVector3){
                         capCenter.x + (sinf(baseRingAngle*( i + 1 ))*b0.x + ringSin4*b1.x + ringCos4*b2.x)*radius,
                         capCenter.y + (sinf(baseRingAngle*( i + 1 ))*b0.y + ringSin4*b1.y + ringCos4*b2.y)*radius,
                         capCenter.z + (sinf(baseRingAngle*( i + 1 ))*b0.z + ringSin4*b1.z + ringCos4*b2.z)*radius
@@ -849,14 +849,14 @@ void DrawCapsule(Vector3 startPos, Vector3 endPos, float radius, int slices, int
                 // compute the four vertices
                 float ringSin1 = sinf(baseSliceAngle*(j + 0))*radius;
                 float ringCos1 = cosf(baseSliceAngle*(j + 0))*radius;
-                Vector3 w1 = {
+                rlVector3 w1 = {
                     startPos.x + ringSin1*b1.x + ringCos1*b2.x,
                     startPos.y + ringSin1*b1.y + ringCos1*b2.y,
                     startPos.z + ringSin1*b1.z + ringCos1*b2.z
                 };
                 float ringSin2 = sinf(baseSliceAngle*(j + 1))*radius;
                 float ringCos2 = cosf(baseSliceAngle*(j + 1))*radius;
-                Vector3 w2 = {
+                rlVector3 w2 = {
                     startPos.x + ringSin2*b1.x + ringCos2*b2.x,
                     startPos.y + ringSin2*b1.y + ringCos2*b2.y,
                     startPos.z + ringSin2*b1.z + ringCos2*b2.z
@@ -864,14 +864,14 @@ void DrawCapsule(Vector3 startPos, Vector3 endPos, float radius, int slices, int
 
                 float ringSin3 = sinf(baseSliceAngle*(j + 0))*radius;
                 float ringCos3 = cosf(baseSliceAngle*(j + 0))*radius;
-                Vector3 w3 = {
+                rlVector3 w3 = {
                     endPos.x + ringSin3*b1.x + ringCos3*b2.x,
                     endPos.y + ringSin3*b1.y + ringCos3*b2.y,
                     endPos.z + ringSin3*b1.z + ringCos3*b2.z
                 };
                 float ringSin4 = sinf(baseSliceAngle*(j + 1))*radius;
                 float ringCos4 = cosf(baseSliceAngle*(j + 1))*radius;
-                Vector3 w4 = {
+                rlVector3 w4 = {
                     endPos.x + ringSin4*b1.x + ringCos4*b2.x,
                     endPos.y + ringSin4*b1.y + ringCos4*b2.y,
                     endPos.z + ringSin4*b1.z + ringCos4*b2.z
@@ -892,21 +892,21 @@ void DrawCapsule(Vector3 startPos, Vector3 endPos, float radius, int slices, int
 }
 
 // Draw capsule wires with the center of its sphere caps at startPos and endPos
-void DrawCapsuleWires(Vector3 startPos, Vector3 endPos, float radius, int slices, int rings, Color color)
+void rlDrawCapsuleWires(rlVector3 startPos, rlVector3 endPos, float radius, int slices, int rings, rlColor color)
 {
     if (slices < 3) slices = 3;
 
-    Vector3 direction = { endPos.x - startPos.x, endPos.y - startPos.y, endPos.z - startPos.z };
+    rlVector3 direction = { endPos.x - startPos.x, endPos.y - startPos.y, endPos.z - startPos.z };
 
     // draw a sphere if start and end points are the same
     bool sphereCase = (direction.x == 0) && (direction.y == 0) && (direction.z == 0);
-    if (sphereCase) direction = (Vector3){0.0f, 1.0f, 0.0f};
+    if (sphereCase) direction = (rlVector3){0.0f, 1.0f, 0.0f};
 
     // Construct a basis of the base and the caps:
-    Vector3 b0 = Vector3Normalize(direction);
-    Vector3 b1 = Vector3Normalize(Vector3Perpendicular(direction));
-    Vector3 b2 = Vector3Normalize(Vector3CrossProduct(b1, direction));
-    Vector3 capCenter = endPos;
+    rlVector3 b0 = Vector3Normalize(direction);
+    rlVector3 b1 = Vector3Normalize(Vector3Perpendicular(direction));
+    rlVector3 b2 = Vector3Normalize(Vector3CrossProduct(b1, direction));
+    rlVector3 capCenter = endPos;
 
     float baseSliceAngle = (2.0f*PI)/slices;
     float baseRingAngle  = PI*0.5f/rings;
@@ -930,14 +930,14 @@ void DrawCapsuleWires(Vector3 startPos, Vector3 endPos, float radius, int slices
                     // compute the four vertices
                     float ringSin1 = sinf(baseSliceAngle*(j + 0))*cosf(baseRingAngle*( i + 0 ));
                     float ringCos1 = cosf(baseSliceAngle*(j + 0))*cosf(baseRingAngle*( i + 0 ));
-                    Vector3 w1 = (Vector3){
+                    rlVector3 w1 = (rlVector3){
                         capCenter.x + (sinf(baseRingAngle*( i + 0 ))*b0.x + ringSin1*b1.x + ringCos1*b2.x)*radius,
                         capCenter.y + (sinf(baseRingAngle*( i + 0 ))*b0.y + ringSin1*b1.y + ringCos1*b2.y)*radius,
                         capCenter.z + (sinf(baseRingAngle*( i + 0 ))*b0.z + ringSin1*b1.z + ringCos1*b2.z)*radius
                     };
                     float ringSin2 = sinf(baseSliceAngle*(j + 1))*cosf(baseRingAngle*( i + 0 ));
                     float ringCos2 = cosf(baseSliceAngle*(j + 1))*cosf(baseRingAngle*( i + 0 ));
-                    Vector3 w2 = (Vector3){
+                    rlVector3 w2 = (rlVector3){
                         capCenter.x + (sinf(baseRingAngle*( i + 0 ))*b0.x + ringSin2*b1.x + ringCos2*b2.x)*radius,
                         capCenter.y + (sinf(baseRingAngle*( i + 0 ))*b0.y + ringSin2*b1.y + ringCos2*b2.y)*radius,
                         capCenter.z + (sinf(baseRingAngle*( i + 0 ))*b0.z + ringSin2*b1.z + ringCos2*b2.z)*radius
@@ -945,14 +945,14 @@ void DrawCapsuleWires(Vector3 startPos, Vector3 endPos, float radius, int slices
 
                     float ringSin3 = sinf(baseSliceAngle*(j + 0))*cosf(baseRingAngle*( i + 1 ));
                     float ringCos3 = cosf(baseSliceAngle*(j + 0))*cosf(baseRingAngle*( i + 1 ));
-                    Vector3 w3 = (Vector3){
+                    rlVector3 w3 = (rlVector3){
                         capCenter.x + (sinf(baseRingAngle*( i + 1 ))*b0.x + ringSin3*b1.x + ringCos3*b2.x)*radius,
                         capCenter.y + (sinf(baseRingAngle*( i + 1 ))*b0.y + ringSin3*b1.y + ringCos3*b2.y)*radius,
                         capCenter.z + (sinf(baseRingAngle*( i + 1 ))*b0.z + ringSin3*b1.z + ringCos3*b2.z)*radius
                     };
                     float ringSin4 = sinf(baseSliceAngle*(j + 1))*cosf(baseRingAngle*( i + 1 ));
                     float ringCos4 = cosf(baseSliceAngle*(j + 1))*cosf(baseRingAngle*( i + 1 ));
-                    Vector3 w4 = (Vector3){
+                    rlVector3 w4 = (rlVector3){
                         capCenter.x + (sinf(baseRingAngle*( i + 1 ))*b0.x + ringSin4*b1.x + ringCos4*b2.x)*radius,
                         capCenter.y + (sinf(baseRingAngle*( i + 1 ))*b0.y + ringSin4*b1.y + ringCos4*b2.y)*radius,
                         capCenter.z + (sinf(baseRingAngle*( i + 1 ))*b0.z + ringSin4*b1.z + ringCos4*b2.z)*radius
@@ -985,14 +985,14 @@ void DrawCapsuleWires(Vector3 startPos, Vector3 endPos, float radius, int slices
                 // compute the four vertices
                 float ringSin1 = sinf(baseSliceAngle*(j + 0))*radius;
                 float ringCos1 = cosf(baseSliceAngle*(j + 0))*radius;
-                Vector3 w1 = {
+                rlVector3 w1 = {
                     startPos.x + ringSin1*b1.x + ringCos1*b2.x,
                     startPos.y + ringSin1*b1.y + ringCos1*b2.y,
                     startPos.z + ringSin1*b1.z + ringCos1*b2.z
                 };
                 float ringSin2 = sinf(baseSliceAngle*(j + 1))*radius;
                 float ringCos2 = cosf(baseSliceAngle*(j + 1))*radius;
-                Vector3 w2 = {
+                rlVector3 w2 = {
                     startPos.x + ringSin2*b1.x + ringCos2*b2.x,
                     startPos.y + ringSin2*b1.y + ringCos2*b2.y,
                     startPos.z + ringSin2*b1.z + ringCos2*b2.z
@@ -1000,14 +1000,14 @@ void DrawCapsuleWires(Vector3 startPos, Vector3 endPos, float radius, int slices
 
                 float ringSin3 = sinf(baseSliceAngle*(j + 0))*radius;
                 float ringCos3 = cosf(baseSliceAngle*(j + 0))*radius;
-                Vector3 w3 = {
+                rlVector3 w3 = {
                     endPos.x + ringSin3*b1.x + ringCos3*b2.x,
                     endPos.y + ringSin3*b1.y + ringCos3*b2.y,
                     endPos.z + ringSin3*b1.z + ringCos3*b2.z
                 };
                 float ringSin4 = sinf(baseSliceAngle*(j + 1))*radius;
                 float ringCos4 = cosf(baseSliceAngle*(j + 1))*radius;
-                Vector3 w4 = {
+                rlVector3 w4 = {
                     endPos.x + ringSin4*b1.x + ringCos4*b2.x,
                     endPos.y + ringSin4*b1.y + ringCos4*b2.y,
                     endPos.z + ringSin4*b1.z + ringCos4*b2.z
@@ -1027,7 +1027,7 @@ void DrawCapsuleWires(Vector3 startPos, Vector3 endPos, float radius, int slices
 }
 
 // Draw a plane
-void DrawPlane(Vector3 centerPos, Vector2 size, Color color)
+void rlDrawPlane(rlVector3 centerPos, rlVector2 size, rlColor color)
 {
     // NOTE: Plane is always created on XZ ground
     rlPushMatrix();
@@ -1047,7 +1047,7 @@ void DrawPlane(Vector3 centerPos, Vector2 size, Color color)
 }
 
 // Draw a ray line
-void DrawRay(Ray ray, Color color)
+void rlDrawRay(rlRay ray, rlColor color)
 {
     float scale = 10000;
 
@@ -1061,7 +1061,7 @@ void DrawRay(Ray ray, Color color)
 }
 
 // Draw a grid centered at (0, 0, 0)
-void DrawGrid(int slices, float spacing)
+void rlDrawGrid(int slices, float spacing)
 {
     int halfSlices = slices/2;
 
@@ -1087,24 +1087,24 @@ void DrawGrid(int slices, float spacing)
 }
 
 // Load model from files (mesh and material)
-Model LoadModel(const char *fileName)
+rlModel rlLoadModel(const char *fileName)
 {
-    Model model = { 0 };
+    rlModel model = { 0 };
 
 #if defined(SUPPORT_FILEFORMAT_OBJ)
-    if (IsFileExtension(fileName, ".obj")) model = LoadOBJ(fileName);
+    if (rlIsFileExtension(fileName, ".obj")) model = LoadOBJ(fileName);
 #endif
 #if defined(SUPPORT_FILEFORMAT_IQM)
-    if (IsFileExtension(fileName, ".iqm")) model = LoadIQM(fileName);
+    if (rlIsFileExtension(fileName, ".iqm")) model = LoadIQM(fileName);
 #endif
 #if defined(SUPPORT_FILEFORMAT_GLTF)
-    if (IsFileExtension(fileName, ".gltf") || IsFileExtension(fileName, ".glb")) model = LoadGLTF(fileName);
+    if (rlIsFileExtension(fileName, ".gltf") || rlIsFileExtension(fileName, ".glb")) model = LoadGLTF(fileName);
 #endif
 #if defined(SUPPORT_FILEFORMAT_VOX)
-    if (IsFileExtension(fileName, ".vox")) model = LoadVOX(fileName);
+    if (rlIsFileExtension(fileName, ".vox")) model = LoadVOX(fileName);
 #endif
 #if defined(SUPPORT_FILEFORMAT_M3D)
-    if (IsFileExtension(fileName, ".m3d")) model = LoadM3D(fileName);
+    if (rlIsFileExtension(fileName, ".m3d")) model = LoadM3D(fileName);
 #endif
 
     // Make sure model transform is set to identity matrix!
@@ -1113,7 +1113,7 @@ Model LoadModel(const char *fileName)
     if ((model.meshCount != 0) && (model.meshes != NULL))
     {
         // Upload vertex data to GPU (static meshes)
-        for (int i = 0; i < model.meshCount; i++) UploadMesh(&model.meshes[i], false);
+        for (int i = 0; i < model.meshCount; i++) rlUploadMesh(&model.meshes[i], false);
     }
     else TRACELOG(LOG_WARNING, "MESH: [%s] Failed to load model mesh(es) data", fileName);
 
@@ -1122,8 +1122,8 @@ Model LoadModel(const char *fileName)
         TRACELOG(LOG_WARNING, "MATERIAL: [%s] Failed to load model material data, default to white material", fileName);
 
         model.materialCount = 1;
-        model.materials = (Material *)RL_CALLOC(model.materialCount, sizeof(Material));
-        model.materials[0] = LoadMaterialDefault();
+        model.materials = (rlMaterial *)RL_CALLOC(model.materialCount, sizeof(rlMaterial));
+        model.materials[0] = rlLoadMaterialDefault();
 
         if (model.meshMaterial == NULL) model.meshMaterial = (int *)RL_CALLOC(model.meshCount, sizeof(int));
     }
@@ -1135,19 +1135,19 @@ Model LoadModel(const char *fileName)
 // WARNING: A shallow copy of mesh is generated, passed by value,
 // as long as struct contains pointers to data and some values, we get a copy
 // of mesh pointing to same data as original version... be careful!
-Model LoadModelFromMesh(Mesh mesh)
+rlModel rlLoadModelFromMesh(rlMesh mesh)
 {
-    Model model = { 0 };
+    rlModel model = { 0 };
 
     model.transform = MatrixIdentity();
 
     model.meshCount = 1;
-    model.meshes = (Mesh *)RL_CALLOC(model.meshCount, sizeof(Mesh));
+    model.meshes = (rlMesh *)RL_CALLOC(model.meshCount, sizeof(rlMesh));
     model.meshes[0] = mesh;
 
     model.materialCount = 1;
-    model.materials = (Material *)RL_CALLOC(model.materialCount, sizeof(Material));
-    model.materials[0] = LoadMaterialDefault();
+    model.materials = (rlMaterial *)RL_CALLOC(model.materialCount, sizeof(rlMaterial));
+    model.materials[0] = rlLoadMaterialDefault();
 
     model.meshMaterial = (int *)RL_CALLOC(model.meshCount, sizeof(int));
     model.meshMaterial[0] = 0;  // First material index
@@ -1156,7 +1156,7 @@ Model LoadModelFromMesh(Mesh mesh)
 }
 
 // Check if a model is ready
-bool IsModelReady(Model model)
+bool rlIsModelReady(rlModel model)
 {
     bool result = false;
 
@@ -1173,11 +1173,11 @@ bool IsModelReady(Model model)
 
 // Unload model (meshes/materials) from memory (RAM and/or VRAM)
 // NOTE: This function takes care of all model elements, for a detailed control
-// over them, use UnloadMesh() and UnloadMaterial()
-void UnloadModel(Model model)
+// over them, use rlUnloadMesh() and rlUnloadMaterial()
+void rlUnloadModel(rlModel model)
 {
     // Unload meshes
-    for (int i = 0; i < model.meshCount; i++) UnloadMesh(model.meshes[i]);
+    for (int i = 0; i < model.meshCount; i++) rlUnloadMesh(model.meshes[i]);
 
     // Unload materials maps
     // NOTE: As the user could be sharing shaders and textures between models,
@@ -1198,18 +1198,18 @@ void UnloadModel(Model model)
 }
 
 // Compute model bounding box limits (considers all meshes)
-BoundingBox GetModelBoundingBox(Model model)
+rlBoundingBox rlGetModelBoundingBox(rlModel model)
 {
-    BoundingBox bounds = { 0 };
+    rlBoundingBox bounds = { 0 };
 
     if (model.meshCount > 0)
     {
-        Vector3 temp = { 0 };
-        bounds = GetMeshBoundingBox(model.meshes[0]);
+        rlVector3 temp = { 0 };
+        bounds = rlGetMeshBoundingBox(model.meshes[0]);
 
         for (int i = 1; i < model.meshCount; i++)
         {
-            BoundingBox tempBounds = GetMeshBoundingBox(model.meshes[i]);
+            rlBoundingBox tempBounds = rlGetMeshBoundingBox(model.meshes[i]);
 
             temp.x = (bounds.min.x < tempBounds.min.x)? bounds.min.x : tempBounds.min.x;
             temp.y = (bounds.min.y < tempBounds.min.y)? bounds.min.y : tempBounds.min.y;
@@ -1224,7 +1224,7 @@ BoundingBox GetModelBoundingBox(Model model)
     }
 
     // Apply model.transform to bounding box
-    // WARNING: Current BoundingBox structure design does not support rotation transformations,
+    // WARNING: Current rlBoundingBox structure design does not support rotation transformations,
     // in those cases is up to the user to calculate the proper box bounds (8 vertices transformed)
     bounds.min = Vector3Transform(bounds.min, model.transform);
     bounds.max = Vector3Transform(bounds.max, model.transform);
@@ -1233,7 +1233,7 @@ BoundingBox GetModelBoundingBox(Model model)
 }
 
 // Upload vertex data into a VAO (if supported) and VBO
-void UploadMesh(Mesh *mesh, bool dynamic)
+void rlUploadMesh(rlMesh *mesh, bool dynamic)
 {
     if (mesh->vaoId > 0)
     {
@@ -1382,21 +1382,21 @@ void UploadMesh(Mesh *mesh, bool dynamic)
         mesh->vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_INDICES] = rlLoadVertexBufferElement(mesh->indices, mesh->triangleCount*3*sizeof(unsigned short), dynamic);
     }
 
-    if (mesh->vaoId > 0) TRACELOG(LOG_INFO, "VAO: [ID %i] Mesh uploaded successfully to VRAM (GPU)", mesh->vaoId);
-    else TRACELOG(LOG_INFO, "VBO: Mesh uploaded successfully to VRAM (GPU)");
+    if (mesh->vaoId > 0) TRACELOG(LOG_INFO, "VAO: [ID %i] rlMesh uploaded successfully to VRAM (GPU)", mesh->vaoId);
+    else TRACELOG(LOG_INFO, "VBO: rlMesh uploaded successfully to VRAM (GPU)");
 
     rlDisableVertexArray();
 #endif
 }
 
 // Update mesh vertex data in GPU for a specific buffer index
-void UpdateMeshBuffer(Mesh mesh, int index, const void *data, int dataSize, int offset)
+void rlUpdateMeshBuffer(rlMesh mesh, int index, const void *data, int dataSize, int offset)
 {
     rlUpdateVertexBuffer(mesh.vboId[index], data, dataSize, offset);
 }
 
 // Draw a 3d mesh with material and transform
-void DrawMesh(Mesh mesh, Material material, Matrix transform)
+void rlDrawMesh(rlMesh mesh, rlMaterial material, rlMatrix transform)
 {
 #if defined(GRAPHICS_API_OPENGL_11)
     #define GL_VERTEX_ARRAY         0x8074
@@ -1465,23 +1465,23 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
     // Get a copy of current matrices to work with,
     // just in case stereo render is required, and we need to modify them
     // NOTE: At this point the modelview matrix just contains the view matrix (camera)
-    // That's because BeginMode3D() sets it and there is no model-drawing function
+    // That's because rlBeginMode3D() sets it and there is no model-drawing function
     // that modifies it, all use rlPushMatrix() and rlPopMatrix()
-    Matrix matModel = MatrixIdentity();
-    Matrix matView = rlGetMatrixModelview();
-    Matrix matModelView = MatrixIdentity();
-    Matrix matProjection = rlGetMatrixProjection();
+    rlMatrix matModel = MatrixIdentity();
+    rlMatrix matView = rlGetMatrixModelview();
+    rlMatrix matModelView = MatrixIdentity();
+    rlMatrix matProjection = rlGetMatrixProjection();
 
     // Upload view and projection matrices (if locations available)
     if (material.shader.locs[SHADER_LOC_MATRIX_VIEW] != -1) rlSetUniformMatrix(material.shader.locs[SHADER_LOC_MATRIX_VIEW], matView);
     if (material.shader.locs[SHADER_LOC_MATRIX_PROJECTION] != -1) rlSetUniformMatrix(material.shader.locs[SHADER_LOC_MATRIX_PROJECTION], matProjection);
 
     // Accumulate several model transformations:
-    //    transform: model transformation provided (includes DrawModel() params combined with model.transform)
+    //    transform: model transformation provided (includes rlDrawModel() params combined with model.transform)
     //    rlGetMatrixTransform(): rlgl internal transform matrix due to push/pop matrix stack
     matModel = MatrixMultiply(transform, rlGetMatrixTransform());
 
-    // Model transformation matrix is sent to shader uniform location: SHADER_LOC_MATRIX_MODEL
+    // rlModel transformation matrix is sent to shader uniform location: SHADER_LOC_MATRIX_MODEL
     if (material.shader.locs[SHADER_LOC_MATRIX_MODEL] != -1) rlSetUniformMatrix(material.shader.locs[SHADER_LOC_MATRIX_MODEL], matModel);
 
     // Get model-view matrix
@@ -1518,7 +1518,7 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
     }
 
     // Try binding vertex array objects (VAO) or use VBOs if not possible
-    // WARNING: UploadMesh() enables all vertex attributes available in mesh and sets default attribute values
+    // WARNING: rlUploadMesh() enables all vertex attributes available in mesh and sets default attribute values
     // for shader expected vertex attributes that are not provided by the mesh (i.e. colors)
     // This could be a dangerous approach because different meshes with different shaders can enable/disable some attributes
     if (!rlEnableVertexArray(mesh.vaoId))
@@ -1603,7 +1603,7 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
     for (int eye = 0; eye < eyeCount; eye++)
     {
         // Calculate model-view-projection matrix (MVP)
-        Matrix matModelViewProjection = MatrixIdentity();
+        rlMatrix matModelViewProjection = MatrixIdentity();
         if (eyeCount == 1) matModelViewProjection = MatrixMultiply(matModelView, matProjection);
         else
         {
@@ -1651,7 +1651,7 @@ void DrawMesh(Mesh mesh, Material material, Matrix transform)
 }
 
 // Draw multiple mesh instances with material and different transforms
-void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, int instances)
+void rlDrawMeshInstanced(rlMesh mesh, rlMaterial material, const rlMatrix *transforms, int instances)
 {
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
     // Instancing required variables
@@ -1692,12 +1692,12 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
     // Get a copy of current matrices to work with,
     // just in case stereo render is required, and we need to modify them
     // NOTE: At this point the modelview matrix just contains the view matrix (camera)
-    // That's because BeginMode3D() sets it and there is no model-drawing function
+    // That's because rlBeginMode3D() sets it and there is no model-drawing function
     // that modifies it, all use rlPushMatrix() and rlPopMatrix()
-    Matrix matModel = MatrixIdentity();
-    Matrix matView = rlGetMatrixModelview();
-    Matrix matModelView = MatrixIdentity();
-    Matrix matProjection = rlGetMatrixProjection();
+    rlMatrix matModel = MatrixIdentity();
+    rlMatrix matView = rlGetMatrixModelview();
+    rlMatrix matModelView = MatrixIdentity();
+    rlMatrix matProjection = rlGetMatrixProjection();
 
     // Upload view and projection matrices (if locations available)
     if (material.shader.locs[SHADER_LOC_MATRIX_VIEW] != -1) rlSetUniformMatrix(material.shader.locs[SHADER_LOC_MATRIX_VIEW], matView);
@@ -1722,7 +1722,7 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
     for (unsigned int i = 0; i < 4; i++)
     {
         rlEnableVertexAttribute(material.shader.locs[SHADER_LOC_MATRIX_MODEL] + i);
-        rlSetVertexAttribute(material.shader.locs[SHADER_LOC_MATRIX_MODEL] + i, 4, RL_FLOAT, 0, sizeof(Matrix), i*sizeof(Vector4));
+        rlSetVertexAttribute(material.shader.locs[SHADER_LOC_MATRIX_MODEL] + i, 4, RL_FLOAT, 0, sizeof(rlMatrix), i*sizeof(rlVector4));
         rlSetVertexAttributeDivisor(material.shader.locs[SHADER_LOC_MATRIX_MODEL] + i, 1);
     }
 
@@ -1848,7 +1848,7 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
     for (int eye = 0; eye < eyeCount; eye++)
     {
         // Calculate model-view-projection matrix (MVP)
-        Matrix matModelViewProjection = MatrixIdentity();
+        rlMatrix matModelViewProjection = MatrixIdentity();
         if (eyeCount == 1) matModelViewProjection = MatrixMultiply(matModelView, matProjection);
         else
         {
@@ -1896,7 +1896,7 @@ void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, i
 }
 
 // Unload mesh from memory (RAM and VRAM)
-void UnloadMesh(Mesh mesh)
+void rlUnloadMesh(rlMesh mesh)
 {
     // Unload rlgl mesh vboId data
     rlUnloadVertexArray(mesh.vaoId);
@@ -1920,11 +1920,11 @@ void UnloadMesh(Mesh mesh)
 }
 
 // Export mesh data to file
-bool ExportMesh(Mesh mesh, const char *fileName)
+bool rlExportMesh(rlMesh mesh, const char *fileName)
 {
     bool success = false;
 
-    if (IsFileExtension(fileName, ".obj"))
+    if (rlIsFileExtension(fileName, ".obj"))
     {
         // Estimated data size, it should be enough...
         int dataSize = mesh.vertexCount*(int)strlen("v 0000.00f 0000.00f 0000.00f") +
@@ -1938,7 +1938,7 @@ bool ExportMesh(Mesh mesh, const char *fileName)
         int byteCount = 0;
         byteCount += sprintf(txtData + byteCount, "# //////////////////////////////////////////////////////////////////////////////////\n");
         byteCount += sprintf(txtData + byteCount, "# //                                                                              //\n");
-        byteCount += sprintf(txtData + byteCount, "# // rMeshOBJ exporter v1.0 - Mesh exported as triangle faces and not optimized   //\n");
+        byteCount += sprintf(txtData + byteCount, "# // rMeshOBJ exporter v1.0 - rlMesh exported as triangle faces and not optimized   //\n");
         byteCount += sprintf(txtData + byteCount, "# //                                                                              //\n");
         byteCount += sprintf(txtData + byteCount, "# // more info and bugs-report:  github.com/raysan5/raylib                        //\n");
         byteCount += sprintf(txtData + byteCount, "# // feedback and support:       ray[at]raylib.com                                //\n");
@@ -1987,11 +1987,11 @@ bool ExportMesh(Mesh mesh, const char *fileName)
         byteCount += sprintf(txtData + byteCount, "\n");
 
         // NOTE: Text data length exported is determined by '\0' (NULL) character
-        success = SaveFileText(fileName, txtData);
+        success = rlSaveFileText(fileName, txtData);
 
         RL_FREE(txtData);
     }
-    else if (IsFileExtension(fileName, ".raw"))
+    else if (rlIsFileExtension(fileName, ".raw"))
     {
         // TODO: Support additional file formats to export mesh vertex data
     }
@@ -2000,7 +2000,7 @@ bool ExportMesh(Mesh mesh, const char *fileName)
 }
 
 // Export mesh as code file (.h) defining multiple arrays of vertex attributes
-bool ExportMeshAsCode(Mesh mesh, const char *fileName)
+bool rlExportMeshAsCode(rlMesh mesh, const char *fileName)
 {
     bool success = false;
 
@@ -2014,7 +2014,7 @@ bool ExportMeshAsCode(Mesh mesh, const char *fileName)
     int byteCount = 0;
     byteCount += sprintf(txtData + byteCount, "////////////////////////////////////////////////////////////////////////////////////////\n");
     byteCount += sprintf(txtData + byteCount, "//                                                                                    //\n");
-    byteCount += sprintf(txtData + byteCount, "// MeshAsCode exporter v1.0 - Mesh vertex data exported as arrays                     //\n");
+    byteCount += sprintf(txtData + byteCount, "// MeshAsCode exporter v1.0 - rlMesh vertex data exported as arrays                     //\n");
     byteCount += sprintf(txtData + byteCount, "//                                                                                    //\n");
     byteCount += sprintf(txtData + byteCount, "// more info and bugs-report:  github.com/raysan5/raylib                              //\n");
     byteCount += sprintf(txtData + byteCount, "// feedback and support:       ray[at]raylib.com                                      //\n");
@@ -2025,11 +2025,11 @@ bool ExportMeshAsCode(Mesh mesh, const char *fileName)
 
     // Get file name from path and convert variable name to uppercase
     char varFileName[256] = { 0 };
-    strcpy(varFileName, GetFileNameWithoutExt(fileName));
+    strcpy(varFileName, rlGetFileNameWithoutExt(fileName));
     for (int i = 0; varFileName[i] != '\0'; i++) if ((varFileName[i] >= 'a') && (varFileName[i] <= 'z')) { varFileName[i] = varFileName[i] - 32; }
 
     // Add image information
-    byteCount += sprintf(txtData + byteCount, "// Mesh basic information\n");
+    byteCount += sprintf(txtData + byteCount, "// rlMesh basic information\n");
     byteCount += sprintf(txtData + byteCount, "#define %s_VERTEX_COUNT    %i\n", varFileName, mesh.vertexCount);
     byteCount += sprintf(txtData + byteCount, "#define %s_TRIANGLE_COUNT   %i\n\n", varFileName, mesh.triangleCount);
 
@@ -2086,11 +2086,11 @@ bool ExportMeshAsCode(Mesh mesh, const char *fileName)
     //-----------------------------------------------------------------------------------------
 
     // NOTE: Text data size exported is determined by '\0' (NULL) character
-    success = SaveFileText(fileName, txtData);
+    success = rlSaveFileText(fileName, txtData);
 
     RL_FREE(txtData);
 
-    //if (success != 0) TRACELOG(LOG_INFO, "FILEIO: [%s] Image as code exported successfully", fileName);
+    //if (success != 0) TRACELOG(LOG_INFO, "FILEIO: [%s] rlImage as code exported successfully", fileName);
     //else TRACELOG(LOG_WARNING, "FILEIO: [%s] Failed to export image as code", fileName);
 
     return success;
@@ -2098,14 +2098,14 @@ bool ExportMeshAsCode(Mesh mesh, const char *fileName)
 
 #if defined(SUPPORT_FILEFORMAT_OBJ) || defined(SUPPORT_FILEFORMAT_MTL)
 // Process obj materials
-static void ProcessMaterialsOBJ(Material *materials, tinyobj_material_t *mats, int materialCount)
+static void ProcessMaterialsOBJ(rlMaterial *materials, tinyobj_material_t *mats, int materialCount)
 {
     // Init model mats
     for (int m = 0; m < materialCount; m++)
     {
         // Init material to default
         // NOTE: Uses default shader, which only supports MATERIAL_MAP_DIFFUSE
-        materials[m] = LoadMaterialDefault();
+        materials[m] = rlLoadMaterialDefault();
 
         if (mats == NULL) continue;
 
@@ -2114,18 +2114,18 @@ static void ProcessMaterialsOBJ(Material *materials, tinyobj_material_t *mats, i
         materials[m].maps[MATERIAL_MAP_DIFFUSE].texture = (Texture2D){ rlGetTextureIdDefault(), 1, 1, 1, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8 };
 
         if (mats[m].diffuse_texname != NULL) materials[m].maps[MATERIAL_MAP_DIFFUSE].texture = LoadTexture(mats[m].diffuse_texname);  //char *diffuse_texname; // map_Kd
-        else materials[m].maps[MATERIAL_MAP_DIFFUSE].color = (Color){ (unsigned char)(mats[m].diffuse[0]*255.0f), (unsigned char)(mats[m].diffuse[1]*255.0f), (unsigned char)(mats[m].diffuse[2]*255.0f), 255 }; //float diffuse[3];
+        else materials[m].maps[MATERIAL_MAP_DIFFUSE].color = (rlColor){ (unsigned char)(mats[m].diffuse[0]*255.0f), (unsigned char)(mats[m].diffuse[1]*255.0f), (unsigned char)(mats[m].diffuse[2]*255.0f), 255 }; //float diffuse[3];
         materials[m].maps[MATERIAL_MAP_DIFFUSE].value = 0.0f;
 
         if (mats[m].specular_texname != NULL) materials[m].maps[MATERIAL_MAP_SPECULAR].texture = LoadTexture(mats[m].specular_texname);  //char *specular_texname; // map_Ks
-        materials[m].maps[MATERIAL_MAP_SPECULAR].color = (Color){ (unsigned char)(mats[m].specular[0]*255.0f), (unsigned char)(mats[m].specular[1]*255.0f), (unsigned char)(mats[m].specular[2]*255.0f), 255 }; //float specular[3];
+        materials[m].maps[MATERIAL_MAP_SPECULAR].color = (rlColor){ (unsigned char)(mats[m].specular[0]*255.0f), (unsigned char)(mats[m].specular[1]*255.0f), (unsigned char)(mats[m].specular[2]*255.0f), 255 }; //float specular[3];
         materials[m].maps[MATERIAL_MAP_SPECULAR].value = 0.0f;
 
         if (mats[m].bump_texname != NULL) materials[m].maps[MATERIAL_MAP_NORMAL].texture = LoadTexture(mats[m].bump_texname);  //char *bump_texname; // map_bump, bump
         materials[m].maps[MATERIAL_MAP_NORMAL].color = WHITE;
         materials[m].maps[MATERIAL_MAP_NORMAL].value = mats[m].shininess;
 
-        materials[m].maps[MATERIAL_MAP_EMISSION].color = (Color){ (unsigned char)(mats[m].emission[0]*255.0f), (unsigned char)(mats[m].emission[1]*255.0f), (unsigned char)(mats[m].emission[2]*255.0f), 255 }; //float emission[3];
+        materials[m].maps[MATERIAL_MAP_EMISSION].color = (rlColor){ (unsigned char)(mats[m].emission[0]*255.0f), (unsigned char)(mats[m].emission[1]*255.0f), (unsigned char)(mats[m].emission[2]*255.0f), 255 }; //float emission[3];
 
         if (mats[m].displacement_texname != NULL) materials[m].maps[MATERIAL_MAP_HEIGHT].texture = LoadTexture(mats[m].displacement_texname);  //char *displacement_texname; // disp
     }
@@ -2133,22 +2133,22 @@ static void ProcessMaterialsOBJ(Material *materials, tinyobj_material_t *mats, i
 #endif
 
 // Load materials from model file
-Material *LoadMaterials(const char *fileName, int *materialCount)
+rlMaterial *rlLoadMaterials(const char *fileName, int *materialCount)
 {
-    Material *materials = NULL;
+    rlMaterial *materials = NULL;
     unsigned int count = 0;
 
     // TODO: Support IQM and GLTF for materials parsing
 
 #if defined(SUPPORT_FILEFORMAT_MTL)
-    if (IsFileExtension(fileName, ".mtl"))
+    if (rlIsFileExtension(fileName, ".mtl"))
     {
         tinyobj_material_t *mats = NULL;
 
         int result = tinyobj_parse_mtl_file(&mats, &count, fileName);
         if (result != TINYOBJ_SUCCESS) TRACELOG(LOG_WARNING, "MATERIAL: [%s] Failed to parse materials file", fileName);
 
-        materials = RL_MALLOC(count*sizeof(Material));
+        materials = RL_MALLOC(count*sizeof(rlMaterial));
         ProcessMaterialsOBJ(materials, mats, count);
 
         tinyobj_materials_free(mats, count);
@@ -2162,10 +2162,10 @@ Material *LoadMaterials(const char *fileName, int *materialCount)
 }
 
 // Load default material (Supports: DIFFUSE, SPECULAR, NORMAL maps)
-Material LoadMaterialDefault(void)
+rlMaterial rlLoadMaterialDefault(void)
 {
-    Material material = { 0 };
-    material.maps = (MaterialMap *)RL_CALLOC(MAX_MATERIAL_MAPS, sizeof(MaterialMap));
+    rlMaterial material = { 0 };
+    material.maps = (rlMaterialMap *)RL_CALLOC(MAX_MATERIAL_MAPS, sizeof(rlMaterialMap));
 
     // Using rlgl default shader
     material.shader.id = rlGetShaderIdDefault();
@@ -2183,7 +2183,7 @@ Material LoadMaterialDefault(void)
 }
 
 // Check if a material is ready
-bool IsMaterialReady(Material material)
+bool rlIsMaterialReady(rlMaterial material)
 {
     bool result = false;
 
@@ -2194,10 +2194,10 @@ bool IsMaterialReady(Material material)
 }
 
 // Unload material from memory
-void UnloadMaterial(Material material)
+void rlUnloadMaterial(rlMaterial material)
 {
     // Unload material shader (avoid unloading default shader, managed by raylib)
-    if (material.shader.id != rlGetShaderIdDefault()) UnloadShader(material.shader);
+    if (material.shader.id != rlGetShaderIdDefault()) rlUnloadShader(material.shader);
 
     // Unload loaded texture maps (avoid unloading default texture, managed by raylib)
     if (material.maps != NULL)
@@ -2213,13 +2213,13 @@ void UnloadMaterial(Material material)
 
 // Set texture for a material map type (MATERIAL_MAP_DIFFUSE, MATERIAL_MAP_SPECULAR...)
 // NOTE: Previous texture should be manually unloaded
-void SetMaterialTexture(Material *material, int mapType, Texture2D texture)
+void rlSetMaterialTexture(rlMaterial *material, int mapType, Texture2D texture)
 {
     material->maps[mapType].texture = texture;
 }
 
 // Set the material for a mesh
-void SetModelMeshMaterial(Model *model, int meshId, int materialId)
+void rlSetModelMeshMaterial(rlModel *model, int meshId, int materialId)
 {
     if (meshId >= model->meshCount) TRACELOG(LOG_WARNING, "MESH: Id greater than mesh count");
     else if (materialId >= model->materialCount) TRACELOG(LOG_WARNING, "MATERIAL: Id greater than material count");
@@ -2227,18 +2227,18 @@ void SetModelMeshMaterial(Model *model, int meshId, int materialId)
 }
 
 // Load model animations from file
-ModelAnimation *LoadModelAnimations(const char *fileName, int *animCount)
+rlModelAnimation *rlLoadModelAnimations(const char *fileName, int *animCount)
 {
-    ModelAnimation *animations = NULL;
+    rlModelAnimation *animations = NULL;
 
 #if defined(SUPPORT_FILEFORMAT_IQM)
-    if (IsFileExtension(fileName, ".iqm")) animations = LoadModelAnimationsIQM(fileName, animCount);
+    if (rlIsFileExtension(fileName, ".iqm")) animations = LoadModelAnimationsIQM(fileName, animCount);
 #endif
 #if defined(SUPPORT_FILEFORMAT_M3D)
-    if (IsFileExtension(fileName, ".m3d")) animations = LoadModelAnimationsM3D(fileName, animCount);
+    if (rlIsFileExtension(fileName, ".m3d")) animations = LoadModelAnimationsM3D(fileName, animCount);
 #endif
 #if defined(SUPPORT_FILEFORMAT_GLTF)
-    if (IsFileExtension(fileName, ".gltf;.glb")) animations = LoadModelAnimationsGLTF(fileName, animCount);
+    if (rlIsFileExtension(fileName, ".gltf;.glb")) animations = LoadModelAnimationsGLTF(fileName, animCount);
 #endif
 
     return animations;
@@ -2246,7 +2246,7 @@ ModelAnimation *LoadModelAnimations(const char *fileName, int *animCount)
 
 // Update model animated vertex data (positions and normals) for a given frame
 // NOTE: Updated data is uploaded to GPU
-void UpdateModelAnimation(Model model, ModelAnimation anim, int frame)
+void rlUpdateModelAnimation(rlModel model, rlModelAnimation anim, int frame)
 {
     if ((anim.frameCount > 0) && (anim.bones != NULL) && (anim.framePoses != NULL))
     {
@@ -2254,25 +2254,25 @@ void UpdateModelAnimation(Model model, ModelAnimation anim, int frame)
 
         for (int m = 0; m < model.meshCount; m++)
         {
-            Mesh mesh = model.meshes[m];
+            rlMesh mesh = model.meshes[m];
 
             if (mesh.boneIds == NULL || mesh.boneWeights == NULL)
             {
-                TRACELOG(LOG_WARNING, "MODEL: UpdateModelAnimation(): Mesh %i has no connection to bones", m);
+                TRACELOG(LOG_WARNING, "MODEL: rlUpdateModelAnimation(): rlMesh %i has no connection to bones", m);
                 continue;
             }
 
             bool updated = false;           // Flag to check when anim vertex information is updated
-            Vector3 animVertex = { 0 };
-            Vector3 animNormal = { 0 };
+            rlVector3 animVertex = { 0 };
+            rlVector3 animNormal = { 0 };
 
-            Vector3 inTranslation = { 0 };
+            rlVector3 inTranslation = { 0 };
             Quaternion inRotation = { 0 };
-            // Vector3 inScale = { 0 };
+            // rlVector3 inScale = { 0 };
 
-            Vector3 outTranslation = { 0 };
+            rlVector3 outTranslation = { 0 };
             Quaternion outRotation = { 0 };
-            Vector3 outScale = { 0 };
+            rlVector3 outScale = { 0 };
 
             int boneId = 0;
             int boneCounter = 0;
@@ -2311,7 +2311,7 @@ void UpdateModelAnimation(Model model, ModelAnimation anim, int frame)
 
                     // Vertices processing
                     // NOTE: We use meshes.vertices (default vertex position) to calculate meshes.animVertices (animated vertex position)
-                    animVertex = (Vector3){ mesh.vertices[vCounter], mesh.vertices[vCounter + 1], mesh.vertices[vCounter + 2] };
+                    animVertex = (rlVector3){ mesh.vertices[vCounter], mesh.vertices[vCounter + 1], mesh.vertices[vCounter + 2] };
                     animVertex = Vector3Subtract(animVertex, inTranslation);
                     animVertex = Vector3Multiply(animVertex, outScale);
                     animVertex = Vector3RotateByQuaternion(animVertex, QuaternionMultiply(outRotation, QuaternionInvert(inRotation)));
@@ -2326,7 +2326,7 @@ void UpdateModelAnimation(Model model, ModelAnimation anim, int frame)
                     // NOTE: We use meshes.baseNormals (default normal) to calculate meshes.normals (animated normals)
                     if (mesh.normals != NULL)
                     {
-                        animNormal = (Vector3){ mesh.normals[vCounter], mesh.normals[vCounter + 1], mesh.normals[vCounter + 2] };
+                        animNormal = (rlVector3){ mesh.normals[vCounter], mesh.normals[vCounter + 1], mesh.normals[vCounter + 2] };
                         animNormal = Vector3RotateByQuaternion(animNormal, QuaternionMultiply(outRotation, QuaternionInvert(inRotation)));
                         mesh.animNormals[vCounter] += animNormal.x*boneWeight;
                         mesh.animNormals[vCounter + 1] += animNormal.y*boneWeight;
@@ -2346,7 +2346,7 @@ void UpdateModelAnimation(Model model, ModelAnimation anim, int frame)
     }
 }
 
-void UpdateModelAnimationBoneMatrices(Model model, ModelAnimation anim, int frame)
+void rlUpdateModelAnimationBoneMatrices(rlModel model, rlModelAnimation anim, int frame)
 {
     if ((anim.frameCount > 0) && (anim.bones != NULL) && (anim.framePoses != NULL))
     {
@@ -2360,25 +2360,25 @@ void UpdateModelAnimationBoneMatrices(Model model, ModelAnimation anim, int fram
               
                 for (int boneId = 0; boneId < model.meshes[i].boneCount; boneId++)
                 {
-                    Vector3 inTranslation = model.bindPose[boneId].translation;
+                    rlVector3 inTranslation = model.bindPose[boneId].translation;
                     Quaternion inRotation = model.bindPose[boneId].rotation;
-                    Vector3 inScale = model.bindPose[boneId].scale;
+                    rlVector3 inScale = model.bindPose[boneId].scale;
                     
-                    Vector3 outTranslation = anim.framePoses[frame][boneId].translation;
+                    rlVector3 outTranslation = anim.framePoses[frame][boneId].translation;
                     Quaternion outRotation = anim.framePoses[frame][boneId].rotation;
-                    Vector3 outScale = anim.framePoses[frame][boneId].scale;
+                    rlVector3 outScale = anim.framePoses[frame][boneId].scale;
 
-                    Vector3 invTranslation = Vector3RotateByQuaternion(Vector3Negate(inTranslation), QuaternionInvert(inRotation));
+                    rlVector3 invTranslation = Vector3RotateByQuaternion(Vector3Negate(inTranslation), QuaternionInvert(inRotation));
                     Quaternion invRotation = QuaternionInvert(inRotation);
-                    Vector3 invScale = Vector3Divide((Vector3){ 1.0f, 1.0f, 1.0f }, inScale);
+                    rlVector3 invScale = Vector3Divide((rlVector3){ 1.0f, 1.0f, 1.0f }, inScale);
 
-                    Vector3 boneTranslation = Vector3Add(
+                    rlVector3 boneTranslation = Vector3Add(
                         Vector3RotateByQuaternion(Vector3Multiply(outScale, invTranslation),
                         outRotation), outTranslation); 
                     Quaternion boneRotation = QuaternionMultiply(outRotation, invRotation);
-                    Vector3 boneScale = Vector3Multiply(outScale, invScale);
+                    rlVector3 boneScale = Vector3Multiply(outScale, invScale);
                     
-                    Matrix boneMatrix = MatrixMultiply(MatrixMultiply(
+                    rlMatrix boneMatrix = MatrixMultiply(MatrixMultiply(
                         QuaternionToMatrix(boneRotation),
                         MatrixTranslate(boneTranslation.x, boneTranslation.y, boneTranslation.z)),
                         MatrixScale(boneScale.x, boneScale.y, boneScale.z));
@@ -2391,14 +2391,14 @@ void UpdateModelAnimationBoneMatrices(Model model, ModelAnimation anim, int fram
 }
 
 // Unload animation array data
-void UnloadModelAnimations(ModelAnimation *animations, int animCount)
+void rlUnloadModelAnimations(rlModelAnimation *animations, int animCount)
 {
-    for (int i = 0; i < animCount; i++) UnloadModelAnimation(animations[i]);
+    for (int i = 0; i < animCount; i++) rlUnloadModelAnimation(animations[i]);
     RL_FREE(animations);
 }
 
 // Unload animation data
-void UnloadModelAnimation(ModelAnimation anim)
+void rlUnloadModelAnimation(rlModelAnimation anim)
 {
     for (int i = 0; i < anim.frameCount; i++) RL_FREE(anim.framePoses[i]);
 
@@ -2408,7 +2408,7 @@ void UnloadModelAnimation(ModelAnimation anim)
 
 // Check model animation skeleton match
 // NOTE: Only number of bones and parent connections are checked
-bool IsModelAnimationValid(Model model, ModelAnimation anim)
+bool rlIsModelAnimationValid(rlModel model, rlModelAnimation anim)
 {
     int result = true;
 
@@ -2426,33 +2426,33 @@ bool IsModelAnimationValid(Model model, ModelAnimation anim)
 
 #if defined(SUPPORT_MESH_GENERATION)
 // Generate polygonal mesh
-Mesh GenMeshPoly(int sides, float radius)
+rlMesh rlGenMeshPoly(int sides, float radius)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
     if (sides < 3) return mesh; // Security check
 
     int vertexCount = sides*3;
 
     // Vertices definition
-    Vector3 *vertices = (Vector3 *)RL_MALLOC(vertexCount*sizeof(Vector3));
+    rlVector3 *vertices = (rlVector3 *)RL_MALLOC(vertexCount*sizeof(rlVector3));
 
     float d = 0.0f, dStep = 360.0f/sides;
     for (int v = 0; v < vertexCount - 2; v += 3)
     {
-        vertices[v] = (Vector3){ 0.0f, 0.0f, 0.0f };
-        vertices[v + 1] = (Vector3){ sinf(DEG2RAD*d)*radius, 0.0f, cosf(DEG2RAD*d)*radius };
-        vertices[v + 2] = (Vector3){ sinf(DEG2RAD*(d+dStep))*radius, 0.0f, cosf(DEG2RAD*(d+dStep))*radius };
+        vertices[v] = (rlVector3){ 0.0f, 0.0f, 0.0f };
+        vertices[v + 1] = (rlVector3){ sinf(DEG2RAD*d)*radius, 0.0f, cosf(DEG2RAD*d)*radius };
+        vertices[v + 2] = (rlVector3){ sinf(DEG2RAD*(d+dStep))*radius, 0.0f, cosf(DEG2RAD*(d+dStep))*radius };
         d += dStep;
     }
 
     // Normals definition
-    Vector3 *normals = (Vector3 *)RL_MALLOC(vertexCount*sizeof(Vector3));
-    for (int n = 0; n < vertexCount; n++) normals[n] = (Vector3){ 0.0f, 1.0f, 0.0f };   // Vector3.up;
+    rlVector3 *normals = (rlVector3 *)RL_MALLOC(vertexCount*sizeof(rlVector3));
+    for (int n = 0; n < vertexCount; n++) normals[n] = (rlVector3){ 0.0f, 1.0f, 0.0f };   // rlVector3.up;
 
     // TexCoords definition
-    Vector2 *texcoords = (Vector2 *)RL_MALLOC(vertexCount*sizeof(Vector2));
-    for (int n = 0; n < vertexCount; n++) texcoords[n] = (Vector2){ 0.0f, 0.0f };
+    rlVector2 *texcoords = (rlVector2 *)RL_MALLOC(vertexCount*sizeof(rlVector2));
+    for (int n = 0; n < vertexCount; n++) texcoords[n] = (rlVector2){ 0.0f, 0.0f };
 
     mesh.vertexCount = vertexCount;
     mesh.triangleCount = sides;
@@ -2460,7 +2460,7 @@ Mesh GenMeshPoly(int sides, float radius)
     mesh.texcoords = (float *)RL_MALLOC(mesh.vertexCount*2*sizeof(float));
     mesh.normals = (float *)RL_MALLOC(mesh.vertexCount*3*sizeof(float));
 
-    // Mesh vertices position array
+    // rlMesh vertices position array
     for (int i = 0; i < mesh.vertexCount; i++)
     {
         mesh.vertices[3*i] = vertices[i].x;
@@ -2468,14 +2468,14 @@ Mesh GenMeshPoly(int sides, float radius)
         mesh.vertices[3*i + 2] = vertices[i].z;
     }
 
-    // Mesh texcoords array
+    // rlMesh texcoords array
     for (int i = 0; i < mesh.vertexCount; i++)
     {
         mesh.texcoords[2*i] = texcoords[i].x;
         mesh.texcoords[2*i + 1] = texcoords[i].y;
     }
 
-    // Mesh normals array
+    // rlMesh normals array
     for (int i = 0; i < mesh.vertexCount; i++)
     {
         mesh.normals[3*i] = normals[i].x;
@@ -2488,16 +2488,16 @@ Mesh GenMeshPoly(int sides, float radius)
     RL_FREE(texcoords);
 
     // Upload vertex data to GPU (static mesh)
-    // NOTE: mesh.vboId array is allocated inside UploadMesh()
-    UploadMesh(&mesh, false);
+    // NOTE: mesh.vboId array is allocated inside rlUploadMesh()
+    rlUploadMesh(&mesh, false);
 
     return mesh;
 }
 
 // Generate plane mesh (with subdivisions)
-Mesh GenMeshPlane(float width, float length, int resX, int resZ)
+rlMesh rlGenMeshPlane(float width, float length, int resX, int resZ)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
 #define CUSTOM_MESH_GEN_PLANE
 #if defined(CUSTOM_MESH_GEN_PLANE)
@@ -2507,7 +2507,7 @@ Mesh GenMeshPlane(float width, float length, int resX, int resZ)
     // Vertices definition
     int vertexCount = resX*resZ; // vertices get reused for the faces
 
-    Vector3 *vertices = (Vector3 *)RL_MALLOC(vertexCount*sizeof(Vector3));
+    rlVector3 *vertices = (rlVector3 *)RL_MALLOC(vertexCount*sizeof(rlVector3));
     for (int z = 0; z < resZ; z++)
     {
         // [-length/2, length/2]
@@ -2516,21 +2516,21 @@ Mesh GenMeshPlane(float width, float length, int resX, int resZ)
         {
             // [-width/2, width/2]
             float xPos = ((float)x/(resX - 1) - 0.5f)*width;
-            vertices[x + z*resX] = (Vector3){ xPos, 0.0f, zPos };
+            vertices[x + z*resX] = (rlVector3){ xPos, 0.0f, zPos };
         }
     }
 
     // Normals definition
-    Vector3 *normals = (Vector3 *)RL_MALLOC(vertexCount*sizeof(Vector3));
-    for (int n = 0; n < vertexCount; n++) normals[n] = (Vector3){ 0.0f, 1.0f, 0.0f };   // Vector3.up;
+    rlVector3 *normals = (rlVector3 *)RL_MALLOC(vertexCount*sizeof(rlVector3));
+    for (int n = 0; n < vertexCount; n++) normals[n] = (rlVector3){ 0.0f, 1.0f, 0.0f };   // rlVector3.up;
 
     // TexCoords definition
-    Vector2 *texcoords = (Vector2 *)RL_MALLOC(vertexCount*sizeof(Vector2));
+    rlVector2 *texcoords = (rlVector2 *)RL_MALLOC(vertexCount*sizeof(rlVector2));
     for (int v = 0; v < resZ; v++)
     {
         for (int u = 0; u < resX; u++)
         {
-            texcoords[u + v*resX] = (Vector2){ (float)u/(resX - 1), (float)v/(resZ - 1) };
+            texcoords[u + v*resX] = (rlVector2){ (float)u/(resX - 1), (float)v/(resZ - 1) };
         }
     }
 
@@ -2559,7 +2559,7 @@ Mesh GenMeshPlane(float width, float length, int resX, int resZ)
     mesh.normals = (float *)RL_MALLOC(mesh.vertexCount*3*sizeof(float));
     mesh.indices = (unsigned short *)RL_MALLOC(mesh.triangleCount*3*sizeof(unsigned short));
 
-    // Mesh vertices position array
+    // rlMesh vertices position array
     for (int i = 0; i < mesh.vertexCount; i++)
     {
         mesh.vertices[3*i] = vertices[i].x;
@@ -2567,14 +2567,14 @@ Mesh GenMeshPlane(float width, float length, int resX, int resZ)
         mesh.vertices[3*i + 2] = vertices[i].z;
     }
 
-    // Mesh texcoords array
+    // rlMesh texcoords array
     for (int i = 0; i < mesh.vertexCount; i++)
     {
         mesh.texcoords[2*i] = texcoords[i].x;
         mesh.texcoords[2*i + 1] = texcoords[i].y;
     }
 
-    // Mesh normals array
+    // rlMesh normals array
     for (int i = 0; i < mesh.vertexCount; i++)
     {
         mesh.normals[3*i] = normals[i].x;
@@ -2582,7 +2582,7 @@ Mesh GenMeshPlane(float width, float length, int resX, int resZ)
         mesh.normals[3*i + 2] = normals[i].z;
     }
 
-    // Mesh indices array initialization
+    // rlMesh indices array initialization
     for (int i = 0; i < mesh.triangleCount*3; i++) mesh.indices[i] = triangles[i];
 
     RL_FREE(vertices);
@@ -2622,15 +2622,15 @@ Mesh GenMeshPlane(float width, float length, int resX, int resZ)
 #endif
 
     // Upload vertex data to GPU (static mesh)
-    UploadMesh(&mesh, false);
+    rlUploadMesh(&mesh, false);
 
     return mesh;
 }
 
 // Generated cuboid mesh
-Mesh GenMeshCube(float width, float height, float length)
+rlMesh rlGenMeshCube(float width, float height, float length)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
 #define CUSTOM_MESH_GEN_CUBE
 #if defined(CUSTOM_MESH_GEN_CUBE)
@@ -2787,15 +2787,15 @@ par_shapes_mesh* par_shapes_create_icosahedron();       // 20 sides polyhedron
 #endif
 
     // Upload vertex data to GPU (static mesh)
-    UploadMesh(&mesh, false);
+    rlUploadMesh(&mesh, false);
 
     return mesh;
 }
 
 // Generate sphere mesh (standard sphere)
-Mesh GenMeshSphere(float radius, int rings, int slices)
+rlMesh rlGenMeshSphere(float radius, int rings, int slices)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
     if ((rings >= 3) && (slices >= 3))
     {
@@ -2827,7 +2827,7 @@ Mesh GenMeshSphere(float radius, int rings, int slices)
         par_shapes_free_mesh(sphere);
 
         // Upload vertex data to GPU (static mesh)
-        UploadMesh(&mesh, false);
+        rlUploadMesh(&mesh, false);
     }
     else TRACELOG(LOG_WARNING, "MESH: Failed to generate mesh: sphere");
 
@@ -2835,9 +2835,9 @@ Mesh GenMeshSphere(float radius, int rings, int slices)
 }
 
 // Generate hemisphere mesh (half sphere, no bottom cap)
-Mesh GenMeshHemiSphere(float radius, int rings, int slices)
+rlMesh rlGenMeshHemiSphere(float radius, int rings, int slices)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
     if ((rings >= 3) && (slices >= 3))
     {
@@ -2871,7 +2871,7 @@ Mesh GenMeshHemiSphere(float radius, int rings, int slices)
         par_shapes_free_mesh(sphere);
 
         // Upload vertex data to GPU (static mesh)
-        UploadMesh(&mesh, false);
+        rlUploadMesh(&mesh, false);
     }
     else TRACELOG(LOG_WARNING, "MESH: Failed to generate mesh: hemisphere");
 
@@ -2879,9 +2879,9 @@ Mesh GenMeshHemiSphere(float radius, int rings, int slices)
 }
 
 // Generate cylinder mesh
-Mesh GenMeshCylinder(float radius, float height, int slices)
+rlMesh rlGenMeshCylinder(float radius, float height, int slices)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
     if (slices >= 3)
     {
@@ -2935,7 +2935,7 @@ Mesh GenMeshCylinder(float radius, float height, int slices)
         par_shapes_free_mesh(cylinder);
 
         // Upload vertex data to GPU (static mesh)
-        UploadMesh(&mesh, false);
+        rlUploadMesh(&mesh, false);
     }
     else TRACELOG(LOG_WARNING, "MESH: Failed to generate mesh: cylinder");
 
@@ -2943,9 +2943,9 @@ Mesh GenMeshCylinder(float radius, float height, int slices)
 }
 
 // Generate cone/pyramid mesh
-Mesh GenMeshCone(float radius, float height, int slices)
+rlMesh rlGenMeshCone(float radius, float height, int slices)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
     if (slices >= 3)
     {
@@ -2990,7 +2990,7 @@ Mesh GenMeshCone(float radius, float height, int slices)
         par_shapes_free_mesh(cone);
 
         // Upload vertex data to GPU (static mesh)
-        UploadMesh(&mesh, false);
+        rlUploadMesh(&mesh, false);
     }
     else TRACELOG(LOG_WARNING, "MESH: Failed to generate mesh: cone");
 
@@ -2998,9 +2998,9 @@ Mesh GenMeshCone(float radius, float height, int slices)
 }
 
 // Generate torus mesh
-Mesh GenMeshTorus(float radius, float size, int radSeg, int sides)
+rlMesh rlGenMeshTorus(float radius, float size, int radSeg, int sides)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
     if ((sides >= 3) && (radSeg >= 3))
     {
@@ -3036,7 +3036,7 @@ Mesh GenMeshTorus(float radius, float size, int radSeg, int sides)
         par_shapes_free_mesh(torus);
 
         // Upload vertex data to GPU (static mesh)
-        UploadMesh(&mesh, false);
+        rlUploadMesh(&mesh, false);
     }
     else TRACELOG(LOG_WARNING, "MESH: Failed to generate mesh: torus");
 
@@ -3044,9 +3044,9 @@ Mesh GenMeshTorus(float radius, float size, int radSeg, int sides)
 }
 
 // Generate trefoil knot mesh
-Mesh GenMeshKnot(float radius, float size, int radSeg, int sides)
+rlMesh rlGenMeshKnot(float radius, float size, int radSeg, int sides)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
     if ((sides >= 3) && (radSeg >= 3))
     {
@@ -3080,7 +3080,7 @@ Mesh GenMeshKnot(float radius, float size, int radSeg, int sides)
         par_shapes_free_mesh(knot);
 
         // Upload vertex data to GPU (static mesh)
-        UploadMesh(&mesh, false);
+        rlUploadMesh(&mesh, false);
     }
     else TRACELOG(LOG_WARNING, "MESH: Failed to generate mesh: knot");
 
@@ -3089,16 +3089,16 @@ Mesh GenMeshKnot(float radius, float size, int radSeg, int sides)
 
 // Generate a mesh from heightmap
 // NOTE: Vertex data is uploaded to GPU
-Mesh GenMeshHeightmap(Image heightmap, Vector3 size)
+rlMesh rlGenMeshHeightmap(rlImage heightmap, rlVector3 size)
 {
     #define GRAY_VALUE(c) ((float)(c.r + c.g + c.b)/3.0f)
 
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
     int mapX = heightmap.width;
     int mapZ = heightmap.height;
 
-    Color *pixels = LoadImageColors(heightmap);
+    rlColor *pixels = rlLoadImageColors(heightmap);
 
     // NOTE: One vertex per pixel
     mesh.triangleCount = (mapX - 1)*(mapZ - 1)*2;    // One quad every four pixels
@@ -3114,12 +3114,12 @@ Mesh GenMeshHeightmap(Image heightmap, Vector3 size)
     int tcCounter = 0;      // Used to count texcoords float by float
     int nCounter = 0;       // Used to count normals float by float
 
-    Vector3 scaleFactor = { size.x/(mapX - 1), size.y/255.0f, size.z/(mapZ - 1) };
+    rlVector3 scaleFactor = { size.x/(mapX - 1), size.y/255.0f, size.z/(mapZ - 1) };
 
-    Vector3 vA = { 0 };
-    Vector3 vB = { 0 };
-    Vector3 vC = { 0 };
-    Vector3 vN = { 0 };
+    rlVector3 vA = { 0 };
+    rlVector3 vB = { 0 };
+    rlVector3 vC = { 0 };
+    rlVector3 vN = { 0 };
 
     for (int z = 0; z < mapZ-1; z++)
     {
@@ -3211,23 +3211,23 @@ Mesh GenMeshHeightmap(Image heightmap, Vector3 size)
         }
     }
 
-    UnloadImageColors(pixels);  // Unload pixels color data
+    rlUnloadImageColors(pixels);  // Unload pixels color data
 
     // Upload vertex data to GPU (static mesh)
-    UploadMesh(&mesh, false);
+    rlUploadMesh(&mesh, false);
 
     return mesh;
 }
 
 // Generate a cubes mesh from pixel data
 // NOTE: Vertex data is uploaded to GPU
-Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
+rlMesh rlGenMeshCubicmap(rlImage cubicmap, rlVector3 cubeSize)
 {
     #define COLOR_EQUAL(col1, col2) ((col1.r == col2.r)&&(col1.g == col2.g)&&(col1.b == col2.b)&&(col1.a == col2.a))
 
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
 
-    Color *pixels = LoadImageColors(cubicmap);
+    rlColor *pixels = rlLoadImageColors(cubicmap);
 
     // NOTE: Max possible number of triangles numCubes*(12 triangles by cube)
     int maxTriangles = cubicmap.width*cubicmap.height*12;
@@ -3240,17 +3240,17 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
     float h = cubeSize.z;
     float h2 = cubeSize.y;
 
-    Vector3 *mapVertices = (Vector3 *)RL_MALLOC(maxTriangles*3*sizeof(Vector3));
-    Vector2 *mapTexcoords = (Vector2 *)RL_MALLOC(maxTriangles*3*sizeof(Vector2));
-    Vector3 *mapNormals = (Vector3 *)RL_MALLOC(maxTriangles*3*sizeof(Vector3));
+    rlVector3 *mapVertices = (rlVector3 *)RL_MALLOC(maxTriangles*3*sizeof(rlVector3));
+    rlVector2 *mapTexcoords = (rlVector2 *)RL_MALLOC(maxTriangles*3*sizeof(rlVector2));
+    rlVector3 *mapNormals = (rlVector3 *)RL_MALLOC(maxTriangles*3*sizeof(rlVector3));
 
     // Define the 6 normals of the cube, we will combine them accordingly later...
-    Vector3 n1 = { 1.0f, 0.0f, 0.0f };
-    Vector3 n2 = { -1.0f, 0.0f, 0.0f };
-    Vector3 n3 = { 0.0f, 1.0f, 0.0f };
-    Vector3 n4 = { 0.0f, -1.0f, 0.0f };
-    Vector3 n5 = { 0.0f, 0.0f, -1.0f };
-    Vector3 n6 = { 0.0f, 0.0f, 1.0f };
+    rlVector3 n1 = { 1.0f, 0.0f, 0.0f };
+    rlVector3 n2 = { -1.0f, 0.0f, 0.0f };
+    rlVector3 n3 = { 0.0f, 1.0f, 0.0f };
+    rlVector3 n4 = { 0.0f, -1.0f, 0.0f };
+    rlVector3 n5 = { 0.0f, 0.0f, -1.0f };
+    rlVector3 n6 = { 0.0f, 0.0f, 1.0f };
 
     // NOTE: We use texture rectangles to define different textures for top-bottom-front-back-right-left (6)
     typedef struct RectangleF {
@@ -3272,14 +3272,14 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
         for (int x = 0; x < cubicmap.width; ++x)
         {
             // Define the 8 vertex of the cube, we will combine them accordingly later...
-            Vector3 v1 = { w*(x - 0.5f), h2, h*(z - 0.5f) };
-            Vector3 v2 = { w*(x - 0.5f), h2, h*(z + 0.5f) };
-            Vector3 v3 = { w*(x + 0.5f), h2, h*(z + 0.5f) };
-            Vector3 v4 = { w*(x + 0.5f), h2, h*(z - 0.5f) };
-            Vector3 v5 = { w*(x + 0.5f), 0, h*(z - 0.5f) };
-            Vector3 v6 = { w*(x - 0.5f), 0, h*(z - 0.5f) };
-            Vector3 v7 = { w*(x - 0.5f), 0, h*(z + 0.5f) };
-            Vector3 v8 = { w*(x + 0.5f), 0, h*(z + 0.5f) };
+            rlVector3 v1 = { w*(x - 0.5f), h2, h*(z - 0.5f) };
+            rlVector3 v2 = { w*(x - 0.5f), h2, h*(z + 0.5f) };
+            rlVector3 v3 = { w*(x + 0.5f), h2, h*(z + 0.5f) };
+            rlVector3 v4 = { w*(x + 0.5f), h2, h*(z - 0.5f) };
+            rlVector3 v5 = { w*(x + 0.5f), 0, h*(z - 0.5f) };
+            rlVector3 v6 = { w*(x - 0.5f), 0, h*(z - 0.5f) };
+            rlVector3 v7 = { w*(x - 0.5f), 0, h*(z + 0.5f) };
+            rlVector3 v8 = { w*(x + 0.5f), 0, h*(z + 0.5f) };
 
             // We check pixel color to be WHITE -> draw full cube
             if (COLOR_EQUAL(pixels[z*cubicmap.width + x], WHITE))
@@ -3305,12 +3305,12 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
                 mapNormals[nCounter + 5] = n3;
                 nCounter += 6;
 
-                mapTexcoords[tcCounter] = (Vector2){ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 1] = (Vector2){ topTexUV.x, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 2] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 3] = (Vector2){ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 4] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 5] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y };
+                mapTexcoords[tcCounter] = (rlVector2){ topTexUV.x, topTexUV.y };
+                mapTexcoords[tcCounter + 1] = (rlVector2){ topTexUV.x, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 2] = (rlVector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 3] = (rlVector2){ topTexUV.x, topTexUV.y };
+                mapTexcoords[tcCounter + 4] = (rlVector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 5] = (rlVector2){ topTexUV.x + topTexUV.width, topTexUV.y };
                 tcCounter += 6;
 
                 // Define bottom triangles (2 tris, 6 vertex --> v6-v8-v7, v6-v5-v8)
@@ -3330,12 +3330,12 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
                 mapNormals[nCounter + 5] = n4;
                 nCounter += 6;
 
-                mapTexcoords[tcCounter] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 1] = (Vector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 2] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 3] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 4] = (Vector2){ bottomTexUV.x, bottomTexUV.y };
-                mapTexcoords[tcCounter + 5] = (Vector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter] = (rlVector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
+                mapTexcoords[tcCounter + 1] = (rlVector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 2] = (rlVector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 3] = (rlVector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
+                mapTexcoords[tcCounter + 4] = (rlVector2){ bottomTexUV.x, bottomTexUV.y };
+                mapTexcoords[tcCounter + 5] = (rlVector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
                 tcCounter += 6;
 
                 // Checking cube on bottom of current cube
@@ -3359,12 +3359,12 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
                     mapNormals[nCounter + 5] = n6;
                     nCounter += 6;
 
-                    mapTexcoords[tcCounter] = (Vector2){ frontTexUV.x, frontTexUV.y };
-                    mapTexcoords[tcCounter + 1] = (Vector2){ frontTexUV.x, frontTexUV.y + frontTexUV.height };
-                    mapTexcoords[tcCounter + 2] = (Vector2){ frontTexUV.x + frontTexUV.width, frontTexUV.y };
-                    mapTexcoords[tcCounter + 3] = (Vector2){ frontTexUV.x + frontTexUV.width, frontTexUV.y };
-                    mapTexcoords[tcCounter + 4] = (Vector2){ frontTexUV.x, frontTexUV.y + frontTexUV.height };
-                    mapTexcoords[tcCounter + 5] = (Vector2){ frontTexUV.x + frontTexUV.width, frontTexUV.y + frontTexUV.height };
+                    mapTexcoords[tcCounter] = (rlVector2){ frontTexUV.x, frontTexUV.y };
+                    mapTexcoords[tcCounter + 1] = (rlVector2){ frontTexUV.x, frontTexUV.y + frontTexUV.height };
+                    mapTexcoords[tcCounter + 2] = (rlVector2){ frontTexUV.x + frontTexUV.width, frontTexUV.y };
+                    mapTexcoords[tcCounter + 3] = (rlVector2){ frontTexUV.x + frontTexUV.width, frontTexUV.y };
+                    mapTexcoords[tcCounter + 4] = (rlVector2){ frontTexUV.x, frontTexUV.y + frontTexUV.height };
+                    mapTexcoords[tcCounter + 5] = (rlVector2){ frontTexUV.x + frontTexUV.width, frontTexUV.y + frontTexUV.height };
                     tcCounter += 6;
                 }
 
@@ -3389,12 +3389,12 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
                     mapNormals[nCounter + 5] = n5;
                     nCounter += 6;
 
-                    mapTexcoords[tcCounter] = (Vector2){ backTexUV.x + backTexUV.width, backTexUV.y };
-                    mapTexcoords[tcCounter + 1] = (Vector2){ backTexUV.x, backTexUV.y + backTexUV.height };
-                    mapTexcoords[tcCounter + 2] = (Vector2){ backTexUV.x + backTexUV.width, backTexUV.y + backTexUV.height };
-                    mapTexcoords[tcCounter + 3] = (Vector2){ backTexUV.x + backTexUV.width, backTexUV.y };
-                    mapTexcoords[tcCounter + 4] = (Vector2){ backTexUV.x, backTexUV.y };
-                    mapTexcoords[tcCounter + 5] = (Vector2){ backTexUV.x, backTexUV.y + backTexUV.height };
+                    mapTexcoords[tcCounter] = (rlVector2){ backTexUV.x + backTexUV.width, backTexUV.y };
+                    mapTexcoords[tcCounter + 1] = (rlVector2){ backTexUV.x, backTexUV.y + backTexUV.height };
+                    mapTexcoords[tcCounter + 2] = (rlVector2){ backTexUV.x + backTexUV.width, backTexUV.y + backTexUV.height };
+                    mapTexcoords[tcCounter + 3] = (rlVector2){ backTexUV.x + backTexUV.width, backTexUV.y };
+                    mapTexcoords[tcCounter + 4] = (rlVector2){ backTexUV.x, backTexUV.y };
+                    mapTexcoords[tcCounter + 5] = (rlVector2){ backTexUV.x, backTexUV.y + backTexUV.height };
                     tcCounter += 6;
                 }
 
@@ -3419,12 +3419,12 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
                     mapNormals[nCounter + 5] = n1;
                     nCounter += 6;
 
-                    mapTexcoords[tcCounter] = (Vector2){ rightTexUV.x, rightTexUV.y };
-                    mapTexcoords[tcCounter + 1] = (Vector2){ rightTexUV.x, rightTexUV.y + rightTexUV.height };
-                    mapTexcoords[tcCounter + 2] = (Vector2){ rightTexUV.x + rightTexUV.width, rightTexUV.y };
-                    mapTexcoords[tcCounter + 3] = (Vector2){ rightTexUV.x + rightTexUV.width, rightTexUV.y };
-                    mapTexcoords[tcCounter + 4] = (Vector2){ rightTexUV.x, rightTexUV.y + rightTexUV.height };
-                    mapTexcoords[tcCounter + 5] = (Vector2){ rightTexUV.x + rightTexUV.width, rightTexUV.y + rightTexUV.height };
+                    mapTexcoords[tcCounter] = (rlVector2){ rightTexUV.x, rightTexUV.y };
+                    mapTexcoords[tcCounter + 1] = (rlVector2){ rightTexUV.x, rightTexUV.y + rightTexUV.height };
+                    mapTexcoords[tcCounter + 2] = (rlVector2){ rightTexUV.x + rightTexUV.width, rightTexUV.y };
+                    mapTexcoords[tcCounter + 3] = (rlVector2){ rightTexUV.x + rightTexUV.width, rightTexUV.y };
+                    mapTexcoords[tcCounter + 4] = (rlVector2){ rightTexUV.x, rightTexUV.y + rightTexUV.height };
+                    mapTexcoords[tcCounter + 5] = (rlVector2){ rightTexUV.x + rightTexUV.width, rightTexUV.y + rightTexUV.height };
                     tcCounter += 6;
                 }
 
@@ -3449,12 +3449,12 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
                     mapNormals[nCounter + 5] = n2;
                     nCounter += 6;
 
-                    mapTexcoords[tcCounter] = (Vector2){ leftTexUV.x, leftTexUV.y };
-                    mapTexcoords[tcCounter + 1] = (Vector2){ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
-                    mapTexcoords[tcCounter + 2] = (Vector2){ leftTexUV.x + leftTexUV.width, leftTexUV.y };
-                    mapTexcoords[tcCounter + 3] = (Vector2){ leftTexUV.x, leftTexUV.y };
-                    mapTexcoords[tcCounter + 4] = (Vector2){ leftTexUV.x, leftTexUV.y + leftTexUV.height };
-                    mapTexcoords[tcCounter + 5] = (Vector2){ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
+                    mapTexcoords[tcCounter] = (rlVector2){ leftTexUV.x, leftTexUV.y };
+                    mapTexcoords[tcCounter + 1] = (rlVector2){ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
+                    mapTexcoords[tcCounter + 2] = (rlVector2){ leftTexUV.x + leftTexUV.width, leftTexUV.y };
+                    mapTexcoords[tcCounter + 3] = (rlVector2){ leftTexUV.x, leftTexUV.y };
+                    mapTexcoords[tcCounter + 4] = (rlVector2){ leftTexUV.x, leftTexUV.y + leftTexUV.height };
+                    mapTexcoords[tcCounter + 5] = (rlVector2){ leftTexUV.x + leftTexUV.width, leftTexUV.y + leftTexUV.height };
                     tcCounter += 6;
                 }
             }
@@ -3478,12 +3478,12 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
                 mapNormals[nCounter + 5] = n4;
                 nCounter += 6;
 
-                mapTexcoords[tcCounter] = (Vector2){ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 1] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 2] = (Vector2){ topTexUV.x, topTexUV.y + topTexUV.height };
-                mapTexcoords[tcCounter + 3] = (Vector2){ topTexUV.x, topTexUV.y };
-                mapTexcoords[tcCounter + 4] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y };
-                mapTexcoords[tcCounter + 5] = (Vector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter] = (rlVector2){ topTexUV.x, topTexUV.y };
+                mapTexcoords[tcCounter + 1] = (rlVector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 2] = (rlVector2){ topTexUV.x, topTexUV.y + topTexUV.height };
+                mapTexcoords[tcCounter + 3] = (rlVector2){ topTexUV.x, topTexUV.y };
+                mapTexcoords[tcCounter + 4] = (rlVector2){ topTexUV.x + topTexUV.width, topTexUV.y };
+                mapTexcoords[tcCounter + 5] = (rlVector2){ topTexUV.x + topTexUV.width, topTexUV.y + topTexUV.height };
                 tcCounter += 6;
 
                 // Define bottom triangles (2 tris, 6 vertex --> v6-v8-v7, v6-v5-v8)
@@ -3503,12 +3503,12 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
                 mapNormals[nCounter + 5] = n3;
                 nCounter += 6;
 
-                mapTexcoords[tcCounter] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 1] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 2] = (Vector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 3] = (Vector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
-                mapTexcoords[tcCounter + 4] = (Vector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
-                mapTexcoords[tcCounter + 5] = (Vector2){ bottomTexUV.x, bottomTexUV.y };
+                mapTexcoords[tcCounter] = (rlVector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
+                mapTexcoords[tcCounter + 1] = (rlVector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 2] = (rlVector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 3] = (rlVector2){ bottomTexUV.x + bottomTexUV.width, bottomTexUV.y };
+                mapTexcoords[tcCounter + 4] = (rlVector2){ bottomTexUV.x, bottomTexUV.y + bottomTexUV.height };
+                mapTexcoords[tcCounter + 5] = (rlVector2){ bottomTexUV.x, bottomTexUV.y };
                 tcCounter += 6;
             }
         }
@@ -3559,10 +3559,10 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
     RL_FREE(mapNormals);
     RL_FREE(mapTexcoords);
 
-    UnloadImageColors(pixels);   // Unload pixels color data
+    rlUnloadImageColors(pixels);   // Unload pixels color data
 
     // Upload vertex data to GPU (static mesh)
-    UploadMesh(&mesh, false);
+    rlUploadMesh(&mesh, false);
 
     return mesh;
 }
@@ -3570,26 +3570,26 @@ Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize)
 
 // Compute mesh bounding box limits
 // NOTE: minVertex and maxVertex should be transformed by model transform matrix
-BoundingBox GetMeshBoundingBox(Mesh mesh)
+rlBoundingBox rlGetMeshBoundingBox(rlMesh mesh)
 {
     // Get min and max vertex to construct bounds (AABB)
-    Vector3 minVertex = { 0 };
-    Vector3 maxVertex = { 0 };
+    rlVector3 minVertex = { 0 };
+    rlVector3 maxVertex = { 0 };
 
     if (mesh.vertices != NULL)
     {
-        minVertex = (Vector3){ mesh.vertices[0], mesh.vertices[1], mesh.vertices[2] };
-        maxVertex = (Vector3){ mesh.vertices[0], mesh.vertices[1], mesh.vertices[2] };
+        minVertex = (rlVector3){ mesh.vertices[0], mesh.vertices[1], mesh.vertices[2] };
+        maxVertex = (rlVector3){ mesh.vertices[0], mesh.vertices[1], mesh.vertices[2] };
 
         for (int i = 1; i < mesh.vertexCount; i++)
         {
-            minVertex = Vector3Min(minVertex, (Vector3){ mesh.vertices[i*3], mesh.vertices[i*3 + 1], mesh.vertices[i*3 + 2] });
-            maxVertex = Vector3Max(maxVertex, (Vector3){ mesh.vertices[i*3], mesh.vertices[i*3 + 1], mesh.vertices[i*3 + 2] });
+            minVertex = Vector3Min(minVertex, (rlVector3){ mesh.vertices[i*3], mesh.vertices[i*3 + 1], mesh.vertices[i*3 + 2] });
+            maxVertex = Vector3Max(maxVertex, (rlVector3){ mesh.vertices[i*3], mesh.vertices[i*3 + 1], mesh.vertices[i*3 + 2] });
         }
     }
 
     // Create the bounding box
-    BoundingBox box = { 0 };
+    rlBoundingBox box = { 0 };
     box.min = minVertex;
     box.max = maxVertex;
 
@@ -3599,7 +3599,7 @@ BoundingBox GetMeshBoundingBox(Mesh mesh)
 // Compute mesh tangents
 // NOTE: To calculate mesh tangents and binormals we need mesh vertex positions and texture coordinates
 // Implementation based on: https://answers.unity.com/questions/7789/calculating-tangents-vector4.html
-void GenMeshTangents(Mesh *mesh)
+void rlGenMeshTangents(rlMesh *mesh)
 {
     if ((mesh->vertices == NULL) || (mesh->texcoords == NULL))
     {
@@ -3614,8 +3614,8 @@ void GenMeshTangents(Mesh *mesh)
         mesh->tangents = (float *)RL_MALLOC(mesh->vertexCount*4*sizeof(float));
     }
 
-    Vector3 *tan1 = (Vector3 *)RL_MALLOC(mesh->vertexCount*sizeof(Vector3));
-    Vector3 *tan2 = (Vector3 *)RL_MALLOC(mesh->vertexCount*sizeof(Vector3));
+    rlVector3 *tan1 = (rlVector3 *)RL_MALLOC(mesh->vertexCount*sizeof(rlVector3));
+    rlVector3 *tan2 = (rlVector3 *)RL_MALLOC(mesh->vertexCount*sizeof(rlVector3));
 
     if (mesh->vertexCount % 3 != 0)
     {
@@ -3625,14 +3625,14 @@ void GenMeshTangents(Mesh *mesh)
     for (int i = 0; i <= mesh->vertexCount - 3; i += 3)
     {
         // Get triangle vertices
-        Vector3 v1 = { mesh->vertices[(i + 0)*3 + 0], mesh->vertices[(i + 0)*3 + 1], mesh->vertices[(i + 0)*3 + 2] };
-        Vector3 v2 = { mesh->vertices[(i + 1)*3 + 0], mesh->vertices[(i + 1)*3 + 1], mesh->vertices[(i + 1)*3 + 2] };
-        Vector3 v3 = { mesh->vertices[(i + 2)*3 + 0], mesh->vertices[(i + 2)*3 + 1], mesh->vertices[(i + 2)*3 + 2] };
+        rlVector3 v1 = { mesh->vertices[(i + 0)*3 + 0], mesh->vertices[(i + 0)*3 + 1], mesh->vertices[(i + 0)*3 + 2] };
+        rlVector3 v2 = { mesh->vertices[(i + 1)*3 + 0], mesh->vertices[(i + 1)*3 + 1], mesh->vertices[(i + 1)*3 + 2] };
+        rlVector3 v3 = { mesh->vertices[(i + 2)*3 + 0], mesh->vertices[(i + 2)*3 + 1], mesh->vertices[(i + 2)*3 + 2] };
 
         // Get triangle texcoords
-        Vector2 uv1 = { mesh->texcoords[(i + 0)*2 + 0], mesh->texcoords[(i + 0)*2 + 1] };
-        Vector2 uv2 = { mesh->texcoords[(i + 1)*2 + 0], mesh->texcoords[(i + 1)*2 + 1] };
-        Vector2 uv3 = { mesh->texcoords[(i + 2)*2 + 0], mesh->texcoords[(i + 2)*2 + 1] };
+        rlVector2 uv1 = { mesh->texcoords[(i + 0)*2 + 0], mesh->texcoords[(i + 0)*2 + 1] };
+        rlVector2 uv2 = { mesh->texcoords[(i + 1)*2 + 0], mesh->texcoords[(i + 1)*2 + 1] };
+        rlVector2 uv3 = { mesh->texcoords[(i + 2)*2 + 0], mesh->texcoords[(i + 2)*2 + 1] };
 
         float x1 = v2.x - v1.x;
         float y1 = v2.y - v1.y;
@@ -3649,8 +3649,8 @@ void GenMeshTangents(Mesh *mesh)
         float div = s1*t2 - s2*t1;
         float r = (div == 0.0f)? 0.0f : 1.0f/div;
 
-        Vector3 sdir = { (t2*x1 - t1*x2)*r, (t2*y1 - t1*y2)*r, (t2*z1 - t1*z2)*r };
-        Vector3 tdir = { (s1*x2 - s2*x1)*r, (s1*y2 - s2*y1)*r, (s1*z2 - s2*z1)*r };
+        rlVector3 sdir = { (t2*x1 - t1*x2)*r, (t2*y1 - t1*y2)*r, (t2*z1 - t1*z2)*r };
+        rlVector3 tdir = { (s1*x2 - s2*x1)*r, (s1*y2 - s2*y1)*r, (s1*z2 - s2*z1)*r };
 
         tan1[i + 0] = sdir;
         tan1[i + 1] = sdir;
@@ -3664,12 +3664,12 @@ void GenMeshTangents(Mesh *mesh)
     // Compute tangents considering normals
     for (int i = 0; i < mesh->vertexCount; i++)
     {
-        Vector3 normal = { mesh->normals[i*3 + 0], mesh->normals[i*3 + 1], mesh->normals[i*3 + 2] };
-        Vector3 tangent = tan1[i];
+        rlVector3 normal = { mesh->normals[i*3 + 0], mesh->normals[i*3 + 1], mesh->normals[i*3 + 2] };
+        rlVector3 tangent = tan1[i];
 
         // TODO: Review, not sure if tangent computation is right, just used reference proposed maths...
 #if defined(COMPUTE_TANGENTS_METHOD_01)
-        Vector3 tmp = Vector3Subtract(tangent, Vector3Scale(normal, Vector3DotProduct(normal, tangent)));
+        rlVector3 tmp = Vector3Subtract(tangent, Vector3Scale(normal, Vector3DotProduct(normal, tangent)));
         tmp = Vector3Normalize(tmp);
         mesh->tangents[i*4 + 0] = tmp.x;
         mesh->tangents[i*4 + 1] = tmp.y;
@@ -3710,111 +3710,111 @@ void GenMeshTangents(Mesh *mesh)
 }
 
 // Draw a model (with texture if set)
-void DrawModel(Model model, Vector3 position, float scale, Color tint)
+void rlDrawModel(rlModel model, rlVector3 position, float scale, rlColor tint)
 {
-    Vector3 vScale = { scale, scale, scale };
-    Vector3 rotationAxis = { 0.0f, 1.0f, 0.0f };
+    rlVector3 vScale = { scale, scale, scale };
+    rlVector3 rotationAxis = { 0.0f, 1.0f, 0.0f };
 
-    DrawModelEx(model, position, rotationAxis, 0.0f, vScale, tint);
+    rlDrawModelEx(model, position, rotationAxis, 0.0f, vScale, tint);
 }
 
 // Draw a model with extended parameters
-void DrawModelEx(Model model, Vector3 position, Vector3 rotationAxis, float rotationAngle, Vector3 scale, Color tint)
+void rlDrawModelEx(rlModel model, rlVector3 position, rlVector3 rotationAxis, float rotationAngle, rlVector3 scale, rlColor tint)
 {
     // Calculate transformation matrix from function parameters
     // Get transform matrix (rotation -> scale -> translation)
-    Matrix matScale = MatrixScale(scale.x, scale.y, scale.z);
-    Matrix matRotation = MatrixRotate(rotationAxis, rotationAngle*DEG2RAD);
-    Matrix matTranslation = MatrixTranslate(position.x, position.y, position.z);
+    rlMatrix matScale = MatrixScale(scale.x, scale.y, scale.z);
+    rlMatrix matRotation = MatrixRotate(rotationAxis, rotationAngle*DEG2RAD);
+    rlMatrix matTranslation = MatrixTranslate(position.x, position.y, position.z);
 
-    Matrix matTransform = MatrixMultiply(MatrixMultiply(matScale, matRotation), matTranslation);
+    rlMatrix matTransform = MatrixMultiply(MatrixMultiply(matScale, matRotation), matTranslation);
 
     // Combine model transformation matrix (model.transform) with matrix generated by function parameters (matTransform)
     model.transform = MatrixMultiply(model.transform, matTransform);
 
     for (int i = 0; i < model.meshCount; i++)
     {
-        Color color = model.materials[model.meshMaterial[i]].maps[MATERIAL_MAP_DIFFUSE].color;
+        rlColor color = model.materials[model.meshMaterial[i]].maps[MATERIAL_MAP_DIFFUSE].color;
 
-        Color colorTint = WHITE;
+        rlColor colorTint = WHITE;
         colorTint.r = (unsigned char)(((int)color.r*(int)tint.r)/255);
         colorTint.g = (unsigned char)(((int)color.g*(int)tint.g)/255);
         colorTint.b = (unsigned char)(((int)color.b*(int)tint.b)/255);
         colorTint.a = (unsigned char)(((int)color.a*(int)tint.a)/255);
 
         model.materials[model.meshMaterial[i]].maps[MATERIAL_MAP_DIFFUSE].color = colorTint;
-        DrawMesh(model.meshes[i], model.materials[model.meshMaterial[i]], model.transform);
+        rlDrawMesh(model.meshes[i], model.materials[model.meshMaterial[i]], model.transform);
         model.materials[model.meshMaterial[i]].maps[MATERIAL_MAP_DIFFUSE].color = color;
     }
 }
 
 // Draw a model wires (with texture if set)
-void DrawModelWires(Model model, Vector3 position, float scale, Color tint)
+void rlDrawModelWires(rlModel model, rlVector3 position, float scale, rlColor tint)
 {
     rlEnableWireMode();
 
-    DrawModel(model, position, scale, tint);
+    rlDrawModel(model, position, scale, tint);
 
     rlDisableWireMode();
 }
 
 // Draw a model wires (with texture if set) with extended parameters
-void DrawModelWiresEx(Model model, Vector3 position, Vector3 rotationAxis, float rotationAngle, Vector3 scale, Color tint)
+void rlDrawModelWiresEx(rlModel model, rlVector3 position, rlVector3 rotationAxis, float rotationAngle, rlVector3 scale, rlColor tint)
 {
     rlEnableWireMode();
 
-    DrawModelEx(model, position, rotationAxis, rotationAngle, scale, tint);
+    rlDrawModelEx(model, position, rotationAxis, rotationAngle, scale, tint);
 
     rlDisableWireMode();
 }
 
 // Draw a model points
-void DrawModelPoints(Model model, Vector3 position, float scale, Color tint)
+void rlDrawModelPoints(rlModel model, rlVector3 position, float scale, rlColor tint)
 {
     rlEnablePointMode();
     rlDisableBackfaceCulling();
 
-    DrawModel(model, position, scale, tint);
+    rlDrawModel(model, position, scale, tint);
 
     rlEnableBackfaceCulling();
     rlDisableWireMode();
 }
 
 // Draw a model points
-void DrawModelPointsEx(Model model, Vector3 position, Vector3 rotationAxis, float rotationAngle, Vector3 scale, Color tint)
+void rlDrawModelPointsEx(rlModel model, rlVector3 position, rlVector3 rotationAxis, float rotationAngle, rlVector3 scale, rlColor tint)
 {
     rlEnablePointMode();
     rlDisableBackfaceCulling();
 
-    DrawModelEx(model, position, rotationAxis, rotationAngle, scale, tint);
+    rlDrawModelEx(model, position, rotationAxis, rotationAngle, scale, tint);
 
     rlEnableBackfaceCulling();
     rlDisableWireMode();
 }
 
 // Draw a billboard
-void DrawBillboard(Camera camera, Texture2D texture, Vector3 position, float scale, Color tint)
+void rlDrawBillboard(Camera camera, Texture2D texture, rlVector3 position, float scale, rlColor tint)
 {
-    Rectangle source = { 0.0f, 0.0f, (float)texture.width, (float)texture.height };
+    rlRectangle source = { 0.0f, 0.0f, (float)texture.width, (float)texture.height };
 
-    DrawBillboardRec(camera, texture, source, position, (Vector2) { scale*fabsf((float)source.width/source.height), scale }, tint);
+    rlDrawBillboardRec(camera, texture, source, position, (rlVector2) { scale*fabsf((float)source.width/source.height), scale }, tint);
 }
 
 // Draw a billboard (part of a texture defined by a rectangle)
-void DrawBillboardRec(Camera camera, Texture2D texture, Rectangle source, Vector3 position, Vector2 size, Color tint)
+void rlDrawBillboardRec(Camera camera, Texture2D texture, rlRectangle source, rlVector3 position, rlVector2 size, rlColor tint)
 {
     // NOTE: Billboard locked on axis-Y
-    Vector3 up = { 0.0f, 1.0f, 0.0f };
+    rlVector3 up = { 0.0f, 1.0f, 0.0f };
 
-    DrawBillboardPro(camera, texture, source, position, up, size, Vector2Scale(size, 0.5), 0.0f, tint);
+    rlDrawBillboardPro(camera, texture, source, position, up, size, Vector2Scale(size, 0.5), 0.0f, tint);
 }
 
 // Draw a billboard with additional parameters
-void DrawBillboardPro(Camera camera, Texture2D texture, Rectangle source, Vector3 position, Vector3 up, Vector2 size, Vector2 origin, float rotation, Color tint)
+void rlDrawBillboardPro(Camera camera, Texture2D texture, rlRectangle source, rlVector3 position, rlVector3 up, rlVector2 size, rlVector2 origin, float rotation, rlColor tint)
 {
     // Compute the up vector and the right vector
-    Matrix matView = MatrixLookAt(camera.position, camera.target, camera.up);
-    Vector3 right = { matView.m0, matView.m4, matView.m8 };
+    rlMatrix matView = MatrixLookAt(camera.position, camera.target, camera.up);
+    rlVector3 right = { matView.m0, matView.m4, matView.m8 };
     right = Vector3Scale(right, size.x);
     up = Vector3Scale(up, size.y);
 
@@ -3847,12 +3847,12 @@ void DrawBillboardPro(Camera camera, Texture2D texture, Rectangle source, Vector
     //    |             .             |
     //  0 +---------------------------> 1
     //                right
-    Vector3 forward;
+    rlVector3 forward;
     if (rotation != 0.0) forward = Vector3CrossProduct(right, up);
 
-    Vector3 origin3D = Vector3Add(Vector3Scale(Vector3Normalize(right), origin.x), Vector3Scale(Vector3Normalize(up), origin.y));
+    rlVector3 origin3D = Vector3Add(Vector3Scale(Vector3Normalize(right), origin.x), Vector3Scale(Vector3Normalize(up), origin.y));
 
-    Vector3 points[4];
+    rlVector3 points[4];
     points[0] = Vector3Zero();
     points[1] = right;
     points[2] = Vector3Add(up, right);
@@ -3865,11 +3865,11 @@ void DrawBillboardPro(Camera camera, Texture2D texture, Rectangle source, Vector
         points[i] = Vector3Add(points[i], position);
     }
 
-    Vector2 texcoords[4];
-    texcoords[0] = (Vector2) { (float)source.x/texture.width, (float)(source.y + source.height)/texture.height };
-    texcoords[1] = (Vector2) { (float)(source.x + source.width)/texture.width, (float)(source.y + source.height)/texture.height };
-    texcoords[2] = (Vector2) { (float)(source.x + source.width)/texture.width, (float)source.y/texture.height };
-    texcoords[3] = (Vector2) { (float)source.x/texture.width, (float)source.y/texture.height };
+    rlVector2 texcoords[4];
+    texcoords[0] = (rlVector2) { (float)source.x/texture.width, (float)(source.y + source.height)/texture.height };
+    texcoords[1] = (rlVector2) { (float)(source.x + source.width)/texture.width, (float)(source.y + source.height)/texture.height };
+    texcoords[2] = (rlVector2) { (float)(source.x + source.width)/texture.width, (float)source.y/texture.height };
+    texcoords[3] = (rlVector2) { (float)source.x/texture.width, (float)source.y/texture.height };
 
     rlSetTexture(texture.id);
     rlBegin(RL_QUADS);
@@ -3886,21 +3886,21 @@ void DrawBillboardPro(Camera camera, Texture2D texture, Rectangle source, Vector
 }
 
 // Draw a bounding box with wires
-void DrawBoundingBox(BoundingBox box, Color color)
+void rlDrawBoundingBox(rlBoundingBox box, rlColor color)
 {
-    Vector3 size = { 0 };
+    rlVector3 size = { 0 };
 
     size.x = fabsf(box.max.x - box.min.x);
     size.y = fabsf(box.max.y - box.min.y);
     size.z = fabsf(box.max.z - box.min.z);
 
-    Vector3 center = { box.min.x + size.x/2.0f, box.min.y + size.y/2.0f, box.min.z + size.z/2.0f };
+    rlVector3 center = { box.min.x + size.x/2.0f, box.min.y + size.y/2.0f, box.min.z + size.z/2.0f };
 
-    DrawCubeWires(center, size.x, size.y, size.z, color);
+    rlDrawCubeWires(center, size.x, size.y, size.z, color);
 }
 
 // Check collision between two spheres
-bool CheckCollisionSpheres(Vector3 center1, float radius1, Vector3 center2, float radius2)
+bool rlCheckCollisionSpheres(rlVector3 center1, float radius1, rlVector3 center2, float radius2)
 {
     bool collision = false;
 
@@ -3924,7 +3924,7 @@ bool CheckCollisionSpheres(Vector3 center1, float radius1, Vector3 center2, floa
 
 // Check collision between two boxes
 // NOTE: Boxes are defined by two points minimum and maximum
-bool CheckCollisionBoxes(BoundingBox box1, BoundingBox box2)
+bool rlCheckCollisionBoxes(rlBoundingBox box1, rlBoundingBox box2)
 {
     bool collision = true;
 
@@ -3939,7 +3939,7 @@ bool CheckCollisionBoxes(BoundingBox box1, BoundingBox box2)
 }
 
 // Check collision between box and sphere
-bool CheckCollisionBoxSphere(BoundingBox box, Vector3 center, float radius)
+bool rlCheckCollisionBoxSphere(rlBoundingBox box, rlVector3 center, float radius)
 {
     bool collision = false;
 
@@ -3960,11 +3960,11 @@ bool CheckCollisionBoxSphere(BoundingBox box, Vector3 center, float radius)
 }
 
 // Get collision info between ray and sphere
-RayCollision GetRayCollisionSphere(Ray ray, Vector3 center, float radius)
+rlRayCollision rlGetRayCollisionSphere(rlRay ray, rlVector3 center, float radius)
 {
-    RayCollision collision = { 0 };
+    rlRayCollision collision = { 0 };
 
-    Vector3 raySpherePos = Vector3Subtract(center, ray.position);
+    rlVector3 raySpherePos = Vector3Subtract(center, ray.position);
     float vector = Vector3DotProduct(raySpherePos, ray.direction);
     float distance = Vector3Length(raySpherePos);
     float d = radius*radius - (distance*distance - vector*vector);
@@ -3997,9 +3997,9 @@ RayCollision GetRayCollisionSphere(Ray ray, Vector3 center, float radius)
 }
 
 // Get collision info between ray and box
-RayCollision GetRayCollisionBox(Ray ray, BoundingBox box)
+rlRayCollision rlGetRayCollisionBox(rlRay ray, rlBoundingBox box)
 {
-    RayCollision collision = { 0 };
+    rlRayCollision collision = { 0 };
 
     // Note: If ray.position is inside the box, the distance is negative (as if the ray was reversed)
     // Reversing ray.direction will give use the correct result
@@ -4057,9 +4057,9 @@ RayCollision GetRayCollisionBox(Ray ray, BoundingBox box)
 }
 
 // Get collision info between ray and mesh
-RayCollision GetRayCollisionMesh(Ray ray, Mesh mesh, Matrix transform)
+rlRayCollision rlGetRayCollisionMesh(rlRay ray, rlMesh mesh, rlMatrix transform)
 {
-    RayCollision collision = { 0 };
+    rlRayCollision collision = { 0 };
 
     // Check if mesh vertex data on CPU for testing
     if (mesh.vertices != NULL)
@@ -4069,8 +4069,8 @@ RayCollision GetRayCollisionMesh(Ray ray, Mesh mesh, Matrix transform)
         // Test against all triangles in mesh
         for (int i = 0; i < triangleCount; i++)
         {
-            Vector3 a, b, c;
-            Vector3* vertdata = (Vector3*)mesh.vertices;
+            rlVector3 a, b, c;
+            rlVector3* vertdata = (rlVector3*)mesh.vertices;
 
             if (mesh.indices)
             {
@@ -4089,7 +4089,7 @@ RayCollision GetRayCollisionMesh(Ray ray, Mesh mesh, Matrix transform)
             b = Vector3Transform(b, transform);
             c = Vector3Transform(c, transform);
 
-            RayCollision triHitInfo = GetRayCollisionTriangle(ray, a, b, c);
+            rlRayCollision triHitInfo = rlGetRayCollisionTriangle(ray, a, b, c);
 
             if (triHitInfo.hit)
             {
@@ -4105,14 +4105,14 @@ RayCollision GetRayCollisionMesh(Ray ray, Mesh mesh, Matrix transform)
 // Get collision info between ray and triangle
 // NOTE: The points are expected to be in counter-clockwise winding
 // NOTE: Based on https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-RayCollision GetRayCollisionTriangle(Ray ray, Vector3 p1, Vector3 p2, Vector3 p3)
+rlRayCollision rlGetRayCollisionTriangle(rlRay ray, rlVector3 p1, rlVector3 p2, rlVector3 p3)
 {
     #define EPSILON 0.000001f        // A small number
 
-    RayCollision collision = { 0 };
-    Vector3 edge1 = { 0 };
-    Vector3 edge2 = { 0 };
-    Vector3 p, q, tv;
+    rlRayCollision collision = { 0 };
+    rlVector3 edge1 = { 0 };
+    rlVector3 edge2 = { 0 };
+    rlVector3 p, q, tv;
     float det, invDet, u, v, t;
 
     // Find vectors for two edges sharing V1
@@ -4152,7 +4152,7 @@ RayCollision GetRayCollisionTriangle(Ray ray, Vector3 p1, Vector3 p2, Vector3 p3
 
     if (t > EPSILON)
     {
-        // Ray hit, get hit point and normal
+        // rlRay hit, get hit point and normal
         collision.hit = true;
         collision.distance = t;
         collision.normal = Vector3Normalize(Vector3CrossProduct(edge1, edge2));
@@ -4164,13 +4164,13 @@ RayCollision GetRayCollisionTriangle(Ray ray, Vector3 p1, Vector3 p2, Vector3 p3
 
 // Get collision info between ray and quad
 // NOTE: The points are expected to be in counter-clockwise winding
-RayCollision GetRayCollisionQuad(Ray ray, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
+rlRayCollision rlGetRayCollisionQuad(rlRay ray, rlVector3 p1, rlVector3 p2, rlVector3 p3, rlVector3 p4)
 {
-    RayCollision collision = { 0 };
+    rlRayCollision collision = { 0 };
 
-    collision = GetRayCollisionTriangle(ray, p1, p2, p4);
+    collision = rlGetRayCollisionTriangle(ray, p1, p2, p4);
 
-    if (!collision.hit) collision = GetRayCollisionTriangle(ray, p2, p3, p4);
+    if (!collision.hit) collision = rlGetRayCollisionTriangle(ray, p2, p3, p4);
 
     return collision;
 }
@@ -4181,7 +4181,7 @@ RayCollision GetRayCollisionQuad(Ray ray, Vector3 p1, Vector3 p2, Vector3 p3, Ve
 #if defined(SUPPORT_FILEFORMAT_IQM) || defined(SUPPORT_FILEFORMAT_GLTF)
 // Build pose from parent joints
 // NOTE: Required for animations loading (required by IQM and GLTF)
-static void BuildPoseFromParentJoints(BoneInfo *bones, int boneCount, Transform *transforms)
+static void BuildPoseFromParentJoints(rlBoneInfo *bones, int boneCount, rlTransform *transforms)
 {
     for (int i = 0; i < boneCount; i++)
     {
@@ -4208,7 +4208,7 @@ static void BuildPoseFromParentJoints(BoneInfo *bones, int boneCount, Transform 
 //  - A mesh is created for every material present in the obj file
 //  - the model.meshCount is therefore the materialCount returned from tinyobj
 //  - the mesh is automatically triangulated by tinyobj
-static Model LoadOBJ(const char *fileName)
+static rlModel LoadOBJ(const char *fileName)
 {
     tinyobj_attrib_t objAttributes = { 0 };
     tinyobj_shape_t* objShapes = NULL;
@@ -4217,10 +4217,10 @@ static Model LoadOBJ(const char *fileName)
     tinyobj_material_t* objMaterials = NULL;
     unsigned int objMaterialCount = 0;
 
-    Model model = { 0 };
+    rlModel model = { 0 };
     model.transform = MatrixIdentity();
 
-    char* fileText = LoadFileText(fileName);
+    char* fileText = rlLoadFileText(fileName);
 
     if (fileText == NULL)
     {
@@ -4229,8 +4229,8 @@ static Model LoadOBJ(const char *fileName)
     }
 
     char currentDir[1024] = { 0 };
-    strcpy(currentDir, GetWorkingDirectory()); // Save current working directory
-    const char* workingDir = GetDirectoryPath(fileName); // Switch to OBJ directory for material path correctness
+    strcpy(currentDir, rlGetWorkingDirectory()); // Save current working directory
+    const char* workingDir = rlGetDirectoryPath(fileName); // Switch to OBJ directory for material path correctness
     if (CHDIR(workingDir) != 0)
     {
         TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to change working directory", workingDir);
@@ -4247,7 +4247,7 @@ static Model LoadOBJ(const char *fileName)
         return model;
     }
 
-    UnloadFileText(fileText);
+    rlUnloadFileText(fileText);
 
     unsigned int faceVertIndex = 0;
     unsigned int nextShape = 1;
@@ -4283,23 +4283,23 @@ static Model LoadOBJ(const char *fileName)
 
     // allocate the base meshes and materials
     model.meshCount = meshIndex + 1;
-    model.meshes = (Mesh*)MemAlloc(sizeof(Mesh) * model.meshCount);
+    model.meshes = (rlMesh*)rlMemAlloc(sizeof(rlMesh) * model.meshCount);
 
     if (objMaterialCount > 0)
     {
         model.materialCount = objMaterialCount;
-        model.materials = (Material*)MemAlloc(sizeof(Material) * objMaterialCount);
+        model.materials = (rlMaterial*)rlMemAlloc(sizeof(rlMaterial) * objMaterialCount);
     }
     else // we must allocate at least one material
     {
         model.materialCount = 1;
-        model.materials = (Material*)MemAlloc(sizeof(Material) * 1);
+        model.materials = (rlMaterial*)rlMemAlloc(sizeof(rlMaterial) * 1);
     }
 
-    model.meshMaterial = (int*)MemAlloc(sizeof(int) * model.meshCount);
+    model.meshMaterial = (int*)rlMemAlloc(sizeof(int) * model.meshCount);
 
     // see how many verts are in each mesh
-    unsigned int* localMeshVertexCounts = (unsigned int*)MemAlloc(sizeof(unsigned int) * model.meshCount);
+    unsigned int* localMeshVertexCounts = (unsigned int*)rlMemAlloc(sizeof(unsigned int) * model.meshCount);
 
     faceVertIndex = 0;
     nextShapeEnd = objAttributes.num_face_num_verts;
@@ -4352,13 +4352,13 @@ static Model LoadOBJ(const char *fileName)
         model.meshes[i].vertexCount = vertexCount;
         model.meshes[i].triangleCount = vertexCount / 3;
 
-        model.meshes[i].vertices = (float*)MemAlloc(sizeof(float) * vertexCount * 3);
-        model.meshes[i].normals = (float*)MemAlloc(sizeof(float) * vertexCount * 3);
-        model.meshes[i].texcoords = (float*)MemAlloc(sizeof(float) * vertexCount * 2);
-        model.meshes[i].colors = (unsigned char*)MemAlloc(sizeof(unsigned char) * vertexCount * 4);
+        model.meshes[i].vertices = (float*)rlMemAlloc(sizeof(float) * vertexCount * 3);
+        model.meshes[i].normals = (float*)rlMemAlloc(sizeof(float) * vertexCount * 3);
+        model.meshes[i].texcoords = (float*)rlMemAlloc(sizeof(float) * vertexCount * 2);
+        model.meshes[i].colors = (unsigned char*)rlMemAlloc(sizeof(unsigned char) * vertexCount * 4);
     }
 
-    MemFree(localMeshVertexCounts);
+    rlMemFree(localMeshVertexCounts);
     localMeshVertexCounts = NULL;
 
     // fill meshes
@@ -4427,14 +4427,14 @@ static Model LoadOBJ(const char *fileName)
     }
 
     if (objMaterialCount > 0) ProcessMaterialsOBJ(model.materials, objMaterials, objMaterialCount);
-    else model.materials[0] = LoadMaterialDefault(); // Set default material for the mesh
+    else model.materials[0] = rlLoadMaterialDefault(); // Set default material for the mesh
 
     tinyobj_attrib_free(&objAttributes);
     tinyobj_shapes_free(objShapes, objShapeCount);
     tinyobj_materials_free(objMaterials, objMaterialCount);
 
     for (int i = 0; i < model.meshCount; i++)
-        UploadMesh(model.meshes + i, true);
+        rlUploadMesh(model.meshes + i, true);
 
     // Restore current working directory
     if (CHDIR(currentDir) != 0)
@@ -4448,17 +4448,17 @@ static Model LoadOBJ(const char *fileName)
 
 #if defined(SUPPORT_FILEFORMAT_IQM)
 // Load IQM mesh data
-static Model LoadIQM(const char *fileName)
+static rlModel LoadIQM(const char *fileName)
 {
     #define IQM_MAGIC     "INTERQUAKEMODEL" // IQM file magic number
     #define IQM_VERSION          2          // only IQM version 2 supported
 
-    #define BONE_NAME_LENGTH    32          // BoneInfo name string length
-    #define MESH_NAME_LENGTH    32          // Mesh name string length
-    #define MATERIAL_NAME_LENGTH 32         // Material name string length
+    #define BONE_NAME_LENGTH    32          // rlBoneInfo name string length
+    #define MESH_NAME_LENGTH    32          // rlMesh name string length
+    #define MATERIAL_NAME_LENGTH 32         // rlMaterial name string length
 
     int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fileName, &dataSize);
+    unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
     unsigned char *fileDataPtr = fileData;
 
     // IQM file structs
@@ -4544,7 +4544,7 @@ static Model LoadIQM(const char *fileName)
         IQM_CUSTOM       = 0x10     // NOTE: Custom vertex values unused by default
     };
 
-    Model model = { 0 };
+    rlModel model = { 0 };
 
     IQMMesh *imesh = NULL;
     IQMTriangle *tri = NULL;
@@ -4561,7 +4561,7 @@ static Model LoadIQM(const char *fileName)
     // In case file can not be read, return an empty model
     if (fileDataPtr == NULL) return model;
 
-    const char *basePath = GetDirectoryPath(fileName);
+    const char *basePath = rlGetDirectoryPath(fileName);
 
     // Read IQM header
     IQMHeader *iqmHeader = (IQMHeader *)fileDataPtr;
@@ -4587,10 +4587,10 @@ static Model LoadIQM(const char *fileName)
     memcpy(imesh, fileDataPtr + iqmHeader->ofs_meshes, iqmHeader->num_meshes*sizeof(IQMMesh));
 
     model.meshCount = iqmHeader->num_meshes;
-    model.meshes = RL_CALLOC(model.meshCount, sizeof(Mesh));
+    model.meshes = RL_CALLOC(model.meshCount, sizeof(rlMesh));
 
     model.materialCount = model.meshCount;
-    model.materials = (Material *)RL_CALLOC(model.materialCount, sizeof(Material));
+    model.materials = (rlMaterial *)RL_CALLOC(model.materialCount, sizeof(rlMaterial));
     model.meshMaterial = (int *)RL_CALLOC(model.meshCount, sizeof(int));
 
     char name[MESH_NAME_LENGTH] = { 0 };
@@ -4606,8 +4606,8 @@ static Model LoadIQM(const char *fileName)
         //fread(material, sizeof(char), MATERIAL_NAME_LENGTH, iqmFile);
         memcpy(material, fileDataPtr + iqmHeader->ofs_text + imesh[i].material, MATERIAL_NAME_LENGTH*sizeof(char));
 
-        model.materials[i] = LoadMaterialDefault();
-        model.materials[i].maps[MATERIAL_MAP_ALBEDO].texture = LoadTexture(TextFormat("%s/%s", basePath, material));
+        model.materials[i] = rlLoadMaterialDefault();
+        model.materials[i].maps[MATERIAL_MAP_ALBEDO].texture = LoadTexture(rlTextFormat("%s/%s", basePath, material));
 
         model.meshMaterial[i] = i;
 
@@ -4779,8 +4779,8 @@ static Model LoadIQM(const char *fileName)
     memcpy(ijoint, fileDataPtr + iqmHeader->ofs_joints, iqmHeader->num_joints*sizeof(IQMJoint));
 
     model.boneCount = iqmHeader->num_joints;
-    model.bones = RL_MALLOC(iqmHeader->num_joints*sizeof(BoneInfo));
-    model.bindPose = RL_MALLOC(iqmHeader->num_joints*sizeof(Transform));
+    model.bones = RL_MALLOC(iqmHeader->num_joints*sizeof(rlBoneInfo));
+    model.bindPose = RL_MALLOC(iqmHeader->num_joints*sizeof(rlTransform));
 
     for (unsigned int i = 0; i < iqmHeader->num_joints; i++)
     {
@@ -4810,7 +4810,7 @@ static Model LoadIQM(const char *fileName)
     for (int i = 0; i < model.meshCount; i++)
     {
         model.meshes[i].boneCount = model.boneCount;
-        model.meshes[i].boneMatrices = RL_CALLOC(model.meshes[i].boneCount, sizeof(Matrix));
+        model.meshes[i].boneMatrices = RL_CALLOC(model.meshes[i].boneCount, sizeof(rlMatrix));
         
         for (int j = 0; j < model.meshes[i].boneCount; j++)
         {
@@ -4818,7 +4818,7 @@ static Model LoadIQM(const char *fileName)
         }
     }
 
-    UnloadFileData(fileData);
+    rlUnloadFileData(fileData);
 
     RL_FREE(imesh);
     RL_FREE(tri);
@@ -4835,13 +4835,13 @@ static Model LoadIQM(const char *fileName)
 }
 
 // Load IQM animation data
-static ModelAnimation *LoadModelAnimationsIQM(const char *fileName, int *animCount)
+static rlModelAnimation *LoadModelAnimationsIQM(const char *fileName, int *animCount)
 {
     #define IQM_MAGIC       "INTERQUAKEMODEL"   // IQM file magic number
     #define IQM_VERSION     2                   // only IQM version 2 supported
 
     int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fileName, &dataSize);
+    unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
     unsigned char *fileDataPtr = fileData;
 
     typedef struct IQMHeader {
@@ -4912,7 +4912,7 @@ static ModelAnimation *LoadModelAnimationsIQM(const char *fileName, int *animCou
     //fread(anim, sizeof(IQMAnim), iqmHeader->num_anims, iqmFile);
     memcpy(anim, fileDataPtr + iqmHeader->ofs_anims, iqmHeader->num_anims*sizeof(IQMAnim));
 
-    ModelAnimation *animations = RL_MALLOC(iqmHeader->num_anims*sizeof(ModelAnimation));
+    rlModelAnimation *animations = RL_MALLOC(iqmHeader->num_anims*sizeof(rlModelAnimation));
 
     // frameposes
     unsigned short *framedata = RL_MALLOC(iqmHeader->num_frames*iqmHeader->num_framechannels*sizeof(unsigned short));
@@ -4928,10 +4928,10 @@ static ModelAnimation *LoadModelAnimationsIQM(const char *fileName, int *animCou
     {
         animations[a].frameCount = anim[a].num_frames;
         animations[a].boneCount = iqmHeader->num_poses;
-        animations[a].bones = RL_MALLOC(iqmHeader->num_poses*sizeof(BoneInfo));
-        animations[a].framePoses = RL_MALLOC(anim[a].num_frames*sizeof(Transform *));
+        animations[a].bones = RL_MALLOC(iqmHeader->num_poses*sizeof(rlBoneInfo));
+        animations[a].framePoses = RL_MALLOC(anim[a].num_frames*sizeof(rlTransform *));
         memcpy(animations[a].name, fileDataPtr + iqmHeader->ofs_text + anim[a].name, 32);   //  I don't like this 32 here
-        TraceLog(LOG_INFO, "IQM Anim %s", animations[a].name);
+        rlTraceLog(LOG_INFO, "IQM Anim %s", animations[a].name);
         // animations[a].framerate = anim.framerate;     // TODO: Use animation framerate data?
 
         for (unsigned int j = 0; j < iqmHeader->num_poses; j++)
@@ -4944,7 +4944,7 @@ static ModelAnimation *LoadModelAnimationsIQM(const char *fileName, int *animCou
             animations[a].bones[j].parent = poses[j].parent;
         }
 
-        for (unsigned int j = 0; j < anim[a].num_frames; j++) animations[a].framePoses[j] = RL_MALLOC(iqmHeader->num_poses*sizeof(Transform));
+        for (unsigned int j = 0; j < anim[a].num_frames; j++) animations[a].framePoses[j] = RL_MALLOC(iqmHeader->num_poses*sizeof(rlTransform));
 
         int dcounter = anim[a].first_frame*iqmHeader->num_framechannels;
 
@@ -5052,7 +5052,7 @@ static ModelAnimation *LoadModelAnimationsIQM(const char *fileName, int *animCou
         }
     }
 
-    UnloadFileData(fileData);
+    rlUnloadFileData(fileData);
 
     RL_FREE(joints);
     RL_FREE(framedata);
@@ -5069,7 +5069,7 @@ static ModelAnimation *LoadModelAnimationsIQM(const char *fileName, int *animCou
 static cgltf_result LoadFileGLTFCallback(const struct cgltf_memory_options *memoryOptions, const struct cgltf_file_options *fileOptions, const char *path, cgltf_size *size, void **data)
 {
     int filesize;
-    unsigned char *filedata = LoadFileData(path, &filesize);
+    unsigned char *filedata = rlLoadFileData(path, &filesize);
 
     if (filedata == NULL) return cgltf_result_io_error;
 
@@ -5082,13 +5082,13 @@ static cgltf_result LoadFileGLTFCallback(const struct cgltf_memory_options *memo
 // Release file data callback for cgltf
 static void ReleaseFileGLTFCallback(const struct cgltf_memory_options *memoryOptions, const struct cgltf_file_options *fileOptions, void *data)
 {
-    UnloadFileData(data);
+    rlUnloadFileData(data);
 }
 
 // Load image from different glTF provided methods (uri, path, buffer_view)
-static Image LoadImageFromCgltfImage(cgltf_image *cgltfImage, const char *texPath)
+static rlImage LoadImageFromCgltfImage(cgltf_image *cgltfImage, const char *texPath)
 {
-    Image image = { 0 };
+    rlImage image = { 0 };
 
     if (cgltfImage->uri != NULL)     // Check if image data is provided as an uri (base64 or path)
     {
@@ -5121,14 +5121,14 @@ static Image LoadImageFromCgltfImage(cgltf_image *cgltfImage, const char *texPat
 
                 if (result == cgltf_result_success)
                 {
-                    image = LoadImageFromMemory(".png", (unsigned char *)data, outSize);
+                    image = rlLoadImageFromMemory(".png", (unsigned char *)data, outSize);
                     RL_FREE(data);
                 }
             }
         }
         else     // Check if image is provided as image path
         {
-            image = LoadImage(TextFormat("%s/%s", texPath, cgltfImage->uri));
+            image = rlLoadImage(rlTextFormat("%s/%s", texPath, cgltfImage->uri));
         }
     }
     else if (cgltfImage->buffer_view->buffer->data != NULL)    // Check if image is provided as data buffer
@@ -5147,10 +5147,10 @@ static Image LoadImageFromCgltfImage(cgltf_image *cgltfImage, const char *texPat
         // Check mime_type for image: (cgltfImage->mime_type == "image/png")
         // NOTE: Detected that some models define mime_type as "image\\/png"
         if ((strcmp(cgltfImage->mime_type, "image\\/png") == 0) ||
-            (strcmp(cgltfImage->mime_type, "image/png") == 0)) image = LoadImageFromMemory(".png", data, (int)cgltfImage->buffer_view->size);
+            (strcmp(cgltfImage->mime_type, "image/png") == 0)) image = rlLoadImageFromMemory(".png", data, (int)cgltfImage->buffer_view->size);
         else if ((strcmp(cgltfImage->mime_type, "image\\/jpeg") == 0) ||
-                 (strcmp(cgltfImage->mime_type, "image/jpeg") == 0)) image = LoadImageFromMemory(".jpg", data, (int)cgltfImage->buffer_view->size);
-        else TRACELOG(LOG_WARNING, "MODEL: glTF image data MIME type not recognized", TextFormat("%s/%s", texPath, cgltfImage->uri));
+                 (strcmp(cgltfImage->mime_type, "image/jpeg") == 0)) image = rlLoadImageFromMemory(".jpg", data, (int)cgltfImage->buffer_view->size);
+        else TRACELOG(LOG_WARNING, "MODEL: glTF image data MIME type not recognized", rlTextFormat("%s/%s", texPath, cgltfImage->uri));
 
         RL_FREE(data);
     }
@@ -5159,10 +5159,10 @@ static Image LoadImageFromCgltfImage(cgltf_image *cgltfImage, const char *texPat
 }
 
 // Load bone info from GLTF skin data
-static BoneInfo *LoadBoneInfoGLTF(cgltf_skin skin, int *boneCount)
+static rlBoneInfo *LoadBoneInfoGLTF(cgltf_skin skin, int *boneCount)
 {
     *boneCount = (int)skin.joints_count;
-    BoneInfo *bones = RL_MALLOC(skin.joints_count*sizeof(BoneInfo));
+    rlBoneInfo *bones = RL_MALLOC(skin.joints_count*sizeof(rlBoneInfo));
 
     for (unsigned int i = 0; i < skin.joints_count; i++)
     {
@@ -5192,12 +5192,12 @@ static BoneInfo *LoadBoneInfoGLTF(cgltf_skin skin, int *boneCount)
 }
 
 // Load glTF file into model struct, .gltf and .glb supported
-static Model LoadGLTF(const char *fileName)
+static rlModel LoadGLTF(const char *fileName)
 {
     /*********************************************************************************************
 
         Function implemented by Wilhem Barbier(@wbrbr), with modifications by Tyler Bezera(@gamerfiend)
-        Transform handling implemented by Paul Melis (@paulmelis).
+        rlTransform handling implemented by Paul Melis (@paulmelis).
         Reviewed by Ramon Santamaria (@raysan5)
 
         FEATURES:
@@ -5209,7 +5209,7 @@ static Model LoadGLTF(const char *fileName)
           - Supports basic animations
           - Transforms, including parent-child relations, are applied on the mesh data, but the
             hierarchy is not kept (as it can't be represented).
-          - Mesh instances in the glTF file (i.e. same mesh linked from multiple nodes)
+          - rlMesh instances in the glTF file (i.e. same mesh linked from multiple nodes)
             are turned into separate raylib Meshes.
 
         RESTRICTIONS:
@@ -5242,11 +5242,11 @@ static Model LoadGLTF(const char *fileName)
         }\
     }
 
-    Model model = { 0 };
+    rlModel model = { 0 };
 
     // glTF file loading
     int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fileName, &dataSize);
+    unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
 
     if (fileData == NULL) return model;
 
@@ -5259,9 +5259,9 @@ static Model LoadGLTF(const char *fileName)
 
     if (result == cgltf_result_success)
     {
-        if (data->file_type == cgltf_file_type_glb) TRACELOG(LOG_INFO, "MODEL: [%s] Model basic data (glb) loaded successfully", fileName);
-        else if (data->file_type == cgltf_file_type_gltf) TRACELOG(LOG_INFO, "MODEL: [%s] Model basic data (glTF) loaded successfully", fileName);
-        else TRACELOG(LOG_WARNING, "MODEL: [%s] Model format not recognized", fileName);
+        if (data->file_type == cgltf_file_type_glb) TRACELOG(LOG_INFO, "MODEL: [%s] rlModel basic data (glb) loaded successfully", fileName);
+        else if (data->file_type == cgltf_file_type_gltf) TRACELOG(LOG_INFO, "MODEL: [%s] rlModel basic data (glTF) loaded successfully", fileName);
+        else TRACELOG(LOG_WARNING, "MODEL: [%s] rlModel format not recognized", fileName);
 
         TRACELOG(LOG_INFO, "    > Meshes count: %i", data->meshes_count);
         TRACELOG(LOG_INFO, "    > Materials count: %i (+1 default)", data->materials_count);
@@ -5275,7 +5275,7 @@ static Model LoadGLTF(const char *fileName)
         if (result != cgltf_result_success) TRACELOG(LOG_INFO, "MODEL: [%s] Failed to load mesh/material buffers", fileName);
 
         int primitivesCount = 0;
-        // NOTE: We will load every primitive in the glTF as a separate raylib Mesh.
+        // NOTE: We will load every primitive in the glTF as a separate raylib rlMesh.
         // Determine total number of meshes needed from the node hierarchy.
         for (unsigned int i = 0; i < data->nodes_count; i++)
         {
@@ -5294,12 +5294,12 @@ static Model LoadGLTF(const char *fileName)
 
         // Load our model data: meshes and materials
         model.meshCount = primitivesCount;
-        model.meshes = RL_CALLOC(model.meshCount, sizeof(Mesh));
+        model.meshes = RL_CALLOC(model.meshCount, sizeof(rlMesh));
 
         // NOTE: We keep an extra slot for default material, in case some mesh requires it
         model.materialCount = (int)data->materials_count + 1;
-        model.materials = RL_CALLOC(model.materialCount, sizeof(Material));
-        model.materials[0] = LoadMaterialDefault();     // Load default material (index: 0)
+        model.materials = RL_CALLOC(model.materialCount, sizeof(rlMaterial));
+        model.materials[0] = rlLoadMaterialDefault();     // Load default material (index: 0)
 
         // Load mesh-material indices, by default all meshes are mapped to material index: 0
         model.meshMaterial = RL_CALLOC(model.meshCount, sizeof(int));
@@ -5308,8 +5308,8 @@ static Model LoadGLTF(const char *fileName)
         //----------------------------------------------------------------------------------------------------
         for (unsigned int i = 0, j = 1; i < data->materials_count; i++, j++)
         {
-            model.materials[j] = LoadMaterialDefault();
-            const char *texPath = GetDirectoryPath(fileName);
+            model.materials[j] = rlLoadMaterialDefault();
+            const char *texPath = rlGetDirectoryPath(fileName);
 
             // Check glTF material flow: PBR metallic/roughness flow
             // NOTE: Alternatively, materials can follow PBR specular/glossiness flow
@@ -5318,11 +5318,11 @@ static Model LoadGLTF(const char *fileName)
                 // Load base color texture (albedo)
                 if (data->materials[i].pbr_metallic_roughness.base_color_texture.texture)
                 {
-                    Image imAlbedo = LoadImageFromCgltfImage(data->materials[i].pbr_metallic_roughness.base_color_texture.texture->image, texPath);
+                    rlImage imAlbedo = LoadImageFromCgltfImage(data->materials[i].pbr_metallic_roughness.base_color_texture.texture->image, texPath);
                     if (imAlbedo.data != NULL)
                     {
-                        model.materials[j].maps[MATERIAL_MAP_ALBEDO].texture = LoadTextureFromImage(imAlbedo);
-                        UnloadImage(imAlbedo);
+                        model.materials[j].maps[MATERIAL_MAP_ALBEDO].texture = rlLoadTextureFromImage(imAlbedo);
+                        rlUnloadImage(imAlbedo);
                     }
                 }
                 // Load base color factor (tint)
@@ -5334,11 +5334,11 @@ static Model LoadGLTF(const char *fileName)
                 // Load metallic/roughness texture
                 if (data->materials[i].pbr_metallic_roughness.metallic_roughness_texture.texture)
                 {
-                    Image imMetallicRoughness = LoadImageFromCgltfImage(data->materials[i].pbr_metallic_roughness.metallic_roughness_texture.texture->image, texPath);
+                    rlImage imMetallicRoughness = LoadImageFromCgltfImage(data->materials[i].pbr_metallic_roughness.metallic_roughness_texture.texture->image, texPath);
                     if (imMetallicRoughness.data != NULL)
                     {
-                        model.materials[j].maps[MATERIAL_MAP_ROUGHNESS].texture = LoadTextureFromImage(imMetallicRoughness);
-                        UnloadImage(imMetallicRoughness);
+                        model.materials[j].maps[MATERIAL_MAP_ROUGHNESS].texture = rlLoadTextureFromImage(imMetallicRoughness);
+                        rlUnloadImage(imMetallicRoughness);
                     }
 
                     // Load metallic/roughness material properties
@@ -5352,33 +5352,33 @@ static Model LoadGLTF(const char *fileName)
                 // Load normal texture
                 if (data->materials[i].normal_texture.texture)
                 {
-                    Image imNormal = LoadImageFromCgltfImage(data->materials[i].normal_texture.texture->image, texPath);
+                    rlImage imNormal = LoadImageFromCgltfImage(data->materials[i].normal_texture.texture->image, texPath);
                     if (imNormal.data != NULL)
                     {
-                        model.materials[j].maps[MATERIAL_MAP_NORMAL].texture = LoadTextureFromImage(imNormal);
-                        UnloadImage(imNormal);
+                        model.materials[j].maps[MATERIAL_MAP_NORMAL].texture = rlLoadTextureFromImage(imNormal);
+                        rlUnloadImage(imNormal);
                     }
                 }
 
                 // Load ambient occlusion texture
                 if (data->materials[i].occlusion_texture.texture)
                 {
-                    Image imOcclusion = LoadImageFromCgltfImage(data->materials[i].occlusion_texture.texture->image, texPath);
+                    rlImage imOcclusion = LoadImageFromCgltfImage(data->materials[i].occlusion_texture.texture->image, texPath);
                     if (imOcclusion.data != NULL)
                     {
-                        model.materials[j].maps[MATERIAL_MAP_OCCLUSION].texture = LoadTextureFromImage(imOcclusion);
-                        UnloadImage(imOcclusion);
+                        model.materials[j].maps[MATERIAL_MAP_OCCLUSION].texture = rlLoadTextureFromImage(imOcclusion);
+                        rlUnloadImage(imOcclusion);
                     }
                 }
 
                 // Load emissive texture
                 if (data->materials[i].emissive_texture.texture)
                 {
-                    Image imEmissive = LoadImageFromCgltfImage(data->materials[i].emissive_texture.texture->image, texPath);
+                    rlImage imEmissive = LoadImageFromCgltfImage(data->materials[i].emissive_texture.texture->image, texPath);
                     if (imEmissive.data != NULL)
                     {
-                        model.materials[j].maps[MATERIAL_MAP_EMISSION].texture = LoadTextureFromImage(imEmissive);
-                        UnloadImage(imEmissive);
+                        model.materials[j].maps[MATERIAL_MAP_EMISSION].texture = rlLoadTextureFromImage(imEmissive);
+                        rlUnloadImage(imEmissive);
                     }
 
                     // Load emissive color factor
@@ -5394,11 +5394,11 @@ static Model LoadGLTF(const char *fileName)
         }
 
         // Visit each node in the hierarchy and process any mesh linked from it.
-        // Each primitive within a glTF node becomes a Raylib Mesh.
+        // Each primitive within a glTF node becomes a Raylib rlMesh.
         // The local-to-world transform of each node is used to transform the
-        // points/normals/tangents of the created Mesh(es).
+        // points/normals/tangents of the created rlMesh(es).
         // Any glTF mesh linked from more than one Node (i.e. instancing)
-        // is turned into multiple Mesh's, as each Node will have its own
+        // is turned into multiple rlMesh's, as each Node will have its own
         // transform applied.
         // Note: the code below disregards the scenes defined in the file, all nodes are used.
         //----------------------------------------------------------------------------------------------------
@@ -5414,14 +5414,14 @@ static Model LoadGLTF(const char *fileName)
             cgltf_float worldTransform[16];
             cgltf_node_transform_world(node, worldTransform);
 
-            Matrix worldMatrix = {
+            rlMatrix worldMatrix = {
                 worldTransform[0], worldTransform[4], worldTransform[8], worldTransform[12],
                 worldTransform[1], worldTransform[5], worldTransform[9], worldTransform[13],
                 worldTransform[2], worldTransform[6], worldTransform[10], worldTransform[14],
                 worldTransform[3], worldTransform[7], worldTransform[11], worldTransform[15]
             };
 
-            Matrix worldMatrixNormals = MatrixTranspose(MatrixInvert(worldMatrix));
+            rlMatrix worldMatrixNormals = MatrixTranspose(MatrixInvert(worldMatrix));
 
             for (unsigned int p = 0; p < mesh->primitives_count; p++)
             {
@@ -5450,11 +5450,11 @@ static Model LoadGLTF(const char *fileName)
                             // Load 3 components of float data type into mesh.vertices
                             LOAD_ATTRIBUTE(attribute, 3, float, model.meshes[meshIndex].vertices)
 
-                            // Transform the vertices
+                            // rlTransform the vertices
                             float *vertices = model.meshes[meshIndex].vertices;
                             for (unsigned int k = 0; k < attribute->count; k++)
                             {
-                                Vector3 vt = Vector3Transform((Vector3){ vertices[3*k], vertices[3*k+1], vertices[3*k+2] }, worldMatrix);
+                                rlVector3 vt = Vector3Transform((rlVector3){ vertices[3*k], vertices[3*k+1], vertices[3*k+2] }, worldMatrix);
                                 vertices[3*k] = vt.x;
                                 vertices[3*k+1] = vt.y;
                                 vertices[3*k+2] = vt.z;
@@ -5474,11 +5474,11 @@ static Model LoadGLTF(const char *fileName)
                             // Load 3 components of float data type into mesh.normals
                             LOAD_ATTRIBUTE(attribute, 3, float, model.meshes[meshIndex].normals)
 
-                            // Transform the normals
+                            // rlTransform the normals
                             float *normals = model.meshes[meshIndex].normals;
                             for (unsigned int k = 0; k < attribute->count; k++)
                             {
-                                Vector3 nt = Vector3Transform((Vector3){ normals[3*k], normals[3*k+1], normals[3*k+2] }, worldMatrixNormals);
+                                rlVector3 nt = Vector3Transform((rlVector3){ normals[3*k], normals[3*k+1], normals[3*k+2] }, worldMatrixNormals);
                                 normals[3*k] = nt.x;
                                 normals[3*k+1] = nt.y;
                                 normals[3*k+2] = nt.z;
@@ -5498,11 +5498,11 @@ static Model LoadGLTF(const char *fileName)
                             // Load 4 components of float data type into mesh.tangents
                             LOAD_ATTRIBUTE(attribute, 4, float, model.meshes[meshIndex].tangents)
 
-                            // Transform the tangents
+                            // rlTransform the tangents
                             float *tangents = model.meshes[meshIndex].tangents;
                             for (unsigned int k = 0; k < attribute->count; k++)
                             {
-                                Vector3 tt = Vector3Transform((Vector3){ tangents[3*k], tangents[3*k+1], tangents[3*k+2] }, worldMatrix);
+                                rlVector3 tt = Vector3Transform((rlVector3){ tangents[3*k], tangents[3*k+1], tangents[3*k+2] }, worldMatrix);
                                 tangents[3*k] = tt.x;
                                 tangents[3*k+1] = tt.y;
                                 tangents[3*k+2] = tt.z;
@@ -5636,7 +5636,7 @@ static Model LoadGLTF(const char *fileName)
 
                                 RL_FREE(temp);
                             }
-                            else TRACELOG(LOG_WARNING, "MODEL: [%s] Color attribute data format not supported", fileName);
+                            else TRACELOG(LOG_WARNING, "MODEL: [%s] rlColor attribute data format not supported", fileName);
                         }
                         else if (attribute->type == cgltf_type_vec4) // RGBA
                         {
@@ -5676,9 +5676,9 @@ static Model LoadGLTF(const char *fileName)
 
                                 RL_FREE(temp);
                             }
-                            else TRACELOG(LOG_WARNING, "MODEL: [%s] Color attribute data format not supported", fileName);
+                            else TRACELOG(LOG_WARNING, "MODEL: [%s] rlColor attribute data format not supported", fileName);
                         }
-                        else TRACELOG(LOG_WARNING, "MODEL: [%s] Color attribute data format not supported", fileName);
+                        else TRACELOG(LOG_WARNING, "MODEL: [%s] rlColor attribute data format not supported", fileName);
                     }
 
                     // NOTE: Attributes related to animations are processed separately
@@ -5753,14 +5753,14 @@ static Model LoadGLTF(const char *fileName)
         {
             cgltf_skin skin = data->skins[0];
             model.bones = LoadBoneInfoGLTF(skin, &model.boneCount);
-            model.bindPose = RL_MALLOC(model.boneCount*sizeof(Transform));
+            model.bindPose = RL_MALLOC(model.boneCount*sizeof(rlTransform));
 
             for (int i = 0; i < model.boneCount; i++)
             {
                 cgltf_node* node = skin.joints[i];
                 cgltf_float worldTransform[16];
                 cgltf_node_transform_world(node, worldTransform);
-                Matrix worldMatrix = {
+                rlMatrix worldMatrix = {
                     worldTransform[0], worldTransform[4], worldTransform[8], worldTransform[12],
                     worldTransform[1], worldTransform[5], worldTransform[9], worldTransform[13],
                     worldTransform[2], worldTransform[6], worldTransform[10], worldTransform[14],
@@ -5903,9 +5903,9 @@ static Model LoadGLTF(const char *fileName)
                     memcpy(model.meshes[meshIndex].animNormals, model.meshes[meshIndex].normals, model.meshes[meshIndex].vertexCount*3*sizeof(float));
                 }
                 
-                // Bone Transform Matrices
+                // Bone rlTransform Matrices
                 model.meshes[meshIndex].boneCount = model.boneCount;
-                model.meshes[meshIndex].boneMatrices = RL_CALLOC(model.meshes[meshIndex].boneCount, sizeof(Matrix));
+                model.meshes[meshIndex].boneMatrices = RL_CALLOC(model.meshes[meshIndex].boneCount, sizeof(rlMatrix));
                 
                 for (int j = 0; j < model.meshes[meshIndex].boneCount; j++)
                 {
@@ -5923,7 +5923,7 @@ static Model LoadGLTF(const char *fileName)
     else TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to load glTF data", fileName);
 
     // WARNING: cgltf requires the file pointer available while reading data
-    UnloadFileData(fileData);
+    rlUnloadFileData(fileData);
 
     return model;
 }
@@ -5971,8 +5971,8 @@ static bool GetPoseAtTimeGLTF(cgltf_interpolation_type interpolationType, cgltf_
             {
                 float tmp[3] = { 0.0f };
                 cgltf_accessor_read_float(output, keyframe, tmp, 3);
-                Vector3 v1 = {tmp[0], tmp[1], tmp[2]};
-                Vector3 *r = data;
+                rlVector3 v1 = {tmp[0], tmp[1], tmp[2]};
+                rlVector3 *r = data;
 
                 *r = v1;
             } break;
@@ -5980,10 +5980,10 @@ static bool GetPoseAtTimeGLTF(cgltf_interpolation_type interpolationType, cgltf_
             {
                 float tmp[3] = { 0.0f };
                 cgltf_accessor_read_float(output, keyframe, tmp, 3);
-                Vector3 v1 = {tmp[0], tmp[1], tmp[2]};
+                rlVector3 v1 = {tmp[0], tmp[1], tmp[2]};
                 cgltf_accessor_read_float(output, keyframe+1, tmp, 3);
-                Vector3 v2 = {tmp[0], tmp[1], tmp[2]};
-                Vector3 *r = data;
+                rlVector3 v2 = {tmp[0], tmp[1], tmp[2]};
+                rlVector3 *r = data;
 
                 *r = Vector3Lerp(v1, v2, t);
             } break;
@@ -5991,14 +5991,14 @@ static bool GetPoseAtTimeGLTF(cgltf_interpolation_type interpolationType, cgltf_
             {
                 float tmp[3] = { 0.0f };
                 cgltf_accessor_read_float(output, 3*keyframe+1, tmp, 3);
-                Vector3 v1 = {tmp[0], tmp[1], tmp[2]};
+                rlVector3 v1 = {tmp[0], tmp[1], tmp[2]};
                 cgltf_accessor_read_float(output, 3*keyframe+2, tmp, 3);
-                Vector3 tangent1 = {tmp[0], tmp[1], tmp[2]};
+                rlVector3 tangent1 = {tmp[0], tmp[1], tmp[2]};
                 cgltf_accessor_read_float(output, 3*(keyframe+1)+1, tmp, 3);
-                Vector3 v2 = {tmp[0], tmp[1], tmp[2]};
+                rlVector3 v2 = {tmp[0], tmp[1], tmp[2]};
                 cgltf_accessor_read_float(output, 3*(keyframe+1), tmp, 3);
-                Vector3 tangent2 = {tmp[0], tmp[1], tmp[2]};
-                Vector3 *r = data;
+                rlVector3 tangent2 = {tmp[0], tmp[1], tmp[2]};
+                rlVector3 *r = data;
 
                 *r = Vector3CubicHermite(v1, tangent1, v2, tangent2, t);
             } break;
@@ -6014,8 +6014,8 @@ static bool GetPoseAtTimeGLTF(cgltf_interpolation_type interpolationType, cgltf_
             {
                 float tmp[4] = { 0.0f };
                 cgltf_accessor_read_float(output, keyframe, tmp, 4);
-                Vector4 v1 = {tmp[0], tmp[1], tmp[2], tmp[3]};
-                Vector4 *r = data;
+                rlVector4 v1 = {tmp[0], tmp[1], tmp[2], tmp[3]};
+                rlVector4 *r = data;
 
                 *r = v1;
             } break;
@@ -6023,10 +6023,10 @@ static bool GetPoseAtTimeGLTF(cgltf_interpolation_type interpolationType, cgltf_
             {
                 float tmp[4] = { 0.0f };
                 cgltf_accessor_read_float(output, keyframe, tmp, 4);
-                Vector4 v1 = {tmp[0], tmp[1], tmp[2], tmp[3]};
+                rlVector4 v1 = {tmp[0], tmp[1], tmp[2], tmp[3]};
                 cgltf_accessor_read_float(output, keyframe+1, tmp, 4);
-                Vector4 v2 = {tmp[0], tmp[1], tmp[2], tmp[3]};
-                Vector4 *r = data;
+                rlVector4 v2 = {tmp[0], tmp[1], tmp[2], tmp[3]};
+                rlVector4 *r = data;
 
                 *r = QuaternionSlerp(v1, v2, t);
             } break;
@@ -6034,14 +6034,14 @@ static bool GetPoseAtTimeGLTF(cgltf_interpolation_type interpolationType, cgltf_
             {
                 float tmp[4] = { 0.0f };
                 cgltf_accessor_read_float(output, 3*keyframe+1, tmp, 4);
-                Vector4 v1 = {tmp[0], tmp[1], tmp[2], tmp[3]};
+                rlVector4 v1 = {tmp[0], tmp[1], tmp[2], tmp[3]};
                 cgltf_accessor_read_float(output, 3*keyframe+2, tmp, 4);
-                Vector4 outTangent1 = {tmp[0], tmp[1], tmp[2], 0.0f};
+                rlVector4 outTangent1 = {tmp[0], tmp[1], tmp[2], 0.0f};
                 cgltf_accessor_read_float(output, 3*(keyframe+1)+1, tmp, 4);
-                Vector4 v2 = {tmp[0], tmp[1], tmp[2], tmp[3]};
+                rlVector4 v2 = {tmp[0], tmp[1], tmp[2], tmp[3]};
                 cgltf_accessor_read_float(output, 3*(keyframe+1), tmp, 4);
-                Vector4 inTangent2 = {tmp[0], tmp[1], tmp[2], 0.0f};
-                Vector4 *r = data;
+                rlVector4 inTangent2 = {tmp[0], tmp[1], tmp[2], 0.0f};
+                rlVector4 *r = data;
 
                 v1 = QuaternionNormalize(v1);
                 v2 = QuaternionNormalize(v2);
@@ -6065,13 +6065,13 @@ static bool GetPoseAtTimeGLTF(cgltf_interpolation_type interpolationType, cgltf_
 
 #define GLTF_ANIMDELAY 17    // Animation frames delay, (~1000 ms/60 FPS = 16.666666* ms)
 
-static ModelAnimation *LoadModelAnimationsGLTF(const char *fileName, int *animCount)
+static rlModelAnimation *LoadModelAnimationsGLTF(const char *fileName, int *animCount)
 {
     // glTF file loading
     int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fileName, &dataSize);
+    unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
 
-    ModelAnimation *animations = NULL;
+    rlModelAnimation *animations = NULL;
 
     // glTF data loading
     cgltf_options options = { 0 };
@@ -6096,7 +6096,7 @@ static ModelAnimation *LoadModelAnimationsGLTF(const char *fileName, int *animCo
         {
             cgltf_skin skin = data->skins[0];
             *animCount = (int)data->animations_count;
-            animations = RL_MALLOC(data->animations_count*sizeof(ModelAnimation));
+            animations = RL_MALLOC(data->animations_count*sizeof(rlModelAnimation));
 
             for (unsigned int i = 0; i < data->animations_count; i++)
             {
@@ -6176,18 +6176,18 @@ static ModelAnimation *LoadModelAnimationsGLTF(const char *fileName, int *animCo
                 }
 
                 animations[i].frameCount = (int)(animDuration*1000.0f/GLTF_ANIMDELAY) + 1;
-                animations[i].framePoses = RL_MALLOC(animations[i].frameCount*sizeof(Transform *));
+                animations[i].framePoses = RL_MALLOC(animations[i].frameCount*sizeof(rlTransform *));
 
                 for (int j = 0; j < animations[i].frameCount; j++)
                 {
-                    animations[i].framePoses[j] = RL_MALLOC(animations[i].boneCount*sizeof(Transform));
+                    animations[i].framePoses[j] = RL_MALLOC(animations[i].boneCount*sizeof(rlTransform));
                     float time = ((float) j*GLTF_ANIMDELAY)/1000.0f;
 
                     for (int k = 0; k < animations[i].boneCount; k++)
                     {
-                        Vector3 translation = {skin.joints[k]->translation[0], skin.joints[k]->translation[1], skin.joints[k]->translation[2]};
+                        rlVector3 translation = {skin.joints[k]->translation[0], skin.joints[k]->translation[1], skin.joints[k]->translation[2]};
                         Quaternion rotation = {skin.joints[k]->rotation[0], skin.joints[k]->rotation[1], skin.joints[k]->rotation[2], skin.joints[k]->rotation[3]};
-                        Vector3 scale = {skin.joints[k]->scale[0], skin.joints[k]->scale[1], skin.joints[k]->scale[2]};
+                        rlVector3 scale = {skin.joints[k]->scale[0], skin.joints[k]->scale[1], skin.joints[k]->scale[2]};
 
                         if (boneChannels[k].translate)
                         {
@@ -6213,7 +6213,7 @@ static ModelAnimation *LoadModelAnimationsGLTF(const char *fileName, int *animCo
                             }
                         }
 
-                        animations[i].framePoses[j][k] = (Transform){
+                        animations[i].framePoses[j][k] = (rlTransform){
                             .translation = translation,
                             .rotation = rotation,
                             .scale = scale
@@ -6235,23 +6235,23 @@ static ModelAnimation *LoadModelAnimationsGLTF(const char *fileName, int *animCo
 
         cgltf_free(data);
     }
-    UnloadFileData(fileData);
+    rlUnloadFileData(fileData);
     return animations;
 }
 #endif
 
 #if defined(SUPPORT_FILEFORMAT_VOX)
 // Load VOX (MagicaVoxel) mesh data
-static Model LoadVOX(const char *fileName)
+static rlModel LoadVOX(const char *fileName)
 {
-    Model model = { 0 };
+    rlModel model = { 0 };
 
     int nbvertices = 0;
     int meshescount = 0;
 
     // Read vox file into buffer
     int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fileName, &dataSize);
+    unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
 
     if (fileData == 0)
     {
@@ -6266,7 +6266,7 @@ static Model LoadVOX(const char *fileName)
     if (ret != VOX_SUCCESS)
     {
         // Error
-        UnloadFileData(fileData);
+        rlUnloadFileData(fileData);
 
         TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to load VOX data", fileName);
         return model;
@@ -6284,22 +6284,22 @@ static Model LoadVOX(const char *fileName)
     model.transform = MatrixIdentity();
 
     model.meshCount = meshescount;
-    model.meshes = (Mesh *)RL_CALLOC(model.meshCount, sizeof(Mesh));
+    model.meshes = (rlMesh *)RL_CALLOC(model.meshCount, sizeof(rlMesh));
 
     model.meshMaterial = (int *)RL_CALLOC(model.meshCount, sizeof(int));
 
     model.materialCount = 1;
-    model.materials = (Material *)RL_CALLOC(model.materialCount, sizeof(Material));
-    model.materials[0] = LoadMaterialDefault();
+    model.materials = (rlMaterial *)RL_CALLOC(model.materialCount, sizeof(rlMaterial));
+    model.materials[0] = rlLoadMaterialDefault();
 
     // Init model meshes
     int verticesRemain = voxarray.vertices.used;
     int verticesMax = 65532; // 5461 voxels x 12 vertices per voxel -> 65532 (must be inf 65536)
 
     // 6*4 = 12 vertices per voxel
-    Vector3 *pvertices = (Vector3 *)voxarray.vertices.array;
-    Vector3 *pnormals = (Vector3 *)voxarray.normals.array;
-    Color *pcolors = (Color *)voxarray.colors.array;
+    rlVector3 *pvertices = (rlVector3 *)voxarray.vertices.array;
+    rlVector3 *pnormals = (rlVector3 *)voxarray.normals.array;
+    rlColor *pcolors = (rlColor *)voxarray.colors.array;
 
     unsigned short *pindices = voxarray.indices.array;    // 5461*6*6 = 196596 indices max per mesh
 
@@ -6307,8 +6307,8 @@ static Model LoadVOX(const char *fileName)
 
     for (int i = 0; i < meshescount; i++)
     {
-        Mesh *pmesh = &model.meshes[i];
-        memset(pmesh, 0, sizeof(Mesh));
+        rlMesh *pmesh = &model.meshes[i];
+        memset(pmesh, 0, sizeof(rlMesh));
 
         // Copy vertices
         pmesh->vertexCount = (int)fmin(verticesMax, verticesRemain);
@@ -6329,7 +6329,7 @@ static Model LoadVOX(const char *fileName)
         pmesh->triangleCount = (pmesh->vertexCount/4)*2;
 
         // Copy colors
-        size = pmesh->vertexCount*sizeof(Color);
+        size = pmesh->vertexCount*sizeof(rlColor);
         pmesh->colors = RL_MALLOC(size);
         memcpy(pmesh->colors, pcolors, size);
 
@@ -6344,28 +6344,28 @@ static Model LoadVOX(const char *fileName)
 
     // Free buffers
     Vox_FreeArrays(&voxarray);
-    UnloadFileData(fileData);
+    rlUnloadFileData(fileData);
 
     return model;
 }
 #endif
 
 #if defined(SUPPORT_FILEFORMAT_M3D)
-// Hook LoadFileData()/UnloadFileData() calls to M3D loaders
-unsigned char *m3d_loaderhook(char *fn, unsigned int *len) { return LoadFileData((const char *)fn, (int *)len); }
-void m3d_freehook(void *data) { UnloadFileData((unsigned char *)data); }
+// Hook rlLoadFileData()/rlUnloadFileData() calls to M3D loaders
+unsigned char *m3d_loaderhook(char *fn, unsigned int *len) { return rlLoadFileData((const char *)fn, (int *)len); }
+void m3d_freehook(void *data) { rlUnloadFileData((unsigned char *)data); }
 
 // Load M3D mesh data
-static Model LoadM3D(const char *fileName)
+static rlModel LoadM3D(const char *fileName)
 {
-    Model model = { 0 };
+    rlModel model = { 0 };
 
     m3d_t *m3d = NULL;
     m3dp_t *prop = NULL;
     int i, j, k, l, n, mi = -2, vcolor = 0;
 
     int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fileName, &dataSize);
+    unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
 
     if (fileData != NULL)
     {
@@ -6375,7 +6375,7 @@ static Model LoadM3D(const char *fileName)
         {
             TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to load M3D data, error code %d", fileName, m3d? m3d->errcode : -2);
             if (m3d) m3d_free(m3d);
-            UnloadFileData(fileData);
+            rlUnloadFileData(fileData);
             return model;
         }
         else TRACELOG(LOG_INFO, "MODEL: [%s] M3D data loaded successfully: %i faces/%i materials", fileName, m3d->numface, m3d->nummaterial);
@@ -6384,7 +6384,7 @@ static Model LoadM3D(const char *fileName)
         if (!m3d->numface)
         {
             m3d_free(m3d);
-            UnloadFileData(fileData);
+            rlUnloadFileData(fileData);
             return model;
         }
 
@@ -6425,12 +6425,12 @@ static Model LoadM3D(const char *fileName)
         }
         */
 
-        model.meshes = (Mesh *)RL_CALLOC(model.meshCount, sizeof(Mesh));
+        model.meshes = (rlMesh *)RL_CALLOC(model.meshCount, sizeof(rlMesh));
         model.meshMaterial = (int *)RL_CALLOC(model.meshCount, sizeof(int));
-        model.materials = (Material *)RL_CALLOC(model.materialCount + 1, sizeof(Material));
+        model.materials = (rlMaterial *)RL_CALLOC(model.materialCount + 1, sizeof(rlMaterial));
 
         // Map no material to index 0 with default shader, everything else materialid + 1
-        model.materials[0] = LoadMaterialDefault();
+        model.materials[0] = rlLoadMaterialDefault();
 
         for (i = l = 0, k = -1; i < (int)m3d->numface; i++, l++)
         {
@@ -6441,8 +6441,8 @@ static Model LoadM3D(const char *fileName)
                 if (k + 1 >= model.meshCount)
                 {
                     model.meshCount++;
-                    model.meshes = (Mesh *)RL_REALLOC(model.meshes, model.meshCount*sizeof(Mesh));
-                    memset(&model.meshes[model.meshCount - 1], 0, sizeof(Mesh));
+                    model.meshes = (rlMesh *)RL_REALLOC(model.meshes, model.meshCount*sizeof(rlMesh));
+                    memset(&model.meshes[model.meshCount - 1], 0, sizeof(rlMesh));
                     model.meshMaterial = (int *)RL_REALLOC(model.meshMaterial, model.meshCount*sizeof(int));
                 }
 
@@ -6561,7 +6561,7 @@ static Model LoadM3D(const char *fileName)
         // Load materials
         for (i = 0; i < (int)m3d->nummaterial; i++)
         {
-            model.materials[i + 1] = LoadMaterialDefault();
+            model.materials[i + 1] = rlLoadMaterialDefault();
 
             for (j = 0; j < m3d->material[i].numprop; j++)
             {
@@ -6604,7 +6604,7 @@ static Model LoadM3D(const char *fileName)
                     {
                         if (prop->type >= 128)
                         {
-                            Image image = { 0 };
+                            rlImage image = { 0 };
                             image.data = m3d->texture[prop->value.textureid].d;
                             image.width = m3d->texture[prop->value.textureid].w;
                             image.height = m3d->texture[prop->value.textureid].h;
@@ -6615,12 +6615,12 @@ static Model LoadM3D(const char *fileName)
 
                             switch (prop->type)
                             {
-                                case m3dp_map_Kd: model.materials[i + 1].maps[MATERIAL_MAP_DIFFUSE].texture = LoadTextureFromImage(image); break;
-                                case m3dp_map_Ks: model.materials[i + 1].maps[MATERIAL_MAP_SPECULAR].texture = LoadTextureFromImage(image); break;
-                                case m3dp_map_Ke: model.materials[i + 1].maps[MATERIAL_MAP_EMISSION].texture = LoadTextureFromImage(image); break;
-                                case m3dp_map_Km: model.materials[i + 1].maps[MATERIAL_MAP_NORMAL].texture = LoadTextureFromImage(image); break;
-                                case m3dp_map_Ka: model.materials[i + 1].maps[MATERIAL_MAP_OCCLUSION].texture = LoadTextureFromImage(image); break;
-                                case m3dp_map_Pm: model.materials[i + 1].maps[MATERIAL_MAP_ROUGHNESS].texture = LoadTextureFromImage(image); break;
+                                case m3dp_map_Kd: model.materials[i + 1].maps[MATERIAL_MAP_DIFFUSE].texture = rlLoadTextureFromImage(image); break;
+                                case m3dp_map_Ks: model.materials[i + 1].maps[MATERIAL_MAP_SPECULAR].texture = rlLoadTextureFromImage(image); break;
+                                case m3dp_map_Ke: model.materials[i + 1].maps[MATERIAL_MAP_EMISSION].texture = rlLoadTextureFromImage(image); break;
+                                case m3dp_map_Km: model.materials[i + 1].maps[MATERIAL_MAP_NORMAL].texture = rlLoadTextureFromImage(image); break;
+                                case m3dp_map_Ka: model.materials[i + 1].maps[MATERIAL_MAP_OCCLUSION].texture = rlLoadTextureFromImage(image); break;
+                                case m3dp_map_Pm: model.materials[i + 1].maps[MATERIAL_MAP_ROUGHNESS].texture = rlLoadTextureFromImage(image); break;
                                 default: break;
                             }
                         }
@@ -6633,8 +6633,8 @@ static Model LoadM3D(const char *fileName)
         if (m3d->numbone)
         {
             model.boneCount = m3d->numbone + 1;
-            model.bones = RL_CALLOC(model.boneCount, sizeof(BoneInfo));
-            model.bindPose = RL_CALLOC(model.boneCount, sizeof(Transform));
+            model.bones = RL_CALLOC(model.boneCount, sizeof(rlBoneInfo));
+            model.bindPose = RL_CALLOC(model.boneCount, sizeof(rlTransform));
 
             for (i = 0; i < (int)m3d->numbone; i++)
             {
@@ -6675,8 +6675,8 @@ static Model LoadM3D(const char *fileName)
             model.bindPose[i].scale.x = model.bindPose[i].scale.y = model.bindPose[i].scale.z = 1.0f;
         }
 
-        // Load bone-pose default mesh into animation vertices. These will be updated when UpdateModelAnimation gets
-        // called, but not before, however DrawMesh uses these if they exist (so not good if they are left empty)
+        // Load bone-pose default mesh into animation vertices. These will be updated when rlUpdateModelAnimation gets
+        // called, but not before, however rlDrawMesh uses these if they exist (so not good if they are left empty)
         if (m3d->numbone && m3d->numskin)
         {
             for (i = 0; i < model.meshCount; i++)
@@ -6685,7 +6685,7 @@ static Model LoadM3D(const char *fileName)
                 memcpy(model.meshes[i].animNormals, model.meshes[i].normals, model.meshes[i].vertexCount*3*sizeof(float));
                 
                 model.meshes[i].boneCount = model.boneCount;
-                model.meshes[i].boneMatrices = RL_CALLOC(model.meshes[i].boneCount, sizeof(Matrix));
+                model.meshes[i].boneMatrices = RL_CALLOC(model.meshes[i].boneCount, sizeof(rlMatrix));
                 for (j = 0; j < model.meshes[i].boneCount; j++)
                 {
                     model.meshes[i].boneMatrices[j] = MatrixIdentity();
@@ -6694,7 +6694,7 @@ static Model LoadM3D(const char *fileName)
         }
 
         m3d_free(m3d);
-        UnloadFileData(fileData);
+        rlUnloadFileData(fileData);
     }
 
     return model;
@@ -6703,16 +6703,16 @@ static Model LoadM3D(const char *fileName)
 #define M3D_ANIMDELAY 17    // Animation frames delay, (~1000 ms/60 FPS = 16.666666* ms)
 
 // Load M3D animation data
-static ModelAnimation *LoadModelAnimationsM3D(const char *fileName, int *animCount)
+static rlModelAnimation *LoadModelAnimationsM3D(const char *fileName, int *animCount)
 {
-    ModelAnimation *animations = NULL;
+    rlModelAnimation *animations = NULL;
 
     m3d_t *m3d = NULL;
     int i = 0, j = 0;
     *animCount = 0;
 
     int dataSize = 0;
-    unsigned char *fileData = LoadFileData(fileName, &dataSize);
+    unsigned char *fileData = rlLoadFileData(fileName, &dataSize);
 
     if (fileData != NULL)
     {
@@ -6721,7 +6721,7 @@ static ModelAnimation *LoadModelAnimationsM3D(const char *fileName, int *animCou
         if (!m3d || M3D_ERR_ISFATAL(m3d->errcode))
         {
             TRACELOG(LOG_WARNING, "MODEL: [%s] Failed to load M3D data, error code %d", fileName, m3d? m3d->errcode : -2);
-            UnloadFileData(fileData);
+            rlUnloadFileData(fileData);
             return NULL;
         }
         else TRACELOG(LOG_INFO, "MODEL: [%s] M3D data loaded successfully: %i animations, %i bones, %i skins", fileName,
@@ -6731,19 +6731,19 @@ static ModelAnimation *LoadModelAnimationsM3D(const char *fileName, int *animCou
         if (!m3d->numaction || !m3d->numbone || !m3d->numskin)
         {
             m3d_free(m3d);
-            UnloadFileData(fileData);
+            rlUnloadFileData(fileData);
             return NULL;
         }
 
-        animations = RL_MALLOC(m3d->numaction*sizeof(ModelAnimation));
+        animations = RL_MALLOC(m3d->numaction*sizeof(rlModelAnimation));
         *animCount = m3d->numaction;
 
         for (unsigned int a = 0; a < m3d->numaction; a++)
         {
             animations[a].frameCount = m3d->action[a].durationmsec/M3D_ANIMDELAY;
             animations[a].boneCount = m3d->numbone + 1;
-            animations[a].bones = RL_MALLOC((m3d->numbone + 1)*sizeof(BoneInfo));
-            animations[a].framePoses = RL_MALLOC(animations[a].frameCount*sizeof(Transform *));
+            animations[a].bones = RL_MALLOC((m3d->numbone + 1)*sizeof(rlBoneInfo));
+            animations[a].framePoses = RL_MALLOC(animations[a].frameCount*sizeof(rlTransform *));
             strncpy(animations[a].name, m3d->action[a].name, sizeof(animations[a].name));
             animations[a].name[sizeof(animations[a].name) - 1] = '\0';
 
@@ -6763,7 +6763,7 @@ static ModelAnimation *LoadModelAnimationsM3D(const char *fileName, int *animCou
             // regular intervals, so let the M3D SDK do the heavy lifting and calculate interpolated bones
             for (i = 0; i < animations[a].frameCount; i++)
             {
-                animations[a].framePoses[i] = RL_MALLOC((m3d->numbone + 1)*sizeof(Transform));
+                animations[a].framePoses[i] = RL_MALLOC((m3d->numbone + 1)*sizeof(rlTransform));
 
                 m3db_t *pose = m3d_pose(m3d, a, i*M3D_ANIMDELAY);
 
@@ -6806,7 +6806,7 @@ static ModelAnimation *LoadModelAnimationsM3D(const char *fileName, int *animCou
         }
 
         m3d_free(m3d);
-        UnloadFileData(fileData);
+        rlUnloadFileData(fileData);
     }
 
     return animations;

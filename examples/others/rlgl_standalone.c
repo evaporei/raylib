@@ -52,8 +52,8 @@
 //#define RL_DEFAULT_BATCH_BUFFER_ELEMENTS   8192    // Default internal render batch elements limits
 //#define RL_DEFAULT_BATCH_BUFFERS              1    // Default number of batch buffers (multi-buffering)
 //#define RL_DEFAULT_BATCH_DRAWCALLS          256    // Default number of batch draw calls (by state changes: mode, texture)
-//#define RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS    4    // Maximum number of textures units that can be activated on batch drawing (SetShaderValueTexture())
-//#define RL_MAX_MATRIX_STACK_SIZE             32    // Maximum size of internal Matrix stack
+//#define RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS    4    // Maximum number of textures units that can be activated on batch drawing (rlSetShaderValueTexture())
+//#define RL_MAX_MATRIX_STACK_SIZE             32    // Maximum size of internal rlMatrix stack
 //#define RL_MAX_SHADER_LOCATIONS              32    // Maximum number of shader locations supported
 //#define RL_CULL_DISTANCE_NEAR              0.01    // Default projection matrix near cull distance
 //#define RL_CULL_DISTANCE_FAR             1000.0    // Default projection matrix far cull distance
@@ -62,32 +62,32 @@
 #include "rlgl.h"               // OpenGL abstraction layer to OpenGL 1.1, 3.3+ or ES2
 
 #define RAYMATH_STATIC_INLINE
-#include "raymath.h"            // Vector2, Vector3, Quaternion and Matrix functionality
+#include "raymath.h"            // rlVector2, rlVector3, Quaternion and rlMatrix functionality
 
 #include "GLFW/glfw3.h"         // Windows/Context and inputs management
 
 #include <stdio.h>              // Required for: printf()
 
-#define RED        (Color){ 230, 41, 55, 255 }     // Red
-#define RAYWHITE   (Color){ 245, 245, 245, 255 }   // My own White (raylib logo)
-#define DARKGRAY   (Color){ 80, 80, 80, 255 }      // Dark Gray
+#define RED        (rlColor){ 230, 41, 55, 255 }     // Red
+#define RAYWHITE   (rlColor){ 245, 245, 245, 255 }   // My own White (raylib logo)
+#define DARKGRAY   (rlColor){ 80, 80, 80, 255 }      // Dark Gray
 
 //----------------------------------------------------------------------------------
 // Structures Definition
 //----------------------------------------------------------------------------------
-// Color, 4 components, R8G8B8A8 (32bit)
-typedef struct Color {
-    unsigned char r;        // Color red value
-    unsigned char g;        // Color green value
-    unsigned char b;        // Color blue value
-    unsigned char a;        // Color alpha value
-} Color;
+// rlColor, 4 components, R8G8B8A8 (32bit)
+typedef struct rlColor {
+    unsigned char r;        // rlColor red value
+    unsigned char g;        // rlColor green value
+    unsigned char b;        // rlColor blue value
+    unsigned char a;        // rlColor alpha value
+} rlColor;
 
 // Camera type, defines a camera position/orientation in 3d space
 typedef struct Camera {
-    Vector3 position;       // Camera position
-    Vector3 target;         // Camera target it looks-at
-    Vector3 up;             // Camera up vector (rotation over its axis)
+    rlVector3 position;       // Camera position
+    rlVector3 target;         // Camera target it looks-at
+    rlVector3 up;             // Camera up vector (rotation over its axis)
     float fovy;             // Camera field-of-view apperture in Y (degrees) in perspective, used as near plane width in orthographic
     int projection;         // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
 } Camera;
@@ -99,16 +99,16 @@ static void ErrorCallback(int error, const char *description);
 static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 // Drawing functions (uses rlgl functionality)
-static void DrawGrid(int slices, float spacing);
-static void DrawCube(Vector3 position, float width, float height, float length, Color color);
-static void DrawCubeWires(Vector3 position, float width, float height, float length, Color color);
-static void DrawRectangleV(Vector2 position, Vector2 size, Color color);
+static void rlDrawGrid(int slices, float spacing);
+static void rlDrawCube(rlVector3 position, float width, float height, float length, rlColor color);
+static void rlDrawCubeWires(rlVector3 position, float width, float height, float length, rlColor color);
+static void rlDrawRectangleV(rlVector2 position, rlVector2 size, rlColor color);
 
 // NOTE: We use raymath to get this functionality but it could be implemented in this module
-//static Matrix MatrixIdentity(void);
-//static Matrix MatrixOrtho(double left, double right, double bottom, double top, double near, double far);
-//static Matrix MatrixPerspective(double fovy, double aspect, double near, double far);
-//static Matrix MatrixLookAt(Vector3 eye, Vector3 target, Vector3 up);
+//static rlMatrix MatrixIdentity(void);
+//static rlMatrix MatrixOrtho(double left, double right, double bottom, double top, double near, double far);
+//static rlMatrix MatrixPerspective(double fovy, double aspect, double near, double far);
+//static rlMatrix MatrixLookAt(rlVector3 eye, rlVector3 target, rlVector3 up);
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -178,12 +178,12 @@ int main(void)
     rlEnableDepthTest();                                // Enable DEPTH_TEST for 3D
 
     Camera camera = { 0 };
-    camera.position = (Vector3){ 5.0f, 5.0f, 5.0f };    // Camera position
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    camera.position = (rlVector3){ 5.0f, 5.0f, 5.0f };    // Camera position
+    camera.target = (rlVector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
+    camera.up = (rlVector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
 
-    Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };        // Cube default position (center)
+    rlVector3 cubePosition = { 0.0f, 0.0f, 0.0f };        // Cube default position (center)
     //--------------------------------------------------------------------------------------
 
     // Main game loop
@@ -201,15 +201,15 @@ int main(void)
             // Draw '3D' elements in the scene
             //-----------------------------------------------
             // Calculate projection matrix (from perspective) and view matrix from camera look at
-            Matrix matProj = MatrixPerspective((double)(camera.fovy*DEG2RAD), (double)screenWidth/(double)screenHeight, 0.01, 1000.0);
-            Matrix matView = MatrixLookAt(camera.position, camera.target, camera.up);
+            rlMatrix matProj = MatrixPerspective((double)(camera.fovy*DEG2RAD), (double)screenWidth/(double)screenHeight, 0.01, 1000.0);
+            rlMatrix matView = MatrixLookAt(camera.position, camera.target, camera.up);
 
             rlSetMatrixModelview(matView);    // Set internal modelview matrix (default shader)
             rlSetMatrixProjection(matProj);   // Set internal projection matrix (default shader)
 
-            DrawCube(cubePosition, 2.0f, 2.0f, 2.0f, RED);
-            DrawCubeWires(cubePosition, 2.0f, 2.0f, 2.0f, RAYWHITE);
-            DrawGrid(10, 1.0f);
+            rlDrawCube(cubePosition, 2.0f, 2.0f, 2.0f, RED);
+            rlDrawCubeWires(cubePosition, 2.0f, 2.0f, 2.0f, RAYWHITE);
+            rlDrawGrid(10, 1.0f);
 
             // Draw internal render batch buffers (3D data)
             rlDrawRenderBatchActive();
@@ -233,7 +233,7 @@ int main(void)
             rlMatrixMode(RL_MODELVIEW);                             // Enable internal modelview matrix
             rlLoadIdentity();                                       // Reset internal modelview matrix
 #endif
-            DrawRectangleV((Vector2){ 10.0f, 10.0f }, (Vector2){ 780.0f, 20.0f }, DARKGRAY);
+            rlDrawRectangleV((rlVector2){ 10.0f, 10.0f }, (rlVector2){ 780.0f, 20.0f }, DARKGRAY);
 
             // Draw internal render batch buffers (2D data)
             rlDrawRenderBatchActive();
@@ -275,7 +275,7 @@ static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, i
 }
 
 // Draw rectangle using rlgl OpenGL 1.1 style coding (translated to OpenGL 3.3 internally)
-static void DrawRectangleV(Vector2 position, Vector2 size, Color color)
+static void rlDrawRectangleV(rlVector2 position, rlVector2 size, rlColor color)
 {
     rlBegin(RL_TRIANGLES);
         rlColor4ub(color.r, color.g, color.b, color.a);
@@ -291,7 +291,7 @@ static void DrawRectangleV(Vector2 position, Vector2 size, Color color)
 }
 
 // Draw a grid centered at (0, 0, 0)
-static void DrawGrid(int slices, float spacing)
+static void rlDrawGrid(int slices, float spacing)
 {
     int halfSlices = slices / 2;
 
@@ -324,7 +324,7 @@ static void DrawGrid(int slices, float spacing)
 
 // Draw cube
 // NOTE: Cube position is the center position
-static void DrawCube(Vector3 position, float width, float height, float length, Color color)
+static void rlDrawCube(rlVector3 position, float width, float height, float length, rlColor color)
 {
     float x = 0.0f;
     float y = 0.0f;
@@ -398,7 +398,7 @@ static void DrawCube(Vector3 position, float width, float height, float length, 
 }
 
 // Draw cube wires
-static void DrawCubeWires(Vector3 position, float width, float height, float length, Color color)
+static void rlDrawCubeWires(rlVector3 position, float width, float height, float length, rlColor color)
 {
     float x = 0.0f;
     float y = 0.0f;

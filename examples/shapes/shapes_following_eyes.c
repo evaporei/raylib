@@ -25,32 +25,32 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shapes] example - following eyes");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shapes] example - following eyes");
 
-    Vector2 scleraLeftPosition = { GetScreenWidth()/2.0f - 100.0f, GetScreenHeight()/2.0f };
-    Vector2 scleraRightPosition = { GetScreenWidth()/2.0f + 100.0f, GetScreenHeight()/2.0f };
+    rlVector2 scleraLeftPosition = { rlGetScreenWidth()/2.0f - 100.0f, rlGetScreenHeight()/2.0f };
+    rlVector2 scleraRightPosition = { rlGetScreenWidth()/2.0f + 100.0f, rlGetScreenHeight()/2.0f };
     float scleraRadius = 80;
 
-    Vector2 irisLeftPosition = { GetScreenWidth()/2.0f - 100.0f, GetScreenHeight()/2.0f };
-    Vector2 irisRightPosition = { GetScreenWidth()/2.0f + 100.0f, GetScreenHeight()/2.0f };
+    rlVector2 irisLeftPosition = { rlGetScreenWidth()/2.0f - 100.0f, rlGetScreenHeight()/2.0f };
+    rlVector2 irisRightPosition = { rlGetScreenWidth()/2.0f + 100.0f, rlGetScreenHeight()/2.0f };
     float irisRadius = 24;
 
     float angle = 0.0f;
     float dx = 0.0f, dy = 0.0f, dxx = 0.0f, dyy = 0.0f;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        irisLeftPosition = GetMousePosition();
-        irisRightPosition = GetMousePosition();
+        irisLeftPosition = rlGetMousePosition();
+        irisRightPosition = rlGetMousePosition();
 
         // Check not inside the left eye sclera
-        if (!CheckCollisionPointCircle(irisLeftPosition, scleraLeftPosition, scleraRadius - irisRadius))
+        if (!rlCheckCollisionPointCircle(irisLeftPosition, scleraLeftPosition, scleraRadius - irisRadius))
         {
             dx = irisLeftPosition.x - scleraLeftPosition.x;
             dy = irisLeftPosition.y - scleraLeftPosition.y;
@@ -65,7 +65,7 @@ int main(void)
         }
 
         // Check not inside the right eye sclera
-        if (!CheckCollisionPointCircle(irisRightPosition, scleraRightPosition, scleraRadius - irisRadius))
+        if (!rlCheckCollisionPointCircle(irisRightPosition, scleraRightPosition, scleraRadius - irisRadius))
         {
             dx = irisRightPosition.x - scleraRightPosition.x;
             dy = irisRightPosition.y - scleraRightPosition.y;
@@ -82,27 +82,27 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawCircleV(scleraLeftPosition, scleraRadius, LIGHTGRAY);
-            DrawCircleV(irisLeftPosition, irisRadius, BROWN);
-            DrawCircleV(irisLeftPosition, 10, BLACK);
+            rlDrawCircleV(scleraLeftPosition, scleraRadius, LIGHTGRAY);
+            rlDrawCircleV(irisLeftPosition, irisRadius, BROWN);
+            rlDrawCircleV(irisLeftPosition, 10, BLACK);
 
-            DrawCircleV(scleraRightPosition, scleraRadius, LIGHTGRAY);
-            DrawCircleV(irisRightPosition, irisRadius, DARKGREEN);
-            DrawCircleV(irisRightPosition, 10, BLACK);
+            rlDrawCircleV(scleraRightPosition, scleraRadius, LIGHTGRAY);
+            rlDrawCircleV(irisRightPosition, irisRadius, DARKGREEN);
+            rlDrawCircleV(irisRightPosition, 10, BLACK);
 
-            DrawFPS(10, 10);
+            rlDrawFPS(10, 10);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

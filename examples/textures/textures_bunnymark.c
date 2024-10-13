@@ -22,9 +22,9 @@
 #define MAX_BATCH_ELEMENTS  8192
 
 typedef struct Bunny {
-    Vector2 position;
-    Vector2 speed;
-    Color color;
+    rlVector2 position;
+    rlVector2 speed;
+    rlColor color;
 } Bunny;
 
 //------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [textures] example - bunnymark");
+    rlInitWindow(screenWidth, screenHeight, "raylib [textures] example - bunnymark");
 
     // Load bunny texture
     Texture2D texBunny = LoadTexture("resources/wabbit_alpha.png");
@@ -46,27 +46,27 @@ int main(void)
 
     int bunniesCount = 0;           // Bunnies counter
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+        if (rlIsMouseButtonDown(MOUSE_BUTTON_LEFT))
         {
             // Create more bunnies
             for (int i = 0; i < 100; i++)
             {
                 if (bunniesCount < MAX_BUNNIES)
                 {
-                    bunnies[bunniesCount].position = GetMousePosition();
-                    bunnies[bunniesCount].speed.x = (float)GetRandomValue(-250, 250)/60.0f;
-                    bunnies[bunniesCount].speed.y = (float)GetRandomValue(-250, 250)/60.0f;
-                    bunnies[bunniesCount].color = (Color){ GetRandomValue(50, 240),
-                                                       GetRandomValue(80, 240),
-                                                       GetRandomValue(100, 240), 255 };
+                    bunnies[bunniesCount].position = rlGetMousePosition();
+                    bunnies[bunniesCount].speed.x = (float)rlGetRandomValue(-250, 250)/60.0f;
+                    bunnies[bunniesCount].speed.y = (float)rlGetRandomValue(-250, 250)/60.0f;
+                    bunnies[bunniesCount].color = (rlColor){ rlGetRandomValue(50, 240),
+                                                       rlGetRandomValue(80, 240),
+                                                       rlGetRandomValue(100, 240), 255 };
                     bunniesCount++;
                 }
             }
@@ -78,18 +78,18 @@ int main(void)
             bunnies[i].position.x += bunnies[i].speed.x;
             bunnies[i].position.y += bunnies[i].speed.y;
 
-            if (((bunnies[i].position.x + texBunny.width/2) > GetScreenWidth()) ||
+            if (((bunnies[i].position.x + texBunny.width/2) > rlGetScreenWidth()) ||
                 ((bunnies[i].position.x + texBunny.width/2) < 0)) bunnies[i].speed.x *= -1;
-            if (((bunnies[i].position.y + texBunny.height/2) > GetScreenHeight()) ||
+            if (((bunnies[i].position.y + texBunny.height/2) > rlGetScreenHeight()) ||
                 ((bunnies[i].position.y + texBunny.height/2 - 40) < 0)) bunnies[i].speed.y *= -1;
         }
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
             for (int i = 0; i < bunniesCount; i++)
             {
@@ -99,16 +99,16 @@ int main(void)
                 // Process of sending data is costly and it could happen that GPU data has not been completely
                 // processed for drawing while new data is tried to be sent (updating current in-use buffers)
                 // it could generates a stall and consequently a frame drop, limiting the number of drawn bunnies
-                DrawTexture(texBunny, (int)bunnies[i].position.x, (int)bunnies[i].position.y, bunnies[i].color);
+                rlDrawTexture(texBunny, (int)bunnies[i].position.x, (int)bunnies[i].position.y, bunnies[i].color);
             }
 
-            DrawRectangle(0, 0, screenWidth, 40, BLACK);
-            DrawText(TextFormat("bunnies: %i", bunniesCount), 120, 10, 20, GREEN);
-            DrawText(TextFormat("batched draw calls: %i", 1 + bunniesCount/MAX_BATCH_ELEMENTS), 320, 10, 20, MAROON);
+            rlDrawRectangle(0, 0, screenWidth, 40, BLACK);
+            rlDrawText(rlTextFormat("bunnies: %i", bunniesCount), 120, 10, 20, GREEN);
+            rlDrawText(rlTextFormat("batched draw calls: %i", 1 + bunniesCount/MAX_BATCH_ELEMENTS), 320, 10, 20, MAROON);
 
-            DrawFPS(10, 10);
+            rlDrawFPS(10, 10);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
@@ -118,7 +118,7 @@ int main(void)
 
     UnloadTexture(texBunny);    // Unload bunny texture
 
-    CloseWindow();              // Close window and OpenGL context
+    rlCloseWindow();              // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

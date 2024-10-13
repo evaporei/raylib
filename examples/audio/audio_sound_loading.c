@@ -1,6 +1,6 @@
 /*******************************************************************************************
 *
-*   raylib [audio] example - Sound loading and playing
+*   raylib [audio] example - rlSound loading and playing
 *
 *   Example originally created with raylib 1.1, last time updated with raylib 3.5
 *
@@ -23,46 +23,46 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [audio] example - sound loading and playing");
+    rlInitWindow(screenWidth, screenHeight, "raylib [audio] example - sound loading and playing");
 
-    InitAudioDevice();      // Initialize audio device
+    rlInitAudioDevice();      // Initialize audio device
 
-    Sound fxWav = LoadSound("resources/sound.wav");         // Load WAV audio file
-    Sound fxOgg = LoadSound("resources/target.ogg");        // Load OGG audio file
+    rlSound fxWav = rlLoadSound("resources/sound.wav");         // Load WAV audio file
+    rlSound fxOgg = rlLoadSound("resources/target.ogg");        // Load OGG audio file
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        if (IsKeyPressed(KEY_SPACE)) PlaySound(fxWav);      // Play WAV sound
-        if (IsKeyPressed(KEY_ENTER)) PlaySound(fxOgg);      // Play OGG sound
+        if (rlIsKeyPressed(KEY_SPACE)) rlPlaySound(fxWav);      // Play WAV sound
+        if (rlIsKeyPressed(KEY_ENTER)) rlPlaySound(fxOgg);      // Play OGG sound
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawText("Press SPACE to PLAY the WAV sound!", 200, 180, 20, LIGHTGRAY);
-            DrawText("Press ENTER to PLAY the OGG sound!", 200, 220, 20, LIGHTGRAY);
+            rlDrawText("Press SPACE to PLAY the WAV sound!", 200, 180, 20, LIGHTGRAY);
+            rlDrawText("Press ENTER to PLAY the OGG sound!", 200, 220, 20, LIGHTGRAY);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadSound(fxWav);     // Unload sound data
-    UnloadSound(fxOgg);     // Unload sound data
+    rlUnloadSound(fxWav);     // Unload sound data
+    rlUnloadSound(fxOgg);     // Unload sound data
 
-    CloseAudioDevice();     // Close audio device
+    rlCloseAudioDevice();     // Close audio device
 
-    CloseWindow();          // Close window and OpenGL context
+    rlCloseWindow();          // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

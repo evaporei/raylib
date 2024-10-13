@@ -4,7 +4,7 @@
 *
 *   CONFIGURATION:
 *       #define SUPPORT_TRACELOG
-*           Show TraceLog() output messages
+*           Show rlTraceLog() output messages
 *           NOTE: By default LOG_DEBUG traces not shown
 *
 *
@@ -61,20 +61,20 @@
 //----------------------------------------------------------------------------------
 static int logTypeLevel = LOG_INFO;                 // Minimum log type level
 
-static TraceLogCallback traceLog = NULL;            // TraceLog callback function pointer
-static LoadFileDataCallback loadFileData = NULL;    // LoadFileData callback function pointer
-static SaveFileDataCallback saveFileData = NULL;    // SaveFileText callback function pointer
-static LoadFileTextCallback loadFileText = NULL;    // LoadFileText callback function pointer
-static SaveFileTextCallback saveFileText = NULL;    // SaveFileText callback function pointer
+static TraceLogCallback traceLog = NULL;            // rlTraceLog callback function pointer
+static LoadFileDataCallback loadFileData = NULL;    // rlLoadFileData callback function pointer
+static SaveFileDataCallback saveFileData = NULL;    // rlSaveFileText callback function pointer
+static LoadFileTextCallback loadFileText = NULL;    // rlLoadFileText callback function pointer
+static SaveFileTextCallback saveFileText = NULL;    // rlSaveFileText callback function pointer
 
 //----------------------------------------------------------------------------------
 // Functions to set internal callbacks
 //----------------------------------------------------------------------------------
-void SetTraceLogCallback(TraceLogCallback callback) { traceLog = callback; }              // Set custom trace log
-void SetLoadFileDataCallback(LoadFileDataCallback callback) { loadFileData = callback; }  // Set custom file data loader
-void SetSaveFileDataCallback(SaveFileDataCallback callback) { saveFileData = callback; }  // Set custom file data saver
-void SetLoadFileTextCallback(LoadFileTextCallback callback) { loadFileText = callback; }  // Set custom file text loader
-void SetSaveFileTextCallback(SaveFileTextCallback callback) { saveFileText = callback; }  // Set custom file text saver
+void rlSetTraceLogCallback(TraceLogCallback callback) { traceLog = callback; }              // Set custom trace log
+void rlSetLoadFileDataCallback(LoadFileDataCallback callback) { loadFileData = callback; }  // Set custom file data loader
+void rlSetSaveFileDataCallback(SaveFileDataCallback callback) { saveFileData = callback; }  // Set custom file data saver
+void rlSetLoadFileTextCallback(LoadFileTextCallback callback) { loadFileText = callback; }  // Set custom file text loader
+void rlSetSaveFileTextCallback(SaveFileTextCallback callback) { saveFileText = callback; }  // Set custom file text saver
 
 #if defined(PLATFORM_ANDROID)
 static AAssetManager *assetManager = NULL;          // Android assets manager pointer
@@ -99,10 +99,10 @@ static int android_close(void *cookie);
 //----------------------------------------------------------------------------------
 
 // Set the current threshold (minimum) log level
-void SetTraceLogLevel(int logType) { logTypeLevel = logType; }
+void rlSetTraceLogLevel(int logType) { logTypeLevel = logType; }
 
 // Show trace log messages (LOG_INFO, LOG_WARNING, LOG_ERROR, LOG_DEBUG)
-void TraceLog(int logType, const char *text, ...)
+void rlTraceLog(int logType, const char *text, ...)
 {
 #if defined(SUPPORT_TRACELOG)
     // Message has level below current threshold, don't emit
@@ -159,27 +159,27 @@ void TraceLog(int logType, const char *text, ...)
 
 // Internal memory allocator
 // NOTE: Initializes to zero by default
-void *MemAlloc(unsigned int size)
+void *rlMemAlloc(unsigned int size)
 {
     void *ptr = RL_CALLOC(size, 1);
     return ptr;
 }
 
 // Internal memory reallocator
-void *MemRealloc(void *ptr, unsigned int size)
+void *rlMemRealloc(void *ptr, unsigned int size)
 {
     void *ret = RL_REALLOC(ptr, size);
     return ret;
 }
 
 // Internal memory free
-void MemFree(void *ptr)
+void rlMemFree(void *ptr)
 {
     RL_FREE(ptr);
 }
 
 // Load data from file into a buffer
-unsigned char *LoadFileData(const char *fileName, int *dataSize)
+unsigned char *rlLoadFileData(const char *fileName, int *dataSize)
 {
     unsigned char *data = NULL;
     *dataSize = 0;
@@ -215,7 +215,7 @@ unsigned char *LoadFileData(const char *fileName, int *dataSize)
                     // dataSize is unified along raylib as a 'int' type, so, for file-sizes > INT_MAX (2147483647 bytes) we have a limitation
                     if (count > 2147483647)
                     {
-                        TRACELOG(LOG_WARNING, "FILEIO: [%s] File is bigger than 2147483647 bytes, avoid using LoadFileData()", fileName);
+                        TRACELOG(LOG_WARNING, "FILEIO: [%s] File is bigger than 2147483647 bytes, avoid using rlLoadFileData()", fileName);
 
                         RL_FREE(data);
                         data = NULL;
@@ -244,14 +244,14 @@ unsigned char *LoadFileData(const char *fileName, int *dataSize)
     return data;
 }
 
-// Unload file data allocated by LoadFileData()
-void UnloadFileData(unsigned char *data)
+// Unload file data allocated by rlLoadFileData()
+void rlUnloadFileData(unsigned char *data)
 {
     RL_FREE(data);
 }
 
 // Save data to file from buffer
-bool SaveFileData(const char *fileName, void *data, int dataSize)
+bool rlSaveFileData(const char *fileName, void *data, int dataSize)
 {
     bool success = false;
 
@@ -288,7 +288,7 @@ bool SaveFileData(const char *fileName, void *data, int dataSize)
 }
 
 // Export data to code (.h), returns true on success
-bool ExportDataAsCode(const unsigned char *data, int dataSize, const char *fileName)
+bool rlExportDataAsCode(const unsigned char *data, int dataSize, const char *fileName)
 {
     bool success = false;
 
@@ -314,7 +314,7 @@ bool ExportDataAsCode(const unsigned char *data, int dataSize, const char *fileN
 
     // Get file name from path
     char varFileName[256] = { 0 };
-    strcpy(varFileName, GetFileNameWithoutExt(fileName));
+    strcpy(varFileName, rlGetFileNameWithoutExt(fileName));
     for (int i = 0; varFileName[i] != '\0'; i++)
     {
         // Convert variable name to uppercase
@@ -330,7 +330,7 @@ bool ExportDataAsCode(const unsigned char *data, int dataSize, const char *fileN
     byteCount += sprintf(txtData + byteCount, "0x%x };\n", data[dataSize - 1]);
 
     // NOTE: Text data size exported is determined by '\0' (NULL) character
-    success = SaveFileText(fileName, txtData);
+    success = rlSaveFileText(fileName, txtData);
 
     RL_FREE(txtData);
 
@@ -342,7 +342,7 @@ bool ExportDataAsCode(const unsigned char *data, int dataSize, const char *fileN
 
 // Load text data from file, returns a '\0' terminated string
 // NOTE: text chars array should be freed manually
-char *LoadFileText(const char *fileName)
+char *rlLoadFileText(const char *fileName)
 {
     char *text = NULL;
 
@@ -398,14 +398,14 @@ char *LoadFileText(const char *fileName)
     return text;
 }
 
-// Unload file text data allocated by LoadFileText()
-void UnloadFileText(char *text)
+// Unload file text data allocated by rlLoadFileText()
+void rlUnloadFileText(char *text)
 {
     RL_FREE(text);
 }
 
 // Save text data to file (write), string must be '\0' terminated
-bool SaveFileText(const char *fileName, char *text)
+bool rlSaveFileText(const char *fileName, char *text)
 {
     bool success = false;
 
@@ -457,7 +457,7 @@ FILE *android_fopen(const char *fileName, const char *mode)
         // write data when required using the standard stdio FILE access functions
         // Ref: https://stackoverflow.com/questions/11294487/android-writing-saving-files-from-native-code-only
         #undef fopen
-        return fopen(TextFormat("%s/%s", internalDataPath, fileName), mode);
+        return fopen(rlTextFormat("%s/%s", internalDataPath, fileName), mode);
         #define fopen(name, mode) android_fopen(name, mode)
     }
     else
@@ -474,7 +474,7 @@ FILE *android_fopen(const char *fileName, const char *mode)
         {
             #undef fopen
             // Just do a regular open if file is not found in the assets
-            return fopen(TextFormat("%s/%s", internalDataPath, fileName), mode);
+            return fopen(rlTextFormat("%s/%s", internalDataPath, fileName), mode);
             #define fopen(name, mode) android_fopen(name, mode)
         }
     }

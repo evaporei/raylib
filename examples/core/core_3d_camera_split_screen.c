@@ -25,7 +25,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - 3d camera split screen");
+    rlInitWindow(screenWidth, screenHeight, "raylib [core] example - 3d camera split screen");
 
     // Setup player 1 camera and screen
     Camera cameraPlayer1 = { 0 };
@@ -35,7 +35,7 @@ int main(void)
     cameraPlayer1.position.z = -3.0f;
     cameraPlayer1.position.y = 1.0f;
 
-    RenderTexture screenPlayer1 = LoadRenderTexture(screenWidth/2, screenHeight);
+    rlRenderTexture screenPlayer1 = rlLoadRenderTexture(screenWidth/2, screenHeight);
 
     // Setup player two camera and screen
     Camera cameraPlayer2 = { 0 };
@@ -45,46 +45,46 @@ int main(void)
     cameraPlayer2.position.x = -3.0f;
     cameraPlayer2.position.y = 3.0f;
 
-    RenderTexture screenPlayer2 = LoadRenderTexture(screenWidth / 2, screenHeight);
+    rlRenderTexture screenPlayer2 = rlLoadRenderTexture(screenWidth / 2, screenHeight);
 
     // Build a flipped rectangle the size of the split view to use for drawing later
-    Rectangle splitScreenRect = { 0.0f, 0.0f, (float)screenPlayer1.texture.width, (float)-screenPlayer1.texture.height };
+    rlRectangle splitScreenRect = { 0.0f, 0.0f, (float)screenPlayer1.texture.width, (float)-screenPlayer1.texture.height };
     
     // Grid data
     int count = 5;
     float spacing = 4;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
         // If anyone moves this frame, how far will they move based on the time since the last frame
         // this moves thigns at 10 world units per second, regardless of the actual FPS
-        float offsetThisFrame = 10.0f*GetFrameTime();
+        float offsetThisFrame = 10.0f*rlGetFrameTime();
 
         // Move Player1 forward and backwards (no turning)
-        if (IsKeyDown(KEY_W))
+        if (rlIsKeyDown(KEY_W))
         {
             cameraPlayer1.position.z += offsetThisFrame;
             cameraPlayer1.target.z += offsetThisFrame;
         }
-        else if (IsKeyDown(KEY_S))
+        else if (rlIsKeyDown(KEY_S))
         {
             cameraPlayer1.position.z -= offsetThisFrame;
             cameraPlayer1.target.z -= offsetThisFrame;
         }
 
         // Move Player2 forward and backwards (no turning)
-        if (IsKeyDown(KEY_UP))
+        if (rlIsKeyDown(KEY_UP))
         {
             cameraPlayer2.position.x += offsetThisFrame;
             cameraPlayer2.target.x += offsetThisFrame;
         }
-        else if (IsKeyDown(KEY_DOWN))
+        else if (rlIsKeyDown(KEY_DOWN))
         {
             cameraPlayer2.position.x -= offsetThisFrame;
             cameraPlayer2.target.x -= offsetThisFrame;
@@ -94,80 +94,80 @@ int main(void)
         // Draw
         //----------------------------------------------------------------------------------
         // Draw Player1 view to the render texture
-        BeginTextureMode(screenPlayer1);
-            ClearBackground(SKYBLUE);
+        rlBeginTextureMode(screenPlayer1);
+            rlClearBackground(SKYBLUE);
             
-            BeginMode3D(cameraPlayer1);
+            rlBeginMode3D(cameraPlayer1);
             
                 // Draw scene: grid of cube trees on a plane to make a "world"
-                DrawPlane((Vector3){ 0, 0, 0 }, (Vector2){ 50, 50 }, BEIGE); // Simple world plane
+                rlDrawPlane((rlVector3){ 0, 0, 0 }, (rlVector2){ 50, 50 }, BEIGE); // Simple world plane
 
                 for (float x = -count*spacing; x <= count*spacing; x += spacing)
                 {
                     for (float z = -count*spacing; z <= count*spacing; z += spacing)
                     {
-                        DrawCube((Vector3) { x, 1.5f, z }, 1, 1, 1, LIME);
-                        DrawCube((Vector3) { x, 0.5f, z }, 0.25f, 1, 0.25f, BROWN);
+                        rlDrawCube((rlVector3) { x, 1.5f, z }, 1, 1, 1, LIME);
+                        rlDrawCube((rlVector3) { x, 0.5f, z }, 0.25f, 1, 0.25f, BROWN);
                     }
                 }
 
                 // Draw a cube at each player's position
-                DrawCube(cameraPlayer1.position, 1, 1, 1, RED);
-                DrawCube(cameraPlayer2.position, 1, 1, 1, BLUE);
+                rlDrawCube(cameraPlayer1.position, 1, 1, 1, RED);
+                rlDrawCube(cameraPlayer2.position, 1, 1, 1, BLUE);
                 
-            EndMode3D();
+            rlEndMode3D();
             
-            DrawRectangle(0, 0, GetScreenWidth()/2, 40, Fade(RAYWHITE, 0.8f));
-            DrawText("PLAYER1: W/S to move", 10, 10, 20, MAROON);
+            rlDrawRectangle(0, 0, rlGetScreenWidth()/2, 40, rlFade(RAYWHITE, 0.8f));
+            rlDrawText("PLAYER1: W/S to move", 10, 10, 20, MAROON);
             
-        EndTextureMode();
+        rlEndTextureMode();
 
         // Draw Player2 view to the render texture
-        BeginTextureMode(screenPlayer2);
-            ClearBackground(SKYBLUE);
+        rlBeginTextureMode(screenPlayer2);
+            rlClearBackground(SKYBLUE);
             
-            BeginMode3D(cameraPlayer2);
+            rlBeginMode3D(cameraPlayer2);
             
                 // Draw scene: grid of cube trees on a plane to make a "world"
-                DrawPlane((Vector3){ 0, 0, 0 }, (Vector2){ 50, 50 }, BEIGE); // Simple world plane
+                rlDrawPlane((rlVector3){ 0, 0, 0 }, (rlVector2){ 50, 50 }, BEIGE); // Simple world plane
 
                 for (float x = -count*spacing; x <= count*spacing; x += spacing)
                 {
                     for (float z = -count*spacing; z <= count*spacing; z += spacing)
                     {
-                        DrawCube((Vector3) { x, 1.5f, z }, 1, 1, 1, LIME);
-                        DrawCube((Vector3) { x, 0.5f, z }, 0.25f, 1, 0.25f, BROWN);
+                        rlDrawCube((rlVector3) { x, 1.5f, z }, 1, 1, 1, LIME);
+                        rlDrawCube((rlVector3) { x, 0.5f, z }, 0.25f, 1, 0.25f, BROWN);
                     }
                 }
 
                 // Draw a cube at each player's position
-                DrawCube(cameraPlayer1.position, 1, 1, 1, RED);
-                DrawCube(cameraPlayer2.position, 1, 1, 1, BLUE);
+                rlDrawCube(cameraPlayer1.position, 1, 1, 1, RED);
+                rlDrawCube(cameraPlayer2.position, 1, 1, 1, BLUE);
                 
-            EndMode3D();
+            rlEndMode3D();
             
-            DrawRectangle(0, 0, GetScreenWidth()/2, 40, Fade(RAYWHITE, 0.8f));
-            DrawText("PLAYER2: UP/DOWN to move", 10, 10, 20, DARKBLUE);
+            rlDrawRectangle(0, 0, rlGetScreenWidth()/2, 40, rlFade(RAYWHITE, 0.8f));
+            rlDrawText("PLAYER2: UP/DOWN to move", 10, 10, 20, DARKBLUE);
             
-        EndTextureMode();
+        rlEndTextureMode();
 
         // Draw both views render textures to the screen side by side
-        BeginDrawing();
-            ClearBackground(BLACK);
+        rlBeginDrawing();
+            rlClearBackground(BLACK);
             
-            DrawTextureRec(screenPlayer1.texture, splitScreenRect, (Vector2){ 0, 0 }, WHITE);
-            DrawTextureRec(screenPlayer2.texture, splitScreenRect, (Vector2){ screenWidth/2.0f, 0 }, WHITE);
+            rlDrawTextureRec(screenPlayer1.texture, splitScreenRect, (rlVector2){ 0, 0 }, WHITE);
+            rlDrawTextureRec(screenPlayer2.texture, splitScreenRect, (rlVector2){ screenWidth/2.0f, 0 }, WHITE);
             
-            DrawRectangle(GetScreenWidth()/2 - 2, 0, 4, GetScreenHeight(), LIGHTGRAY);
-        EndDrawing();
+            rlDrawRectangle(rlGetScreenWidth()/2 - 2, 0, 4, rlGetScreenHeight(), LIGHTGRAY);
+        rlEndDrawing();
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadRenderTexture(screenPlayer1); // Unload render texture
-    UnloadRenderTexture(screenPlayer2); // Unload render texture
+    rlUnloadRenderTexture(screenPlayer1); // Unload render texture
+    rlUnloadRenderTexture(screenPlayer2); // Unload render texture
 
-    CloseWindow();                      // Close window and OpenGL context
+    rlCloseWindow();                      // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

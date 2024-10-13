@@ -15,7 +15,7 @@
 
 #define NUM_MODELS  9               // Parametric 3d shapes to generate
 
-static Mesh GenMeshCustom(void);    // Generate a simple triangle mesh from code
+static rlMesh GenMeshCustom(void);    // Generate a simple triangle mesh from code
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -27,35 +27,35 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [models] example - mesh generation");
+    rlInitWindow(screenWidth, screenHeight, "raylib [models] example - mesh generation");
 
     // We generate a checked image for texturing
-    Image checked = GenImageChecked(2, 2, 1, 1, RED, GREEN);
-    Texture2D texture = LoadTextureFromImage(checked);
-    UnloadImage(checked);
+    rlImage checked = rlGenImageChecked(2, 2, 1, 1, RED, GREEN);
+    Texture2D texture = rlLoadTextureFromImage(checked);
+    rlUnloadImage(checked);
 
-    Model models[NUM_MODELS] = { 0 };
+    rlModel models[NUM_MODELS] = { 0 };
 
-    models[0] = LoadModelFromMesh(GenMeshPlane(2, 2, 4, 3));
-    models[1] = LoadModelFromMesh(GenMeshCube(2.0f, 1.0f, 2.0f));
-    models[2] = LoadModelFromMesh(GenMeshSphere(2, 32, 32));
-    models[3] = LoadModelFromMesh(GenMeshHemiSphere(2, 16, 16));
-    models[4] = LoadModelFromMesh(GenMeshCylinder(1, 2, 16));
-    models[5] = LoadModelFromMesh(GenMeshTorus(0.25f, 4.0f, 16, 32));
-    models[6] = LoadModelFromMesh(GenMeshKnot(1.0f, 2.0f, 16, 128));
-    models[7] = LoadModelFromMesh(GenMeshPoly(5, 2.0f));
-    models[8] = LoadModelFromMesh(GenMeshCustom());
+    models[0] = rlLoadModelFromMesh(rlGenMeshPlane(2, 2, 4, 3));
+    models[1] = rlLoadModelFromMesh(rlGenMeshCube(2.0f, 1.0f, 2.0f));
+    models[2] = rlLoadModelFromMesh(rlGenMeshSphere(2, 32, 32));
+    models[3] = rlLoadModelFromMesh(rlGenMeshHemiSphere(2, 16, 16));
+    models[4] = rlLoadModelFromMesh(rlGenMeshCylinder(1, 2, 16));
+    models[5] = rlLoadModelFromMesh(rlGenMeshTorus(0.25f, 4.0f, 16, 32));
+    models[6] = rlLoadModelFromMesh(rlGenMeshKnot(1.0f, 2.0f, 16, 128));
+    models[7] = rlLoadModelFromMesh(rlGenMeshPoly(5, 2.0f));
+    models[8] = rlLoadModelFromMesh(GenMeshCustom());
     
     // Generated meshes could be exported as .obj files
-    //ExportMesh(models[0].meshes[0], "plane.obj");
-    //ExportMesh(models[1].meshes[0], "cube.obj");
-    //ExportMesh(models[2].meshes[0], "sphere.obj");
-    //ExportMesh(models[3].meshes[0], "hemisphere.obj");
-    //ExportMesh(models[4].meshes[0], "cylinder.obj");
-    //ExportMesh(models[5].meshes[0], "torus.obj");
-    //ExportMesh(models[6].meshes[0], "knot.obj");
-    //ExportMesh(models[7].meshes[0], "poly.obj");
-    //ExportMesh(models[8].meshes[0], "custom.obj");
+    //rlExportMesh(models[0].meshes[0], "plane.obj");
+    //rlExportMesh(models[1].meshes[0], "cube.obj");
+    //rlExportMesh(models[2].meshes[0], "sphere.obj");
+    //rlExportMesh(models[3].meshes[0], "hemisphere.obj");
+    //rlExportMesh(models[4].meshes[0], "cylinder.obj");
+    //rlExportMesh(models[5].meshes[0], "torus.obj");
+    //rlExportMesh(models[6].meshes[0], "knot.obj");
+    //rlExportMesh(models[7].meshes[0], "poly.obj");
+    //rlExportMesh(models[8].meshes[0], "custom.obj");
 
     // Set checked texture as default diffuse component for all models material
     for (int i = 0; i < NUM_MODELS; i++) models[i].materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
@@ -63,32 +63,32 @@ int main(void)
     // Define the camera to look into our 3d world
     Camera camera = { { 5.0f, 5.0f, 5.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, 45.0f, 0 };
 
-    // Model drawing position
-    Vector3 position = { 0.0f, 0.0f, 0.0f };
+    // rlModel drawing position
+    rlVector3 position = { 0.0f, 0.0f, 0.0f };
 
     int currentModel = 0;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        UpdateCamera(&camera, CAMERA_ORBITAL);
+        rlUpdateCamera(&camera, CAMERA_ORBITAL);
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        if (rlIsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
             currentModel = (currentModel + 1)%NUM_MODELS; // Cycle between the textures
         }
 
-        if (IsKeyPressed(KEY_RIGHT))
+        if (rlIsKeyPressed(KEY_RIGHT))
         {
             currentModel++;
             if (currentModel >= NUM_MODELS) currentModel = 0;
         }
-        else if (IsKeyPressed(KEY_LEFT))
+        else if (rlIsKeyPressed(KEY_LEFT))
         {
             currentModel--;
             if (currentModel < 0) currentModel = NUM_MODELS - 1;
@@ -97,36 +97,36 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            BeginMode3D(camera);
+            rlBeginMode3D(camera);
 
-               DrawModel(models[currentModel], position, 1.0f, WHITE);
-               DrawGrid(10, 1.0);
+               rlDrawModel(models[currentModel], position, 1.0f, WHITE);
+               rlDrawGrid(10, 1.0);
 
-            EndMode3D();
+            rlEndMode3D();
 
-            DrawRectangle(30, 400, 310, 30, Fade(SKYBLUE, 0.5f));
-            DrawRectangleLines(30, 400, 310, 30, Fade(DARKBLUE, 0.5f));
-            DrawText("MOUSE LEFT BUTTON to CYCLE PROCEDURAL MODELS", 40, 410, 10, BLUE);
+            rlDrawRectangle(30, 400, 310, 30, rlFade(SKYBLUE, 0.5f));
+            rlDrawRectangleLines(30, 400, 310, 30, rlFade(DARKBLUE, 0.5f));
+            rlDrawText("MOUSE LEFT BUTTON to CYCLE PROCEDURAL MODELS", 40, 410, 10, BLUE);
 
             switch(currentModel)
             {
-                case 0: DrawText("PLANE", 680, 10, 20, DARKBLUE); break;
-                case 1: DrawText("CUBE", 680, 10, 20, DARKBLUE); break;
-                case 2: DrawText("SPHERE", 680, 10, 20, DARKBLUE); break;
-                case 3: DrawText("HEMISPHERE", 640, 10, 20, DARKBLUE); break;
-                case 4: DrawText("CYLINDER", 680, 10, 20, DARKBLUE); break;
-                case 5: DrawText("TORUS", 680, 10, 20, DARKBLUE); break;
-                case 6: DrawText("KNOT", 680, 10, 20, DARKBLUE); break;
-                case 7: DrawText("POLY", 680, 10, 20, DARKBLUE); break;
-                case 8: DrawText("Custom (triangle)", 580, 10, 20, DARKBLUE); break;
+                case 0: rlDrawText("PLANE", 680, 10, 20, DARKBLUE); break;
+                case 1: rlDrawText("CUBE", 680, 10, 20, DARKBLUE); break;
+                case 2: rlDrawText("SPHERE", 680, 10, 20, DARKBLUE); break;
+                case 3: rlDrawText("HEMISPHERE", 640, 10, 20, DARKBLUE); break;
+                case 4: rlDrawText("CYLINDER", 680, 10, 20, DARKBLUE); break;
+                case 5: rlDrawText("TORUS", 680, 10, 20, DARKBLUE); break;
+                case 6: rlDrawText("KNOT", 680, 10, 20, DARKBLUE); break;
+                case 7: rlDrawText("POLY", 680, 10, 20, DARKBLUE); break;
+                case 8: rlDrawText("Custom (triangle)", 580, 10, 20, DARKBLUE); break;
                 default: break;
             }
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
@@ -135,23 +135,23 @@ int main(void)
     UnloadTexture(texture); // Unload texture
 
     // Unload models data (GPU VRAM)
-    for (int i = 0; i < NUM_MODELS; i++) UnloadModel(models[i]);
+    for (int i = 0; i < NUM_MODELS; i++) rlUnloadModel(models[i]);
 
-    CloseWindow();          // Close window and OpenGL context
+    rlCloseWindow();          // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;
 }
 
 // Generate a simple triangle mesh from code
-static Mesh GenMeshCustom(void)
+static rlMesh GenMeshCustom(void)
 {
-    Mesh mesh = { 0 };
+    rlMesh mesh = { 0 };
     mesh.triangleCount = 1;
     mesh.vertexCount = mesh.triangleCount*3;
-    mesh.vertices = (float *)MemAlloc(mesh.vertexCount*3*sizeof(float));    // 3 vertices, 3 coordinates each (x, y, z)
-    mesh.texcoords = (float *)MemAlloc(mesh.vertexCount*2*sizeof(float));   // 3 vertices, 2 coordinates each (x, y)
-    mesh.normals = (float *)MemAlloc(mesh.vertexCount*3*sizeof(float));     // 3 vertices, 3 coordinates each (x, y, z)
+    mesh.vertices = (float *)rlMemAlloc(mesh.vertexCount*3*sizeof(float));    // 3 vertices, 3 coordinates each (x, y, z)
+    mesh.texcoords = (float *)rlMemAlloc(mesh.vertexCount*2*sizeof(float));   // 3 vertices, 2 coordinates each (x, y)
+    mesh.normals = (float *)rlMemAlloc(mesh.vertexCount*3*sizeof(float));     // 3 vertices, 3 coordinates each (x, y, z)
 
     // Vertex at (0, 0, 0)
     mesh.vertices[0] = 0;
@@ -184,7 +184,7 @@ static Mesh GenMeshCustom(void)
     mesh.texcoords[5] =0;
 
     // Upload mesh data from CPU (RAM) to GPU (VRAM) memory
-    UploadMesh(&mesh, false);
+    rlUploadMesh(&mesh, false);
 
     return mesh;
 }

@@ -33,10 +33,10 @@
 #endif
 
 #if defined(SUPPORT_TRACELOG)
-    #define TRACELOG(level, ...) TraceLog(level, __VA_ARGS__)
+    #define TRACELOG(level, ...) rlTraceLog(level, __VA_ARGS__)
 
     #if defined(SUPPORT_TRACELOG_DEBUG)
-        #define TRACELOGD(...) TraceLog(LOG_DEBUG, __VA_ARGS__)
+        #define TRACELOGD(...) rlTraceLog(LOG_DEBUG, __VA_ARGS__)
     #else
         #define TRACELOGD(...) (void)0
     #endif

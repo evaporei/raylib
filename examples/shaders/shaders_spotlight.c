@@ -43,12 +43,12 @@
 
 // Spot data
 typedef struct Spot {
-    Vector2 position;
-    Vector2 speed;
+    rlVector2 position;
+    rlVector2 speed;
     float inner;
     float radius;
 
-    // Shader locations
+    // rlShader locations
     unsigned int positionLoc;
     unsigned int innerLoc;
     unsigned int radiusLoc;
@@ -56,8 +56,8 @@ typedef struct Spot {
 
 // Stars in the star field have a position and velocity
 typedef struct Star {
-    Vector2 position;
-    Vector2 speed;
+    rlVector2 position;
+    rlVector2 speed;
 } Star;
 
 static void UpdateStar(Star *s);
@@ -73,10 +73,10 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shaders] example - shader spotlight");
-    HideCursor();
+    rlInitWindow(screenWidth, screenHeight, "raylib [shaders] example - shader spotlight");
+    rlHideCursor();
 
-    Texture texRay = LoadTexture("resources/raysan.png");
+    rlTexture texRay = LoadTexture("resources/raysan.png");
 
     Star stars[MAX_STARS] = { 0 };
 
@@ -91,7 +91,7 @@ int main(void)
     int frameCounter = 0;
 
     // Use default vert shader
-    Shader shdrSpot = LoadShader(0, TextFormat("resources/shaders/glsl%i/spotlight.fs", GLSL_VERSION));
+    rlShader shdrSpot = rlLoadShader(0, rlTextFormat("resources/shaders/glsl%i/spotlight.fs", GLSL_VERSION));
 
     // Get the locations of spots in the shader
     Spot spots[MAX_SPOTS];
@@ -106,45 +106,45 @@ int main(void)
         innerName[6] = '0' + i;
         radiusName[6] = '0' + i;
 
-        spots[i].positionLoc = GetShaderLocation(shdrSpot, posName);
-        spots[i].innerLoc = GetShaderLocation(shdrSpot, innerName);
-        spots[i].radiusLoc = GetShaderLocation(shdrSpot, radiusName);
+        spots[i].positionLoc = rlGetShaderLocation(shdrSpot, posName);
+        spots[i].innerLoc = rlGetShaderLocation(shdrSpot, innerName);
+        spots[i].radiusLoc = rlGetShaderLocation(shdrSpot, radiusName);
 
     }
 
     // Tell the shader how wide the screen is so we can have
     // a pitch black half and a dimly lit half.
-    unsigned int wLoc = GetShaderLocation(shdrSpot, "screenWidth");
-    float sw = (float)GetScreenWidth();
-    SetShaderValue(shdrSpot, wLoc, &sw, SHADER_UNIFORM_FLOAT);
+    unsigned int wLoc = rlGetShaderLocation(shdrSpot, "screenWidth");
+    float sw = (float)rlGetScreenWidth();
+    rlSetShaderValue(shdrSpot, wLoc, &sw, SHADER_UNIFORM_FLOAT);
 
     // Randomize the locations and velocities of the spotlights
     // and initialize the shader locations
     for (int i = 0; i < MAX_SPOTS; i++)
     {
-        spots[i].position.x = (float)GetRandomValue(64, screenWidth - 64);
-        spots[i].position.y = (float)GetRandomValue(64, screenHeight - 64);
-        spots[i].speed = (Vector2){ 0, 0 };
+        spots[i].position.x = (float)rlGetRandomValue(64, screenWidth - 64);
+        spots[i].position.y = (float)rlGetRandomValue(64, screenHeight - 64);
+        spots[i].speed = (rlVector2){ 0, 0 };
 
         while ((fabs(spots[i].speed.x) + fabs(spots[i].speed.y)) < 2)
         {
-            spots[i].speed.x = GetRandomValue(-400, 40) / 10.0f;
-            spots[i].speed.y = GetRandomValue(-400, 40) / 10.0f;
+            spots[i].speed.x = rlGetRandomValue(-400, 40) / 10.0f;
+            spots[i].speed.y = rlGetRandomValue(-400, 40) / 10.0f;
         }
 
         spots[i].inner = 28.0f * (i + 1);
         spots[i].radius = 48.0f * (i + 1);
 
-        SetShaderValue(shdrSpot, spots[i].positionLoc, &spots[i].position.x, SHADER_UNIFORM_VEC2);
-        SetShaderValue(shdrSpot, spots[i].innerLoc, &spots[i].inner, SHADER_UNIFORM_FLOAT);
-        SetShaderValue(shdrSpot, spots[i].radiusLoc, &spots[i].radius, SHADER_UNIFORM_FLOAT);
+        rlSetShaderValue(shdrSpot, spots[i].positionLoc, &spots[i].position.x, SHADER_UNIFORM_VEC2);
+        rlSetShaderValue(shdrSpot, spots[i].innerLoc, &spots[i].inner, SHADER_UNIFORM_FLOAT);
+        rlSetShaderValue(shdrSpot, spots[i].radiusLoc, &spots[i].radius, SHADER_UNIFORM_FLOAT);
     }
 
-    SetTargetFPS(60);               // Set  to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set  to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ int main(void)
         {
             if (i == 0)
             {
-                Vector2 mp = GetMousePosition();
+                rlVector2 mp = rlGetMousePosition();
                 spots[i].position.x = mp.x;
                 spots[i].position.y = screenHeight - mp.y;
             }
@@ -173,54 +173,54 @@ int main(void)
                 if (spots[i].position.y > (screenHeight - 64)) spots[i].speed.y = -spots[i].speed.y;
             }
 
-            SetShaderValue(shdrSpot, spots[i].positionLoc, &spots[i].position.x, SHADER_UNIFORM_VEC2);
+            rlSetShaderValue(shdrSpot, spots[i].positionLoc, &spots[i].position.x, SHADER_UNIFORM_VEC2);
         }
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(DARKBLUE);
+            rlClearBackground(DARKBLUE);
 
             // Draw stars and bobs
             for (int n = 0; n < MAX_STARS; n++)
             {
                 // Single pixel is just too small these days!
-                DrawRectangle((int)stars[n].position.x, (int)stars[n].position.y, 2, 2, WHITE);
+                rlDrawRectangle((int)stars[n].position.x, (int)stars[n].position.y, 2, 2, WHITE);
             }
 
             for (int i = 0; i < 16; i++)
             {
-                DrawTexture(texRay,
+                rlDrawTexture(texRay,
                     (int)((screenWidth/2.0f) + cos((frameCounter + i*8)/51.45f)*(screenWidth/2.2f) - 32),
                     (int)((screenHeight/2.0f) + sin((frameCounter + i*8)/17.87f)*(screenHeight/4.2f)), WHITE);
             }
 
             // Draw spot lights
-            BeginShaderMode(shdrSpot);
+            rlBeginShaderMode(shdrSpot);
                 // Instead of a blank rectangle you could render here
                 // a render texture of the full screen used to do screen
                 // scaling (slight adjustment to shader would be required
                 // to actually pay attention to the colour!)
-                DrawRectangle(0, 0, screenWidth, screenHeight, WHITE);
-            EndShaderMode();
+                rlDrawRectangle(0, 0, screenWidth, screenHeight, WHITE);
+            rlEndShaderMode();
 
-            DrawFPS(10, 10);
+            rlDrawFPS(10, 10);
 
-            DrawText("Move the mouse!", 10, 30, 20, GREEN);
-            DrawText("Pitch Black", (int)(screenWidth*0.2f), screenHeight/2, 20, GREEN);
-            DrawText("Dark", (int)(screenWidth*.66f), screenHeight/2, 20, GREEN);
+            rlDrawText("Move the mouse!", 10, 30, 20, GREEN);
+            rlDrawText("Pitch Black", (int)(screenWidth*0.2f), screenHeight/2, 20, GREEN);
+            rlDrawText("Dark", (int)(screenWidth*.66f), screenHeight/2, 20, GREEN);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
     UnloadTexture(texRay);
-    UnloadShader(shdrSpot);
+    rlUnloadShader(shdrSpot);
 
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;
@@ -229,24 +229,24 @@ int main(void)
 
 static void ResetStar(Star *s)
 {
-    s->position = (Vector2){ GetScreenWidth()/2.0f, GetScreenHeight()/2.0f };
+    s->position = (rlVector2){ rlGetScreenWidth()/2.0f, rlGetScreenHeight()/2.0f };
 
     do
     {
-        s->speed.x = (float)GetRandomValue(-1000, 1000)/100.0f;
-        s->speed.y = (float)GetRandomValue(-1000, 1000)/100.0f;
+        s->speed.x = (float)rlGetRandomValue(-1000, 1000)/100.0f;
+        s->speed.y = (float)rlGetRandomValue(-1000, 1000)/100.0f;
 
     } while (!(fabs(s->speed.x) + (fabs(s->speed.y) > 1)));
 
-    s->position = Vector2Add(s->position, Vector2Multiply(s->speed, (Vector2){ 8.0f, 8.0f }));
+    s->position = Vector2Add(s->position, Vector2Multiply(s->speed, (rlVector2){ 8.0f, 8.0f }));
 }
 
 static void UpdateStar(Star *s)
 {
     s->position = Vector2Add(s->position, s->speed);
 
-    if ((s->position.x < 0) || (s->position.x > GetScreenWidth()) ||
-        (s->position.y < 0) || (s->position.y > GetScreenHeight()))
+    if ((s->position.x < 0) || (s->position.x > rlGetScreenWidth()) ||
+        (s->position.y < 0) || (s->position.y > rlGetScreenHeight()))
     {
         ResetStar(s);
     }

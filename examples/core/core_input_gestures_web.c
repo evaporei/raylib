@@ -29,12 +29,12 @@
 //--------------------------------------------------------------------------------------
 int screenWidth = 800;                  // Update depending on web canvas
 const int screenHeight = 450;
-Vector2 messagePosition = { 160, 7 };
+rlVector2 messagePosition = { 160, 7 };
 
 // Last gesture variables definitions
 //--------------------------------------------------------------------------------------
 int lastGesture = 0;
-Vector2 lastGesturePosition = { 165, 130 };
+rlVector2 lastGesturePosition = { 165, 130 };
 
 // Gesture log variables definitions and functions declarations
 //--------------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ char const *GetGestureName(int i)
    }
 }
 
-Color GetGestureColor(int i)
+rlColor GetGestureColor(int i)
 {
    switch (i)  {
       case 0:   return BLACK;   break;
@@ -81,18 +81,18 @@ Color GetGestureColor(int i)
 
 int logMode = 1; // Log mode values: 0 shows repeated events; 1 hides repeated events; 2 shows repeated events but hide hold events; 3 hides repeated events and hide hold events
 
-Color gestureColor = { 0, 0, 0, 255 };
-Rectangle logButton1 = { 53, 7, 48, 26 };
-Rectangle logButton2 = { 108, 7, 36, 26 };
-Vector2 gestureLogPosition = { 10, 10 };
+rlColor gestureColor = { 0, 0, 0, 255 };
+rlRectangle logButton1 = { 53, 7, 48, 26 };
+rlRectangle logButton2 = { 108, 7, 36, 26 };
+rlVector2 gestureLogPosition = { 10, 10 };
 
 // Protractor variables definitions
 //--------------------------------------------------------------------------------------
 float angleLength = 90.0f;
 float currentAngleDegrees = 0.0f;
-Vector2 finalVector = { 0.0f, 0.0f };
+rlVector2 finalVector = { 0.0f, 0.0f };
 char currentAngleStr[7] = "";
-Vector2 protractorPosition = { 266.0f, 315.0f };
+rlVector2 protractorPosition = { 266.0f, 315.0f };
 
 // Update
 //--------------------------------------------------------------------------------------
@@ -101,10 +101,10 @@ void Update(void)
     // Handle common
     //--------------------------------------------------------------------------------------
     int i, ii; // Iterators that will be reused by all for loops
-    const int currentGesture = GetGestureDetected();
-    const float currentDragDegrees = GetGestureDragAngle();
-    const float currentPitchDegrees = GetGesturePinchAngle();
-    const int touchCount = GetTouchPointCount();
+    const int currentGesture = rlGetGestureDetected();
+    const float currentDragDegrees = rlGetGestureDragAngle();
+    const float currentPitchDegrees = rlGetGesturePinchAngle();
+    const int touchCount = rlGetTouchPointCount();
 
     // Handle last gesture
     //--------------------------------------------------------------------------------------
@@ -112,9 +112,9 @@ void Update(void)
 
     // Handle gesture log
     //--------------------------------------------------------------------------------------
-    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+    if (rlIsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
-        if (CheckCollisionPointRec(GetMousePosition(), logButton1))
+        if (rlCheckCollisionPointRec(rlGetMousePosition(), logButton1))
         {
             switch (logMode)
             {
@@ -124,7 +124,7 @@ void Update(void)
                 default: logMode=1; break;
             }
         }
-        else if (CheckCollisionPointRec(GetMousePosition(), logButton2))
+        else if (rlCheckCollisionPointRec(rlGetMousePosition(), logButton2))
         {
             switch (logMode)
             {
@@ -165,7 +165,7 @@ void Update(void)
         gestureLogIndex--;
 
         // Copy the gesture respective name to the gesture log array
-        TextCopy(gestureLog[gestureLogIndex], GetGestureName(currentGesture));
+        rlTextCopy(gestureLog[gestureLogIndex], GetGestureName(currentGesture));
     }
 
     // Handle protractor
@@ -184,61 +184,61 @@ void Update(void)
     }
 
     float currentAngleRadians = ((currentAngleDegrees +90.0f)*PI/180); // Convert the current angle to Radians
-    finalVector = (Vector2){ (angleLength*sinf(currentAngleRadians)) + protractorPosition.x, (angleLength*cosf(currentAngleRadians)) + protractorPosition.y }; // Calculate the final vector for display
+    finalVector = (rlVector2){ (angleLength*sinf(currentAngleRadians)) + protractorPosition.x, (angleLength*cosf(currentAngleRadians)) + protractorPosition.y }; // Calculate the final vector for display
 
     // Handle touch and mouse pointer points
     //--------------------------------------------------------------------------------------
     #define MAX_TOUCH_COUNT     32
 
-    Vector2 touchPosition[MAX_TOUCH_COUNT] = { 0 };
-    Vector2 mousePosition = {0, 0};
+    rlVector2 touchPosition[MAX_TOUCH_COUNT] = { 0 };
+    rlVector2 mousePosition = {0, 0};
     if (currentGesture != GESTURE_NONE)
     {
         if (touchCount != 0)
         {
-            for (i = 0; i < touchCount; i++) touchPosition[i] = GetTouchPosition(i); // Fill the touch positions
+            for (i = 0; i < touchCount; i++) touchPosition[i] = rlGetTouchPosition(i); // Fill the touch positions
         }
-        else mousePosition = GetMousePosition();
+        else mousePosition = rlGetMousePosition();
     }
 
     // Draw
     //--------------------------------------------------------------------------------------
-    BeginDrawing();
+    rlBeginDrawing();
 
-        ClearBackground(RAYWHITE);
+        rlClearBackground(RAYWHITE);
 
         // Draw common
         //--------------------------------------------------------------------------------------
-        DrawText("*", messagePosition.x + 5, messagePosition.y + 5, 10, BLACK);
-        DrawText("Example optimized for Web/HTML5\non Smartphones with Touch Screen.", messagePosition.x + 15, messagePosition.y + 5, 10, BLACK);
-        DrawText("*", messagePosition.x + 5, messagePosition.y + 35, 10, BLACK);
-        DrawText("While running on Desktop Web Browsers,\ninspect and turn on Touch Emulation.", messagePosition.x + 15,  messagePosition.y + 35, 10, BLACK);
+        rlDrawText("*", messagePosition.x + 5, messagePosition.y + 5, 10, BLACK);
+        rlDrawText("Example optimized for Web/HTML5\non Smartphones with Touch Screen.", messagePosition.x + 15, messagePosition.y + 5, 10, BLACK);
+        rlDrawText("*", messagePosition.x + 5, messagePosition.y + 35, 10, BLACK);
+        rlDrawText("While running on Desktop Web Browsers,\ninspect and turn on Touch Emulation.", messagePosition.x + 15,  messagePosition.y + 35, 10, BLACK);
 
         // Draw last gesture
         //--------------------------------------------------------------------------------------
-        DrawText("Last gesture", lastGesturePosition.x + 33, lastGesturePosition.y - 47, 20, BLACK);
-        DrawText("Swipe         Tap       Pinch  Touch", lastGesturePosition.x + 17, lastGesturePosition.y - 18, 10, BLACK);
-        DrawRectangle(lastGesturePosition.x + 20, lastGesturePosition.y, 20, 20, lastGesture == GESTURE_SWIPE_UP ? RED : LIGHTGRAY);
-        DrawRectangle(lastGesturePosition.x, lastGesturePosition.y + 20, 20, 20, lastGesture == GESTURE_SWIPE_LEFT ? RED : LIGHTGRAY);
-        DrawRectangle(lastGesturePosition.x + 40, lastGesturePosition.y + 20, 20, 20, lastGesture == GESTURE_SWIPE_RIGHT ? RED : LIGHTGRAY);
-        DrawRectangle(lastGesturePosition.x + 20, lastGesturePosition.y + 40, 20, 20, lastGesture == GESTURE_SWIPE_DOWN ? RED : LIGHTGRAY);
-        DrawCircle(lastGesturePosition.x + 80, lastGesturePosition.y + 16, 10, lastGesture == GESTURE_TAP ? BLUE : LIGHTGRAY);
-        DrawRing( (Vector2){lastGesturePosition.x + 103, lastGesturePosition.y + 16}, 6.0f, 11.0f, 0.0f, 360.0f, 0, lastGesture == GESTURE_DRAG ? LIME : LIGHTGRAY);
-        DrawCircle(lastGesturePosition.x + 80, lastGesturePosition.y + 43, 10, lastGesture == GESTURE_DOUBLETAP ? SKYBLUE : LIGHTGRAY);
-        DrawCircle(lastGesturePosition.x + 103, lastGesturePosition.y + 43, 10, lastGesture == GESTURE_DOUBLETAP ? SKYBLUE : LIGHTGRAY);
-        DrawTriangle((Vector2){ lastGesturePosition.x + 122, lastGesturePosition.y + 16 }, (Vector2){ lastGesturePosition.x + 137, lastGesturePosition.y + 26 }, (Vector2){ lastGesturePosition.x + 137, lastGesturePosition.y + 6 }, lastGesture == GESTURE_PINCH_OUT? ORANGE : LIGHTGRAY);
-        DrawTriangle((Vector2){ lastGesturePosition.x + 147, lastGesturePosition.y + 6 }, (Vector2){ lastGesturePosition.x + 147, lastGesturePosition.y + 26 }, (Vector2){ lastGesturePosition.x + 162, lastGesturePosition.y + 16 }, lastGesture == GESTURE_PINCH_OUT? ORANGE : LIGHTGRAY);
-        DrawTriangle((Vector2){ lastGesturePosition.x + 125, lastGesturePosition.y + 33 }, (Vector2){ lastGesturePosition.x + 125, lastGesturePosition.y + 53 }, (Vector2){ lastGesturePosition.x + 140, lastGesturePosition.y + 43 }, lastGesture == GESTURE_PINCH_IN? VIOLET : LIGHTGRAY);
-        DrawTriangle((Vector2){ lastGesturePosition.x + 144, lastGesturePosition.y + 43 }, (Vector2){ lastGesturePosition.x + 159, lastGesturePosition.y + 53 }, (Vector2){ lastGesturePosition.x + 159, lastGesturePosition.y + 33 }, lastGesture == GESTURE_PINCH_IN? VIOLET : LIGHTGRAY);
-        for (i = 0; i < 4; i++) DrawCircle(lastGesturePosition.x + 180, lastGesturePosition.y + 7 + i*15, 5, touchCount <= i? LIGHTGRAY : gestureColor);
+        rlDrawText("Last gesture", lastGesturePosition.x + 33, lastGesturePosition.y - 47, 20, BLACK);
+        rlDrawText("Swipe         Tap       Pinch  Touch", lastGesturePosition.x + 17, lastGesturePosition.y - 18, 10, BLACK);
+        rlDrawRectangle(lastGesturePosition.x + 20, lastGesturePosition.y, 20, 20, lastGesture == GESTURE_SWIPE_UP ? RED : LIGHTGRAY);
+        rlDrawRectangle(lastGesturePosition.x, lastGesturePosition.y + 20, 20, 20, lastGesture == GESTURE_SWIPE_LEFT ? RED : LIGHTGRAY);
+        rlDrawRectangle(lastGesturePosition.x + 40, lastGesturePosition.y + 20, 20, 20, lastGesture == GESTURE_SWIPE_RIGHT ? RED : LIGHTGRAY);
+        rlDrawRectangle(lastGesturePosition.x + 20, lastGesturePosition.y + 40, 20, 20, lastGesture == GESTURE_SWIPE_DOWN ? RED : LIGHTGRAY);
+        rlDrawCircle(lastGesturePosition.x + 80, lastGesturePosition.y + 16, 10, lastGesture == GESTURE_TAP ? BLUE : LIGHTGRAY);
+        rlDrawRing( (rlVector2){lastGesturePosition.x + 103, lastGesturePosition.y + 16}, 6.0f, 11.0f, 0.0f, 360.0f, 0, lastGesture == GESTURE_DRAG ? LIME : LIGHTGRAY);
+        rlDrawCircle(lastGesturePosition.x + 80, lastGesturePosition.y + 43, 10, lastGesture == GESTURE_DOUBLETAP ? SKYBLUE : LIGHTGRAY);
+        rlDrawCircle(lastGesturePosition.x + 103, lastGesturePosition.y + 43, 10, lastGesture == GESTURE_DOUBLETAP ? SKYBLUE : LIGHTGRAY);
+        rlDrawTriangle((rlVector2){ lastGesturePosition.x + 122, lastGesturePosition.y + 16 }, (rlVector2){ lastGesturePosition.x + 137, lastGesturePosition.y + 26 }, (rlVector2){ lastGesturePosition.x + 137, lastGesturePosition.y + 6 }, lastGesture == GESTURE_PINCH_OUT? ORANGE : LIGHTGRAY);
+        rlDrawTriangle((rlVector2){ lastGesturePosition.x + 147, lastGesturePosition.y + 6 }, (rlVector2){ lastGesturePosition.x + 147, lastGesturePosition.y + 26 }, (rlVector2){ lastGesturePosition.x + 162, lastGesturePosition.y + 16 }, lastGesture == GESTURE_PINCH_OUT? ORANGE : LIGHTGRAY);
+        rlDrawTriangle((rlVector2){ lastGesturePosition.x + 125, lastGesturePosition.y + 33 }, (rlVector2){ lastGesturePosition.x + 125, lastGesturePosition.y + 53 }, (rlVector2){ lastGesturePosition.x + 140, lastGesturePosition.y + 43 }, lastGesture == GESTURE_PINCH_IN? VIOLET : LIGHTGRAY);
+        rlDrawTriangle((rlVector2){ lastGesturePosition.x + 144, lastGesturePosition.y + 43 }, (rlVector2){ lastGesturePosition.x + 159, lastGesturePosition.y + 53 }, (rlVector2){ lastGesturePosition.x + 159, lastGesturePosition.y + 33 }, lastGesture == GESTURE_PINCH_IN? VIOLET : LIGHTGRAY);
+        for (i = 0; i < 4; i++) rlDrawCircle(lastGesturePosition.x + 180, lastGesturePosition.y + 7 + i*15, 5, touchCount <= i? LIGHTGRAY : gestureColor);
 
         // Draw gesture log
         //--------------------------------------------------------------------------------------
-        DrawText("Log", gestureLogPosition.x, gestureLogPosition.y, 20, BLACK);
+        rlDrawText("Log", gestureLogPosition.x, gestureLogPosition.y, 20, BLACK);
 
         // Loop in both directions to print the gesture log array in the inverted order (and looping around if the index started somewhere in the middle)
-        for (i = 0, ii = gestureLogIndex; i < GESTURE_LOG_SIZE; i++, ii = (ii + 1) % GESTURE_LOG_SIZE) DrawText(gestureLog[ii], gestureLogPosition.x, gestureLogPosition.y + 410 - i*20, 20, (i == 0 ? gestureColor : LIGHTGRAY));
-        Color logButton1Color, logButton2Color;
+        for (i = 0, ii = gestureLogIndex; i < GESTURE_LOG_SIZE; i++, ii = (ii + 1) % GESTURE_LOG_SIZE) rlDrawText(gestureLog[ii], gestureLogPosition.x, gestureLogPosition.y + 410 - i*20, 20, (i == 0 ? gestureColor : LIGHTGRAY));
+        rlColor logButton1Color, logButton2Color;
         switch (logMode)
         {
             case 3:  logButton1Color=MAROON; logButton2Color=MAROON; break;
@@ -246,34 +246,34 @@ void Update(void)
             case 1:  logButton1Color=MAROON; logButton2Color=GRAY;   break;
             default: logButton1Color=GRAY;   logButton2Color=GRAY;   break;
         }
-        DrawRectangleRec(logButton1, logButton1Color);
-        DrawText("Hide", logButton1.x + 7, logButton1.y + 3, 10, WHITE);
-        DrawText("Repeat", logButton1.x + 7, logButton1.y + 13, 10, WHITE);
-        DrawRectangleRec(logButton2, logButton2Color);
-        DrawText("Hide", logButton1.x + 62, logButton1.y + 3, 10, WHITE);
-        DrawText("Hold", logButton1.x + 62, logButton1.y + 13, 10, WHITE);
+        rlDrawRectangleRec(logButton1, logButton1Color);
+        rlDrawText("Hide", logButton1.x + 7, logButton1.y + 3, 10, WHITE);
+        rlDrawText("Repeat", logButton1.x + 7, logButton1.y + 13, 10, WHITE);
+        rlDrawRectangleRec(logButton2, logButton2Color);
+        rlDrawText("Hide", logButton1.x + 62, logButton1.y + 3, 10, WHITE);
+        rlDrawText("Hold", logButton1.x + 62, logButton1.y + 13, 10, WHITE);
 
         // Draw protractor
         //--------------------------------------------------------------------------------------
-        DrawText("Angle", protractorPosition.x + 55, protractorPosition.y + 76, 10, BLACK);
-        const char *angleString = TextFormat("%f", currentAngleDegrees);
-        const int angleStringDot = TextFindIndex(angleString, ".");
-        const char *angleStringTrim = TextSubtext(angleString, 0, angleStringDot + 3);
-        DrawText( angleStringTrim, protractorPosition.x + 55, protractorPosition.y + 92, 20, gestureColor);
-        DrawCircle(protractorPosition.x, protractorPosition.y, 80.0f, WHITE);
-        DrawLineEx((Vector2){ protractorPosition.x - 90, protractorPosition.y }, (Vector2){ protractorPosition.x + 90, protractorPosition.y }, 3.0f, LIGHTGRAY);
-        DrawLineEx((Vector2){ protractorPosition.x, protractorPosition.y - 90 }, (Vector2){ protractorPosition.x, protractorPosition.y + 90 }, 3.0f, LIGHTGRAY);
-        DrawLineEx((Vector2){ protractorPosition.x - 80, protractorPosition.y - 45 }, (Vector2){ protractorPosition.x + 80, protractorPosition.y + 45 }, 3.0f, GREEN);
-        DrawLineEx((Vector2){ protractorPosition.x - 80, protractorPosition.y + 45 }, (Vector2){ protractorPosition.x + 80, protractorPosition.y - 45 }, 3.0f, GREEN);
-        DrawText("0", protractorPosition.x + 96, protractorPosition.y - 9, 20, BLACK);
-        DrawText("30", protractorPosition.x + 74, protractorPosition.y - 68, 20, BLACK);
-        DrawText("90", protractorPosition.x - 11, protractorPosition.y - 110, 20, BLACK);
-        DrawText("150", protractorPosition.x - 100, protractorPosition.y - 68, 20, BLACK);
-        DrawText("180", protractorPosition.x - 124, protractorPosition.y - 9, 20, BLACK);
-        DrawText("210", protractorPosition.x - 100, protractorPosition.y + 50, 20, BLACK);
-        DrawText("270", protractorPosition.x - 18, protractorPosition.y + 92, 20, BLACK);
-        DrawText("330", protractorPosition.x + 72, protractorPosition.y + 50, 20, BLACK);
-        if (currentAngleDegrees != 0.0f) DrawLineEx(protractorPosition, finalVector, 3.0f, gestureColor);
+        rlDrawText("Angle", protractorPosition.x + 55, protractorPosition.y + 76, 10, BLACK);
+        const char *angleString = rlTextFormat("%f", currentAngleDegrees);
+        const int angleStringDot = rlTextFindIndex(angleString, ".");
+        const char *angleStringTrim = rlTextSubtext(angleString, 0, angleStringDot + 3);
+        rlDrawText( angleStringTrim, protractorPosition.x + 55, protractorPosition.y + 92, 20, gestureColor);
+        rlDrawCircle(protractorPosition.x, protractorPosition.y, 80.0f, WHITE);
+        rlDrawLineEx((rlVector2){ protractorPosition.x - 90, protractorPosition.y }, (rlVector2){ protractorPosition.x + 90, protractorPosition.y }, 3.0f, LIGHTGRAY);
+        rlDrawLineEx((rlVector2){ protractorPosition.x, protractorPosition.y - 90 }, (rlVector2){ protractorPosition.x, protractorPosition.y + 90 }, 3.0f, LIGHTGRAY);
+        rlDrawLineEx((rlVector2){ protractorPosition.x - 80, protractorPosition.y - 45 }, (rlVector2){ protractorPosition.x + 80, protractorPosition.y + 45 }, 3.0f, GREEN);
+        rlDrawLineEx((rlVector2){ protractorPosition.x - 80, protractorPosition.y + 45 }, (rlVector2){ protractorPosition.x + 80, protractorPosition.y - 45 }, 3.0f, GREEN);
+        rlDrawText("0", protractorPosition.x + 96, protractorPosition.y - 9, 20, BLACK);
+        rlDrawText("30", protractorPosition.x + 74, protractorPosition.y - 68, 20, BLACK);
+        rlDrawText("90", protractorPosition.x - 11, protractorPosition.y - 110, 20, BLACK);
+        rlDrawText("150", protractorPosition.x - 100, protractorPosition.y - 68, 20, BLACK);
+        rlDrawText("180", protractorPosition.x - 124, protractorPosition.y - 9, 20, BLACK);
+        rlDrawText("210", protractorPosition.x - 100, protractorPosition.y + 50, 20, BLACK);
+        rlDrawText("270", protractorPosition.x - 18, protractorPosition.y + 92, 20, BLACK);
+        rlDrawText("330", protractorPosition.x + 72, protractorPosition.y + 50, 20, BLACK);
+        if (currentAngleDegrees != 0.0f) rlDrawLineEx(protractorPosition, finalVector, 3.0f, gestureColor);
 
         // Draw touch and mouse pointer points
         //--------------------------------------------------------------------------------------
@@ -283,20 +283,20 @@ void Update(void)
             {
                 for (i = 0; i < touchCount; i++)
                 {
-                    DrawCircleV(touchPosition[i], 50.0f, Fade(gestureColor, 0.5f));
-                    DrawCircleV(touchPosition[i], 5.0f, gestureColor);
+                    rlDrawCircleV(touchPosition[i], 50.0f, rlFade(gestureColor, 0.5f));
+                    rlDrawCircleV(touchPosition[i], 5.0f, gestureColor);
                 }
 
-                if (touchCount == 2) DrawLineEx(touchPosition[0], touchPosition[1], ((currentGesture == 512)? 8 : 12), gestureColor);
+                if (touchCount == 2) rlDrawLineEx(touchPosition[0], touchPosition[1], ((currentGesture == 512)? 8 : 12), gestureColor);
             }
             else
             {
-                DrawCircleV(mousePosition, 35.0f, Fade(gestureColor, 0.5f));
-                DrawCircleV(mousePosition, 5.0f, gestureColor);
+                rlDrawCircleV(mousePosition, 35.0f, rlFade(gestureColor, 0.5f));
+                rlDrawCircleV(mousePosition, 5.0f, gestureColor);
             }
         }
 
-    EndDrawing();
+    rlEndDrawing();
     //--------------------------------------------------------------------------------------
 
 }
@@ -308,7 +308,7 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - input gestures web");
+    rlInitWindow(screenWidth, screenHeight, "raylib [core] example - input gestures web");
     //--------------------------------------------------------------------------------------
 
     // Main game loop
@@ -316,14 +316,14 @@ int main(void)
     #if defined(PLATFORM_WEB)
         emscripten_set_main_loop(Update, 0, 1);
     #else
-        SetTargetFPS(60);
-        while (!WindowShouldClose()) Update(); // Detect window close button or ESC key
+        rlSetTargetFPS(60);
+        while (!rlWindowShouldClose()) Update(); // Detect window close button or ESC key
     #endif
     //--------------------------------------------------------------------------------------
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow(); // Close window and OpenGL context
+    rlCloseWindow(); // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

@@ -25,49 +25,49 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [textures] example - sprite button");
+    rlInitWindow(screenWidth, screenHeight, "raylib [textures] example - sprite button");
 
-    InitAudioDevice();      // Initialize audio device
+    rlInitAudioDevice();      // Initialize audio device
 
-    Sound fxButton = LoadSound("resources/buttonfx.wav");   // Load button sound
+    rlSound fxButton = rlLoadSound("resources/buttonfx.wav");   // Load button sound
     Texture2D button = LoadTexture("resources/button.png"); // Load button texture
 
     // Define frame rectangle for drawing
     float frameHeight = (float)button.height/NUM_FRAMES;
-    Rectangle sourceRec = { 0, 0, (float)button.width, frameHeight };
+    rlRectangle sourceRec = { 0, 0, (float)button.width, frameHeight };
 
     // Define button bounds on screen
-    Rectangle btnBounds = { screenWidth/2.0f - button.width/2.0f, screenHeight/2.0f - button.height/NUM_FRAMES/2.0f, (float)button.width, frameHeight };
+    rlRectangle btnBounds = { screenWidth/2.0f - button.width/2.0f, screenHeight/2.0f - button.height/NUM_FRAMES/2.0f, (float)button.width, frameHeight };
 
     int btnState = 0;               // Button state: 0-NORMAL, 1-MOUSE_HOVER, 2-PRESSED
     bool btnAction = false;         // Button action should be activated
 
-    Vector2 mousePoint = { 0.0f, 0.0f };
+    rlVector2 mousePoint = { 0.0f, 0.0f };
 
-    SetTargetFPS(60);
+    rlSetTargetFPS(60);
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        mousePoint = GetMousePosition();
+        mousePoint = rlGetMousePosition();
         btnAction = false;
 
         // Check button state
-        if (CheckCollisionPointRec(mousePoint, btnBounds))
+        if (rlCheckCollisionPointRec(mousePoint, btnBounds))
         {
-            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) btnState = 2;
+            if (rlIsMouseButtonDown(MOUSE_BUTTON_LEFT)) btnState = 2;
             else btnState = 1;
 
-            if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) btnAction = true;
+            if (rlIsMouseButtonReleased(MOUSE_BUTTON_LEFT)) btnAction = true;
         }
         else btnState = 0;
 
         if (btnAction)
         {
-            PlaySound(fxButton);
+            rlPlaySound(fxButton);
 
             // TODO: Any desired action
         }
@@ -78,24 +78,24 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawTextureRec(button, sourceRec, (Vector2){ btnBounds.x, btnBounds.y }, WHITE); // Draw button frame
+            rlDrawTextureRec(button, sourceRec, (rlVector2){ btnBounds.x, btnBounds.y }, WHITE); // Draw button frame
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
     UnloadTexture(button);  // Unload button texture
-    UnloadSound(fxButton);  // Unload sound
+    rlUnloadSound(fxButton);  // Unload sound
 
-    CloseAudioDevice();     // Close audio device
+    rlCloseAudioDevice();     // Close audio device
 
-    CloseWindow();          // Close window and OpenGL context
+    rlCloseWindow();          // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

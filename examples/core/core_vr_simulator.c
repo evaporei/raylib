@@ -30,10 +30,10 @@ int main(void)
     const int screenHeight = 450;
 
     // NOTE: screenWidth/screenHeight should match VR device aspect ratio
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - vr simulator");
+    rlInitWindow(screenWidth, screenHeight, "raylib [core] example - vr simulator");
 
     // VR device parameters definition
-    VrDeviceInfo device = {
+    rlVrDeviceInfo device = {
         // Oculus Rift CV1 parameters for simulator
         .hResolution = 2160,                 // Horizontal resolution in pixels
         .vResolution = 1200,                 // Vertical resolution in pixels
@@ -56,94 +56,94 @@ int main(void)
     };
 
     // Load VR stereo config for VR device parameteres (Oculus Rift CV1 parameters)
-    VrStereoConfig config = LoadVrStereoConfig(device);
+    rlVrStereoConfig config = rlLoadVrStereoConfig(device);
 
     // Distortion shader (uses device lens distortion and chroma)
-    Shader distortion = LoadShader(0, TextFormat("resources/distortion%i.fs", GLSL_VERSION));
+    rlShader distortion = rlLoadShader(0, rlTextFormat("resources/distortion%i.fs", GLSL_VERSION));
 
     // Update distortion shader with lens and distortion-scale parameters
-    SetShaderValue(distortion, GetShaderLocation(distortion, "leftLensCenter"),
+    rlSetShaderValue(distortion, rlGetShaderLocation(distortion, "leftLensCenter"),
                    config.leftLensCenter, SHADER_UNIFORM_VEC2);
-    SetShaderValue(distortion, GetShaderLocation(distortion, "rightLensCenter"),
+    rlSetShaderValue(distortion, rlGetShaderLocation(distortion, "rightLensCenter"),
                    config.rightLensCenter, SHADER_UNIFORM_VEC2);
-    SetShaderValue(distortion, GetShaderLocation(distortion, "leftScreenCenter"),
+    rlSetShaderValue(distortion, rlGetShaderLocation(distortion, "leftScreenCenter"),
                    config.leftScreenCenter, SHADER_UNIFORM_VEC2);
-    SetShaderValue(distortion, GetShaderLocation(distortion, "rightScreenCenter"),
+    rlSetShaderValue(distortion, rlGetShaderLocation(distortion, "rightScreenCenter"),
                    config.rightScreenCenter, SHADER_UNIFORM_VEC2);
 
-    SetShaderValue(distortion, GetShaderLocation(distortion, "scale"),
+    rlSetShaderValue(distortion, rlGetShaderLocation(distortion, "scale"),
                    config.scale, SHADER_UNIFORM_VEC2);
-    SetShaderValue(distortion, GetShaderLocation(distortion, "scaleIn"),
+    rlSetShaderValue(distortion, rlGetShaderLocation(distortion, "scaleIn"),
                    config.scaleIn, SHADER_UNIFORM_VEC2);
-    SetShaderValue(distortion, GetShaderLocation(distortion, "deviceWarpParam"),
+    rlSetShaderValue(distortion, rlGetShaderLocation(distortion, "deviceWarpParam"),
                    device.lensDistortionValues, SHADER_UNIFORM_VEC4);
-    SetShaderValue(distortion, GetShaderLocation(distortion, "chromaAbParam"),
+    rlSetShaderValue(distortion, rlGetShaderLocation(distortion, "chromaAbParam"),
                    device.chromaAbCorrection, SHADER_UNIFORM_VEC4);
 
     // Initialize framebuffer for stereo rendering
     // NOTE: Screen size should match HMD aspect ratio
-    RenderTexture2D target = LoadRenderTexture(device.hResolution, device.vResolution);
+    RenderTexture2D target = rlLoadRenderTexture(device.hResolution, device.vResolution);
 
-    // The target's height is flipped (in the source Rectangle), due to OpenGL reasons
-    Rectangle sourceRec = { 0.0f, 0.0f, (float)target.texture.width, -(float)target.texture.height };
-    Rectangle destRec = { 0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight() };
+    // The target's height is flipped (in the source rlRectangle), due to OpenGL reasons
+    rlRectangle sourceRec = { 0.0f, 0.0f, (float)target.texture.width, -(float)target.texture.height };
+    rlRectangle destRec = { 0.0f, 0.0f, (float)rlGetScreenWidth(), (float)rlGetScreenHeight() };
 
     // Define the camera to look into our 3d world
     Camera camera = { 0 };
-    camera.position = (Vector3){ 5.0f, 2.0f, 5.0f };    // Camera position
-    camera.target = (Vector3){ 0.0f, 2.0f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector
+    camera.position = (rlVector3){ 5.0f, 2.0f, 5.0f };    // Camera position
+    camera.target = (rlVector3){ 0.0f, 2.0f, 0.0f };      // Camera looking at point
+    camera.up = (rlVector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector
     camera.fovy = 60.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
-    Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };
+    rlVector3 cubePosition = { 0.0f, 0.0f, 0.0f };
 
-    DisableCursor();                    // Limit cursor to relative movement inside the window
+    rlDisableCursor();                    // Limit cursor to relative movement inside the window
 
-    SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())        // Detect window close button or ESC key
+    while (!rlWindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        UpdateCamera(&camera, CAMERA_FIRST_PERSON);
+        rlUpdateCamera(&camera, CAMERA_FIRST_PERSON);
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginTextureMode(target);
-            ClearBackground(RAYWHITE);
-            BeginVrStereoMode(config);
-                BeginMode3D(camera);
+        rlBeginTextureMode(target);
+            rlClearBackground(RAYWHITE);
+            rlBeginVrStereoMode(config);
+                rlBeginMode3D(camera);
 
-                    DrawCube(cubePosition, 2.0f, 2.0f, 2.0f, RED);
-                    DrawCubeWires(cubePosition, 2.0f, 2.0f, 2.0f, MAROON);
-                    DrawGrid(40, 1.0f);
+                    rlDrawCube(cubePosition, 2.0f, 2.0f, 2.0f, RED);
+                    rlDrawCubeWires(cubePosition, 2.0f, 2.0f, 2.0f, MAROON);
+                    rlDrawGrid(40, 1.0f);
 
-                EndMode3D();
-            EndVrStereoMode();
-        EndTextureMode();
+                rlEndMode3D();
+            rlEndVrStereoMode();
+        rlEndTextureMode();
         
-        BeginDrawing();
-            ClearBackground(RAYWHITE);
-            BeginShaderMode(distortion);
-                DrawTexturePro(target.texture, sourceRec, destRec, (Vector2){ 0.0f, 0.0f }, 0.0f, WHITE);
-            EndShaderMode();
-            DrawFPS(10, 10);
-        EndDrawing();
+        rlBeginDrawing();
+            rlClearBackground(RAYWHITE);
+            rlBeginShaderMode(distortion);
+                rlDrawTexturePro(target.texture, sourceRec, destRec, (rlVector2){ 0.0f, 0.0f }, 0.0f, WHITE);
+            rlEndShaderMode();
+            rlDrawFPS(10, 10);
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadVrStereoConfig(config);   // Unload stereo config
+    rlUnloadVrStereoConfig(config);   // Unload stereo config
 
-    UnloadRenderTexture(target);    // Unload stereo render fbo
-    UnloadShader(distortion);       // Unload distortion shader
+    rlUnloadRenderTexture(target);    // Unload stereo render fbo
+    rlUnloadShader(distortion);       // Unload distortion shader
 
-    CloseWindow();                  // Close window and OpenGL context
+    rlCloseWindow();                  // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

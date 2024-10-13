@@ -23,7 +23,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [textures] example - background scrolling");
+    rlInitWindow(screenWidth, screenHeight, "raylib [textures] example - background scrolling");
 
     // NOTE: Be careful, background width must be equal or bigger than screen width
     // if not, texture should be draw more than two times for scrolling effect
@@ -35,11 +35,11 @@ int main(void)
     float scrollingMid = 0.0f;
     float scrollingFore = 0.0f;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ int main(void)
         scrollingMid -= 0.5f;
         scrollingFore -= 1.0f;
 
-        // NOTE: Texture is scaled twice its size, so it sould be considered on scrolling
+        // NOTE: rlTexture is scaled twice its size, so it sould be considered on scrolling
         if (scrollingBack <= -background.width*2) scrollingBack = 0;
         if (scrollingMid <= -midground.width*2) scrollingMid = 0;
         if (scrollingFore <= -foreground.width*2) scrollingFore = 0;
@@ -55,27 +55,27 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(GetColor(0x052c46ff));
+            rlClearBackground(rlGetColor(0x052c46ff));
 
             // Draw background image twice
-            // NOTE: Texture is scaled twice its size
-            DrawTextureEx(background, (Vector2){ scrollingBack, 20 }, 0.0f, 2.0f, WHITE);
-            DrawTextureEx(background, (Vector2){ background.width*2 + scrollingBack, 20 }, 0.0f, 2.0f, WHITE);
+            // NOTE: rlTexture is scaled twice its size
+            rlDrawTextureEx(background, (rlVector2){ scrollingBack, 20 }, 0.0f, 2.0f, WHITE);
+            rlDrawTextureEx(background, (rlVector2){ background.width*2 + scrollingBack, 20 }, 0.0f, 2.0f, WHITE);
 
             // Draw midground image twice
-            DrawTextureEx(midground, (Vector2){ scrollingMid, 20 }, 0.0f, 2.0f, WHITE);
-            DrawTextureEx(midground, (Vector2){ midground.width*2 + scrollingMid, 20 }, 0.0f, 2.0f, WHITE);
+            rlDrawTextureEx(midground, (rlVector2){ scrollingMid, 20 }, 0.0f, 2.0f, WHITE);
+            rlDrawTextureEx(midground, (rlVector2){ midground.width*2 + scrollingMid, 20 }, 0.0f, 2.0f, WHITE);
 
             // Draw foreground image twice
-            DrawTextureEx(foreground, (Vector2){ scrollingFore, 70 }, 0.0f, 2.0f, WHITE);
-            DrawTextureEx(foreground, (Vector2){ foreground.width*2 + scrollingFore, 70 }, 0.0f, 2.0f, WHITE);
+            rlDrawTextureEx(foreground, (rlVector2){ scrollingFore, 70 }, 0.0f, 2.0f, WHITE);
+            rlDrawTextureEx(foreground, (rlVector2){ foreground.width*2 + scrollingFore, 70 }, 0.0f, 2.0f, WHITE);
 
-            DrawText("BACKGROUND SCROLLING & PARALLAX", 10, 10, 20, RED);
-            DrawText("(c) Cyberpunk Street Environment by Luis Zuno (@ansimuz)", screenWidth - 330, screenHeight - 20, 10, RAYWHITE);
+            rlDrawText("BACKGROUND SCROLLING & PARALLAX", 10, 10, 20, RED);
+            rlDrawText("(c) Cyberpunk Street Environment by Luis Zuno (@ansimuz)", screenWidth - 330, screenHeight - 20, 10, RAYWHITE);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
@@ -85,7 +85,7 @@ int main(void)
     UnloadTexture(midground);   // Unload midground texture
     UnloadTexture(foreground);  // Unload foreground texture
 
-    CloseWindow();              // Close window and OpenGL context
+    rlCloseWindow();              // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

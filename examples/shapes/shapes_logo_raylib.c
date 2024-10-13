@@ -23,13 +23,13 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shapes] example - raylib logo using shapes");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shapes] example - raylib logo using shapes");
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -38,23 +38,23 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawRectangle(screenWidth/2 - 128, screenHeight/2 - 128, 256, 256, BLACK);
-            DrawRectangle(screenWidth/2 - 112, screenHeight/2 - 112, 224, 224, RAYWHITE);
-            DrawText("raylib", screenWidth/2 - 44, screenHeight/2 + 48, 50, BLACK);
+            rlDrawRectangle(screenWidth/2 - 128, screenHeight/2 - 128, 256, 256, BLACK);
+            rlDrawRectangle(screenWidth/2 - 112, screenHeight/2 - 112, 224, 224, RAYWHITE);
+            rlDrawText("raylib", screenWidth/2 - 44, screenHeight/2 + 48, 50, BLACK);
 
-            DrawText("this is NOT a texture!", 350, 370, 10, GRAY);
+            rlDrawText("this is NOT a texture!", 350, 370, 10, GRAY);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

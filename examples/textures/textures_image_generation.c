@@ -25,52 +25,52 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [textures] example - procedural images generation");
+    rlInitWindow(screenWidth, screenHeight, "raylib [textures] example - procedural images generation");
 
-    Image verticalGradient = GenImageGradientLinear(screenWidth, screenHeight, 0, RED, BLUE);
-    Image horizontalGradient = GenImageGradientLinear(screenWidth, screenHeight, 90, RED, BLUE);
-    Image diagonalGradient = GenImageGradientLinear(screenWidth, screenHeight, 45, RED, BLUE);
-    Image radialGradient = GenImageGradientRadial(screenWidth, screenHeight, 0.0f, WHITE, BLACK);
-    Image squareGradient = GenImageGradientSquare(screenWidth, screenHeight, 0.0f, WHITE, BLACK);
-    Image checked = GenImageChecked(screenWidth, screenHeight, 32, 32, RED, BLUE);
-    Image whiteNoise = GenImageWhiteNoise(screenWidth, screenHeight, 0.5f);
-    Image perlinNoise = GenImagePerlinNoise(screenWidth, screenHeight, 50, 50, 4.0f);
-    Image cellular = GenImageCellular(screenWidth, screenHeight, 32);
+    rlImage verticalGradient = rlGenImageGradientLinear(screenWidth, screenHeight, 0, RED, BLUE);
+    rlImage horizontalGradient = rlGenImageGradientLinear(screenWidth, screenHeight, 90, RED, BLUE);
+    rlImage diagonalGradient = rlGenImageGradientLinear(screenWidth, screenHeight, 45, RED, BLUE);
+    rlImage radialGradient = rlGenImageGradientRadial(screenWidth, screenHeight, 0.0f, WHITE, BLACK);
+    rlImage squareGradient = rlGenImageGradientSquare(screenWidth, screenHeight, 0.0f, WHITE, BLACK);
+    rlImage checked = rlGenImageChecked(screenWidth, screenHeight, 32, 32, RED, BLUE);
+    rlImage whiteNoise = rlGenImageWhiteNoise(screenWidth, screenHeight, 0.5f);
+    rlImage perlinNoise = rlGenImagePerlinNoise(screenWidth, screenHeight, 50, 50, 4.0f);
+    rlImage cellular = rlGenImageCellular(screenWidth, screenHeight, 32);
 
     Texture2D textures[NUM_TEXTURES] = { 0 };
 
-    textures[0] = LoadTextureFromImage(verticalGradient);
-    textures[1] = LoadTextureFromImage(horizontalGradient);
-    textures[2] = LoadTextureFromImage(diagonalGradient);
-    textures[3] = LoadTextureFromImage(radialGradient);
-    textures[4] = LoadTextureFromImage(squareGradient);
-    textures[5] = LoadTextureFromImage(checked);
-    textures[6] = LoadTextureFromImage(whiteNoise);
-    textures[7] = LoadTextureFromImage(perlinNoise);
-    textures[8] = LoadTextureFromImage(cellular);
+    textures[0] = rlLoadTextureFromImage(verticalGradient);
+    textures[1] = rlLoadTextureFromImage(horizontalGradient);
+    textures[2] = rlLoadTextureFromImage(diagonalGradient);
+    textures[3] = rlLoadTextureFromImage(radialGradient);
+    textures[4] = rlLoadTextureFromImage(squareGradient);
+    textures[5] = rlLoadTextureFromImage(checked);
+    textures[6] = rlLoadTextureFromImage(whiteNoise);
+    textures[7] = rlLoadTextureFromImage(perlinNoise);
+    textures[8] = rlLoadTextureFromImage(cellular);
 
     // Unload image data (CPU RAM)
-    UnloadImage(verticalGradient);
-    UnloadImage(horizontalGradient);
-    UnloadImage(diagonalGradient);
-    UnloadImage(radialGradient);
-    UnloadImage(squareGradient);
-    UnloadImage(checked);
-    UnloadImage(whiteNoise);
-    UnloadImage(perlinNoise);
-    UnloadImage(cellular);
+    rlUnloadImage(verticalGradient);
+    rlUnloadImage(horizontalGradient);
+    rlUnloadImage(diagonalGradient);
+    rlUnloadImage(radialGradient);
+    rlUnloadImage(squareGradient);
+    rlUnloadImage(checked);
+    rlUnloadImage(whiteNoise);
+    rlUnloadImage(perlinNoise);
+    rlUnloadImage(cellular);
 
     int currentTexture = 0;
 
-    SetTargetFPS(60);
+    rlSetTargetFPS(60);
     //---------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())
+    while (!rlWindowShouldClose())
     {
         // Update
         //----------------------------------------------------------------------------------
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || IsKeyPressed(KEY_RIGHT))
+        if (rlIsMouseButtonPressed(MOUSE_BUTTON_LEFT) || rlIsKeyPressed(KEY_RIGHT))
         {
             currentTexture = (currentTexture + 1)%NUM_TEXTURES; // Cycle between the textures
         }
@@ -78,31 +78,31 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawTexture(textures[currentTexture], 0, 0, WHITE);
+            rlDrawTexture(textures[currentTexture], 0, 0, WHITE);
 
-            DrawRectangle(30, 400, 325, 30, Fade(SKYBLUE, 0.5f));
-            DrawRectangleLines(30, 400, 325, 30, Fade(WHITE, 0.5f));
-            DrawText("MOUSE LEFT BUTTON to CYCLE PROCEDURAL TEXTURES", 40, 410, 10, WHITE);
+            rlDrawRectangle(30, 400, 325, 30, rlFade(SKYBLUE, 0.5f));
+            rlDrawRectangleLines(30, 400, 325, 30, rlFade(WHITE, 0.5f));
+            rlDrawText("MOUSE LEFT BUTTON to CYCLE PROCEDURAL TEXTURES", 40, 410, 10, WHITE);
 
             switch(currentTexture)
             {
-                case 0: DrawText("VERTICAL GRADIENT", 560, 10, 20, RAYWHITE); break;
-                case 1: DrawText("HORIZONTAL GRADIENT", 540, 10, 20, RAYWHITE); break;
-                case 2: DrawText("DIAGONAL GRADIENT", 540, 10, 20, RAYWHITE); break;
-                case 3: DrawText("RADIAL GRADIENT", 580, 10, 20, LIGHTGRAY); break;
-                case 4: DrawText("SQUARE GRADIENT", 580, 10, 20, LIGHTGRAY); break;
-                case 5: DrawText("CHECKED", 680, 10, 20, RAYWHITE); break;
-                case 6: DrawText("WHITE NOISE", 640, 10, 20, RED); break;
-                case 7: DrawText("PERLIN NOISE", 640, 10, 20, RED); break;
-                case 8: DrawText("CELLULAR", 670, 10, 20, RAYWHITE); break;
+                case 0: rlDrawText("VERTICAL GRADIENT", 560, 10, 20, RAYWHITE); break;
+                case 1: rlDrawText("HORIZONTAL GRADIENT", 540, 10, 20, RAYWHITE); break;
+                case 2: rlDrawText("DIAGONAL GRADIENT", 540, 10, 20, RAYWHITE); break;
+                case 3: rlDrawText("RADIAL GRADIENT", 580, 10, 20, LIGHTGRAY); break;
+                case 4: rlDrawText("SQUARE GRADIENT", 580, 10, 20, LIGHTGRAY); break;
+                case 5: rlDrawText("CHECKED", 680, 10, 20, RAYWHITE); break;
+                case 6: rlDrawText("WHITE NOISE", 640, 10, 20, RED); break;
+                case 7: rlDrawText("PERLIN NOISE", 640, 10, 20, RED); break;
+                case 8: rlDrawText("CELLULAR", 670, 10, 20, RAYWHITE); break;
                 default: break;
             }
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
@@ -112,7 +112,7 @@ int main(void)
     // Unload textures data (GPU VRAM)
     for (int i = 0; i < NUM_TEXTURES; i++) UnloadTexture(textures[i]);
 
-    CloseWindow();                // Close window and OpenGL context
+    rlCloseWindow();                // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

@@ -1,6 +1,6 @@
 /*******************************************************************************************
 *
-*   raylib [texture] example - Image text drawing using TTF generated font
+*   raylib [texture] example - rlImage text drawing using TTF generated font
 *
 *   Example originally created with raylib 1.8, last time updated with raylib 4.0
 *
@@ -23,65 +23,65 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [texture] example - image text drawing");
+    rlInitWindow(screenWidth, screenHeight, "raylib [texture] example - image text drawing");
 
-    Image parrots = LoadImage("resources/parrots.png"); // Load image in CPU memory (RAM)
+    rlImage parrots = rlLoadImage("resources/parrots.png"); // Load image in CPU memory (RAM)
 
-    // TTF Font loading with custom generation parameters
-    Font font = LoadFontEx("resources/KAISG.ttf", 64, 0, 0);
+    // TTF rlFont loading with custom generation parameters
+    rlFont font = rlLoadFontEx("resources/KAISG.ttf", 64, 0, 0);
 
     // Draw over image using custom font
-    ImageDrawTextEx(&parrots, font, "[Parrots font drawing]", (Vector2){ 20.0f, 20.0f }, (float)font.baseSize, 0.0f, RED);
+    rlImageDrawTextEx(&parrots, font, "[Parrots font drawing]", (rlVector2){ 20.0f, 20.0f }, (float)font.baseSize, 0.0f, RED);
 
-    Texture2D texture = LoadTextureFromImage(parrots);  // Image converted to texture, uploaded to GPU memory (VRAM)
-    UnloadImage(parrots);   // Once image has been converted to texture and uploaded to VRAM, it can be unloaded from RAM
+    Texture2D texture = rlLoadTextureFromImage(parrots);  // rlImage converted to texture, uploaded to GPU memory (VRAM)
+    rlUnloadImage(parrots);   // Once image has been converted to texture and uploaded to VRAM, it can be unloaded from RAM
 
-    Vector2 position = { (float)(screenWidth/2 - texture.width/2), (float)(screenHeight/2 - texture.height/2 - 20) };
+    rlVector2 position = { (float)(screenWidth/2 - texture.width/2), (float)(screenHeight/2 - texture.height/2 - 20) };
 
     bool showFont = false;
 
-    SetTargetFPS(60);
+    rlSetTargetFPS(60);
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        if (IsKeyDown(KEY_SPACE)) showFont = true;
+        if (rlIsKeyDown(KEY_SPACE)) showFont = true;
         else showFont = false;
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
             if (!showFont)
             {
                 // Draw texture with text already drawn inside
-                DrawTextureV(texture, position, WHITE);
+                rlDrawTextureV(texture, position, WHITE);
 
                 // Draw text directly using sprite font
-                DrawTextEx(font, "[Parrots font drawing]", (Vector2){ position.x + 20,
+                rlDrawTextEx(font, "[Parrots font drawing]", (rlVector2){ position.x + 20,
                            position.y + 20 + 280 }, (float)font.baseSize, 0.0f, WHITE);
             }
-            else DrawTexture(font.texture, screenWidth/2 - font.texture.width/2, 50, BLACK);
+            else rlDrawTexture(font.texture, screenWidth/2 - font.texture.width/2, 50, BLACK);
 
-            DrawText("PRESS SPACE to SHOW FONT ATLAS USED", 290, 420, 10, DARKGRAY);
+            rlDrawText("PRESS SPACE to SHOW FONT ATLAS USED", 290, 420, 10, DARKGRAY);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadTexture(texture);     // Texture unloading
+    UnloadTexture(texture);     // rlTexture unloading
 
-    UnloadFont(font);           // Unload custom font
+    rlUnloadFont(font);           // Unload custom font
 
-    CloseWindow();              // Close window and OpenGL context
+    rlCloseWindow();              // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

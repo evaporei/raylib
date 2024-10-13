@@ -28,19 +28,19 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [text] example - raylib fonts");
+    rlInitWindow(screenWidth, screenHeight, "raylib [text] example - raylib fonts");
 
     // NOTE: Textures MUST be loaded after Window initialization (OpenGL context is required)
-    Font fonts[MAX_FONTS] = { 0 };
+    rlFont fonts[MAX_FONTS] = { 0 };
 
-    fonts[0] = LoadFont("resources/fonts/alagard.png");
-    fonts[1] = LoadFont("resources/fonts/pixelplay.png");
-    fonts[2] = LoadFont("resources/fonts/mecha.png");
-    fonts[3] = LoadFont("resources/fonts/setback.png");
-    fonts[4] = LoadFont("resources/fonts/romulus.png");
-    fonts[5] = LoadFont("resources/fonts/pixantiqua.png");
-    fonts[6] = LoadFont("resources/fonts/alpha_beta.png");
-    fonts[7] = LoadFont("resources/fonts/jupiter_crash.png");
+    fonts[0] = rlLoadFont("resources/fonts/alagard.png");
+    fonts[1] = rlLoadFont("resources/fonts/pixelplay.png");
+    fonts[2] = rlLoadFont("resources/fonts/mecha.png");
+    fonts[3] = rlLoadFont("resources/fonts/setback.png");
+    fonts[4] = rlLoadFont("resources/fonts/romulus.png");
+    fonts[5] = rlLoadFont("resources/fonts/pixantiqua.png");
+    fonts[6] = rlLoadFont("resources/fonts/alpha_beta.png");
+    fonts[7] = rlLoadFont("resources/fonts/jupiter_crash.png");
 
     const char *messages[MAX_FONTS] = { "ALAGARD FONT designed by Hewett Tsoi",
                                 "PIXELPLAY FONT designed by Aleksander Shevchuk",
@@ -53,11 +53,11 @@ int main(void)
 
     const int spacings[MAX_FONTS] = { 2, 4, 8, 4, 3, 4, 4, 1 };
 
-    Vector2 positions[MAX_FONTS] = { 0 };
+    rlVector2 positions[MAX_FONTS] = { 0 };
 
     for (int i = 0; i < MAX_FONTS; i++)
     {
-        positions[i].x = screenWidth/2.0f - MeasureTextEx(fonts[i], messages[i], fonts[i].baseSize*2.0f, (float)spacings[i]).x/2.0f;
+        positions[i].x = screenWidth/2.0f - rlMeasureTextEx(fonts[i], messages[i], fonts[i].baseSize*2.0f, (float)spacings[i]).x/2.0f;
         positions[i].y = 60.0f + fonts[i].baseSize + 45.0f*i;
     }
 
@@ -66,13 +66,13 @@ int main(void)
     positions[4].y += 2;
     positions[7].y -= 8;
 
-    Color colors[MAX_FONTS] = { MAROON, ORANGE, DARKGREEN, DARKBLUE, DARKPURPLE, LIME, GOLD, RED };
+    rlColor colors[MAX_FONTS] = { MAROON, ORANGE, DARKGREEN, DARKBLUE, DARKPURPLE, LIME, GOLD, RED };
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -81,19 +81,19 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawText("free fonts included with raylib", 250, 20, 20, DARKGRAY);
-            DrawLine(220, 50, 590, 50, DARKGRAY);
+            rlDrawText("free fonts included with raylib", 250, 20, 20, DARKGRAY);
+            rlDrawLine(220, 50, 590, 50, DARKGRAY);
 
             for (int i = 0; i < MAX_FONTS; i++)
             {
-                DrawTextEx(fonts[i], messages[i], positions[i], fonts[i].baseSize*2.0f, (float)spacings[i], colors[i]);
+                rlDrawTextEx(fonts[i], messages[i], positions[i], fonts[i].baseSize*2.0f, (float)spacings[i], colors[i]);
             }
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
@@ -101,9 +101,9 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     // Fonts unloading
-    for (int i = 0; i < MAX_FONTS; i++) UnloadFont(fonts[i]);
+    for (int i = 0; i < MAX_FONTS; i++) rlUnloadFont(fonts[i]);
 
-    CloseWindow();                 // Close window and OpenGL context
+    rlCloseWindow();                 // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

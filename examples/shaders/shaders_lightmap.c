@@ -41,20 +41,20 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    SetConfigFlags(FLAG_MSAA_4X_HINT);  // Enable Multi Sampling Anti Aliasing 4x (if available)
-    InitWindow(screenWidth, screenHeight, "raylib [shaders] example - lightmap");
+    rlSetConfigFlags(FLAG_MSAA_4X_HINT);  // Enable Multi Sampling Anti Aliasing 4x (if available)
+    rlInitWindow(screenWidth, screenHeight, "raylib [shaders] example - lightmap");
 
     // Define the camera to look into our 3d world
     Camera camera = { 0 };
-    camera.position = (Vector3){ 4.0f, 6.0f, 8.0f };    // Camera position
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    camera.position = (rlVector3){ 4.0f, 6.0f, 8.0f };    // Camera position
+    camera.target = (rlVector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
+    camera.up = (rlVector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
-    Mesh mesh = GenMeshPlane((float)MAP_SIZE, (float)MAP_SIZE, 1, 1);
+    rlMesh mesh = rlGenMeshPlane((float)MAP_SIZE, (float)MAP_SIZE, 1, 1);
 
-    // GenMeshPlane doesn't generate texcoords2 so we will upload them separately
+    // rlGenMeshPlane doesn't generate texcoords2 so we will upload them separately
     mesh.texcoords2 = (float *)RL_MALLOC(mesh.vertexCount*2*sizeof(float));
 
     // X                          // Y
@@ -73,101 +73,101 @@ int main(void)
     rlDisableVertexArray();
 
     // Load lightmap shader
-    Shader shader = LoadShader(TextFormat("resources/shaders/glsl%i/lightmap.vs", GLSL_VERSION),
-                               TextFormat("resources/shaders/glsl%i/lightmap.fs", GLSL_VERSION));
+    rlShader shader = rlLoadShader(rlTextFormat("resources/shaders/glsl%i/lightmap.vs", GLSL_VERSION),
+                               rlTextFormat("resources/shaders/glsl%i/lightmap.fs", GLSL_VERSION));
 
-    Texture texture = LoadTexture("resources/cubicmap_atlas.png");
-    Texture light = LoadTexture("resources/spark_flame.png");
+    rlTexture texture = LoadTexture("resources/cubicmap_atlas.png");
+    rlTexture light = LoadTexture("resources/spark_flame.png");
 
     GenTextureMipmaps(&texture);
-    SetTextureFilter(texture, TEXTURE_FILTER_TRILINEAR);
+    rlSetTextureFilter(texture, TEXTURE_FILTER_TRILINEAR);
 
-    RenderTexture lightmap = LoadRenderTexture(MAP_SIZE, MAP_SIZE);
+    rlRenderTexture lightmap = rlLoadRenderTexture(MAP_SIZE, MAP_SIZE);
 
-    SetTextureFilter(lightmap.texture, TEXTURE_FILTER_TRILINEAR);
+    rlSetTextureFilter(lightmap.texture, TEXTURE_FILTER_TRILINEAR);
 
-    Material material = LoadMaterialDefault();
+    rlMaterial material = rlLoadMaterialDefault();
     material.shader = shader;
     material.maps[MATERIAL_MAP_ALBEDO].texture = texture;
     material.maps[MATERIAL_MAP_METALNESS].texture = lightmap.texture;
 
     // Drawing to lightmap
-    BeginTextureMode(lightmap);
-        ClearBackground(BLACK);
+    rlBeginTextureMode(lightmap);
+        rlClearBackground(BLACK);
 
-        BeginBlendMode(BLEND_ADDITIVE);
-            DrawTexturePro(
+        rlBeginBlendMode(BLEND_ADDITIVE);
+            rlDrawTexturePro(
                 light,
-                (Rectangle){ 0, 0, light.width, light.height },
-                (Rectangle){ 0, 0, 20, 20 },
-                (Vector2){ 10.0, 10.0 },
+                (rlRectangle){ 0, 0, light.width, light.height },
+                (rlRectangle){ 0, 0, 20, 20 },
+                (rlVector2){ 10.0, 10.0 },
                 0.0,
                 RED
             );
-            DrawTexturePro(
+            rlDrawTexturePro(
                 light,
-                (Rectangle){ 0, 0, light.width, light.height },
-                (Rectangle){ 8, 4, 20, 20 },
-                (Vector2){ 10.0, 10.0 },
+                (rlRectangle){ 0, 0, light.width, light.height },
+                (rlRectangle){ 8, 4, 20, 20 },
+                (rlVector2){ 10.0, 10.0 },
                 0.0,
                 BLUE
             );
-            DrawTexturePro(
+            rlDrawTexturePro(
                 light,
-                (Rectangle){ 0, 0, light.width, light.height },
-                (Rectangle){ 8, 8, 10, 10 },
-                (Vector2){ 5.0, 5.0 },
+                (rlRectangle){ 0, 0, light.width, light.height },
+                (rlRectangle){ 8, 8, 10, 10 },
+                (rlVector2){ 5.0, 5.0 },
                 0.0,
                 GREEN
             );
-        BeginBlendMode(BLEND_ALPHA);
-    EndTextureMode();
+        rlBeginBlendMode(BLEND_ALPHA);
+    rlEndTextureMode();
 
-    SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())        // Detect window close button or ESC key
+    while (!rlWindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        UpdateCamera(&camera, CAMERA_ORBITAL);
+        rlUpdateCamera(&camera, CAMERA_ORBITAL);
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
-            ClearBackground(RAYWHITE);
+        rlBeginDrawing();
+            rlClearBackground(RAYWHITE);
 
-            BeginMode3D(camera);
-                DrawMesh(mesh, material, MatrixIdentity());
-            EndMode3D();
+            rlBeginMode3D(camera);
+                rlDrawMesh(mesh, material, MatrixIdentity());
+            rlEndMode3D();
 
-            DrawFPS(10, 10);
+            rlDrawFPS(10, 10);
 
-            DrawTexturePro(
+            rlDrawTexturePro(
                 lightmap.texture,
-                (Rectangle){ 0, 0, -MAP_SIZE, -MAP_SIZE },
-                (Rectangle){ GetRenderWidth() - MAP_SIZE*8 - 10, 10, MAP_SIZE*8, MAP_SIZE*8 },
-                (Vector2){ 0.0, 0.0 },
+                (rlRectangle){ 0, 0, -MAP_SIZE, -MAP_SIZE },
+                (rlRectangle){ rlGetRenderWidth() - MAP_SIZE*8 - 10, 10, MAP_SIZE*8, MAP_SIZE*8 },
+                (rlVector2){ 0.0, 0.0 },
                 0.0,
                 WHITE);
                 
-            DrawText("lightmap", GetRenderWidth() - 66, 16 + MAP_SIZE*8, 10, GRAY);
-            DrawText("10x10 pixels", GetRenderWidth() - 76, 30 + MAP_SIZE*8, 10, GRAY);
+            rlDrawText("lightmap", rlGetRenderWidth() - 66, 16 + MAP_SIZE*8, 10, GRAY);
+            rlDrawText("10x10 pixels", rlGetRenderWidth() - 76, 30 + MAP_SIZE*8, 10, GRAY);
                 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadMesh(mesh);       // Unload the mesh
-    UnloadShader(shader);   // Unload shader
+    rlUnloadMesh(mesh);       // Unload the mesh
+    rlUnloadShader(shader);   // Unload shader
     UnloadTexture(texture); // Unload texture
     UnloadTexture(light);   // Unload texture
 
-    CloseWindow();          // Close window and OpenGL context
+    rlCloseWindow();          // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

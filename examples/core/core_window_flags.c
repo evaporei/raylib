@@ -41,155 +41,155 @@ int main(void)
     */
 
     // Set configuration flags for window creation
-    //SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI);
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - window flags");
+    //rlSetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI);
+    rlInitWindow(screenWidth, screenHeight, "raylib [core] example - window flags");
 
-    Vector2 ballPosition = { GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f };
-    Vector2 ballSpeed = { 5.0f, 4.0f };
+    rlVector2 ballPosition = { rlGetScreenWidth() / 2.0f, rlGetScreenHeight() / 2.0f };
+    rlVector2 ballSpeed = { 5.0f, 4.0f };
     float ballRadius = 20;
 
     int framesCounter = 0;
 
-    //SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    //rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //----------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //-----------------------------------------------------
-        if (IsKeyPressed(KEY_F)) ToggleFullscreen();  // modifies window size when scaling!
+        if (rlIsKeyPressed(KEY_F)) rlToggleFullscreen();  // modifies window size when scaling!
 
-        if (IsKeyPressed(KEY_R))
+        if (rlIsKeyPressed(KEY_R))
         {
-            if (IsWindowState(FLAG_WINDOW_RESIZABLE)) ClearWindowState(FLAG_WINDOW_RESIZABLE);
-            else SetWindowState(FLAG_WINDOW_RESIZABLE);
+            if (rlIsWindowState(FLAG_WINDOW_RESIZABLE)) rlClearWindowState(FLAG_WINDOW_RESIZABLE);
+            else rlSetWindowState(FLAG_WINDOW_RESIZABLE);
         }
 
-        if (IsKeyPressed(KEY_D))
+        if (rlIsKeyPressed(KEY_D))
         {
-            if (IsWindowState(FLAG_WINDOW_UNDECORATED)) ClearWindowState(FLAG_WINDOW_UNDECORATED);
-            else SetWindowState(FLAG_WINDOW_UNDECORATED);
+            if (rlIsWindowState(FLAG_WINDOW_UNDECORATED)) rlClearWindowState(FLAG_WINDOW_UNDECORATED);
+            else rlSetWindowState(FLAG_WINDOW_UNDECORATED);
         }
 
-        if (IsKeyPressed(KEY_H))
+        if (rlIsKeyPressed(KEY_H))
         {
-            if (!IsWindowState(FLAG_WINDOW_HIDDEN)) SetWindowState(FLAG_WINDOW_HIDDEN);
+            if (!rlIsWindowState(FLAG_WINDOW_HIDDEN)) rlSetWindowState(FLAG_WINDOW_HIDDEN);
 
             framesCounter = 0;
         }
 
-        if (IsWindowState(FLAG_WINDOW_HIDDEN))
+        if (rlIsWindowState(FLAG_WINDOW_HIDDEN))
         {
             framesCounter++;
-            if (framesCounter >= 240) ClearWindowState(FLAG_WINDOW_HIDDEN); // Show window after 3 seconds
+            if (framesCounter >= 240) rlClearWindowState(FLAG_WINDOW_HIDDEN); // Show window after 3 seconds
         }
 
-        if (IsKeyPressed(KEY_N))
+        if (rlIsKeyPressed(KEY_N))
         {
-            if (!IsWindowState(FLAG_WINDOW_MINIMIZED)) MinimizeWindow();
+            if (!rlIsWindowState(FLAG_WINDOW_MINIMIZED)) rlMinimizeWindow();
 
             framesCounter = 0;
         }
 
-        if (IsWindowState(FLAG_WINDOW_MINIMIZED))
+        if (rlIsWindowState(FLAG_WINDOW_MINIMIZED))
         {
             framesCounter++;
-            if (framesCounter >= 240) RestoreWindow(); // Restore window after 3 seconds
+            if (framesCounter >= 240) rlRestoreWindow(); // Restore window after 3 seconds
         }
 
-        if (IsKeyPressed(KEY_M))
+        if (rlIsKeyPressed(KEY_M))
         {
             // NOTE: Requires FLAG_WINDOW_RESIZABLE enabled!
-            if (IsWindowState(FLAG_WINDOW_MAXIMIZED)) RestoreWindow();
-            else MaximizeWindow();
+            if (rlIsWindowState(FLAG_WINDOW_MAXIMIZED)) rlRestoreWindow();
+            else rlMaximizeWindow();
         }
 
-        if (IsKeyPressed(KEY_U))
+        if (rlIsKeyPressed(KEY_U))
         {
-            if (IsWindowState(FLAG_WINDOW_UNFOCUSED)) ClearWindowState(FLAG_WINDOW_UNFOCUSED);
-            else SetWindowState(FLAG_WINDOW_UNFOCUSED);
+            if (rlIsWindowState(FLAG_WINDOW_UNFOCUSED)) rlClearWindowState(FLAG_WINDOW_UNFOCUSED);
+            else rlSetWindowState(FLAG_WINDOW_UNFOCUSED);
         }
 
-        if (IsKeyPressed(KEY_T))
+        if (rlIsKeyPressed(KEY_T))
         {
-            if (IsWindowState(FLAG_WINDOW_TOPMOST)) ClearWindowState(FLAG_WINDOW_TOPMOST);
-            else SetWindowState(FLAG_WINDOW_TOPMOST);
+            if (rlIsWindowState(FLAG_WINDOW_TOPMOST)) rlClearWindowState(FLAG_WINDOW_TOPMOST);
+            else rlSetWindowState(FLAG_WINDOW_TOPMOST);
         }
 
-        if (IsKeyPressed(KEY_A))
+        if (rlIsKeyPressed(KEY_A))
         {
-            if (IsWindowState(FLAG_WINDOW_ALWAYS_RUN)) ClearWindowState(FLAG_WINDOW_ALWAYS_RUN);
-            else SetWindowState(FLAG_WINDOW_ALWAYS_RUN);
+            if (rlIsWindowState(FLAG_WINDOW_ALWAYS_RUN)) rlClearWindowState(FLAG_WINDOW_ALWAYS_RUN);
+            else rlSetWindowState(FLAG_WINDOW_ALWAYS_RUN);
         }
 
-        if (IsKeyPressed(KEY_V))
+        if (rlIsKeyPressed(KEY_V))
         {
-            if (IsWindowState(FLAG_VSYNC_HINT)) ClearWindowState(FLAG_VSYNC_HINT);
-            else SetWindowState(FLAG_VSYNC_HINT);
+            if (rlIsWindowState(FLAG_VSYNC_HINT)) rlClearWindowState(FLAG_VSYNC_HINT);
+            else rlSetWindowState(FLAG_VSYNC_HINT);
         }
 
         // Bouncing ball logic
         ballPosition.x += ballSpeed.x;
         ballPosition.y += ballSpeed.y;
-        if ((ballPosition.x >= (GetScreenWidth() - ballRadius)) || (ballPosition.x <= ballRadius)) ballSpeed.x *= -1.0f;
-        if ((ballPosition.y >= (GetScreenHeight() - ballRadius)) || (ballPosition.y <= ballRadius)) ballSpeed.y *= -1.0f;
+        if ((ballPosition.x >= (rlGetScreenWidth() - ballRadius)) || (ballPosition.x <= ballRadius)) ballSpeed.x *= -1.0f;
+        if ((ballPosition.y >= (rlGetScreenHeight() - ballRadius)) || (ballPosition.y <= ballRadius)) ballSpeed.y *= -1.0f;
         //-----------------------------------------------------
 
         // Draw
         //-----------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-        if (IsWindowState(FLAG_WINDOW_TRANSPARENT)) ClearBackground(BLANK);
-        else ClearBackground(RAYWHITE);
+        if (rlIsWindowState(FLAG_WINDOW_TRANSPARENT)) rlClearBackground(BLANK);
+        else rlClearBackground(RAYWHITE);
 
-        DrawCircleV(ballPosition, ballRadius, MAROON);
-        DrawRectangleLinesEx((Rectangle) { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, 4, RAYWHITE);
+        rlDrawCircleV(ballPosition, ballRadius, MAROON);
+        rlDrawRectangleLinesEx((rlRectangle) { 0, 0, (float)rlGetScreenWidth(), (float)rlGetScreenHeight() }, 4, RAYWHITE);
 
-        DrawCircleV(GetMousePosition(), 10, DARKBLUE);
+        rlDrawCircleV(rlGetMousePosition(), 10, DARKBLUE);
 
-        DrawFPS(10, 10);
+        rlDrawFPS(10, 10);
 
-        DrawText(TextFormat("Screen Size: [%i, %i]", GetScreenWidth(), GetScreenHeight()), 10, 40, 10, GREEN);
+        rlDrawText(rlTextFormat("Screen Size: [%i, %i]", rlGetScreenWidth(), rlGetScreenHeight()), 10, 40, 10, GREEN);
 
         // Draw window state info
-        DrawText("Following flags can be set after window creation:", 10, 60, 10, GRAY);
-        if (IsWindowState(FLAG_FULLSCREEN_MODE)) DrawText("[F] FLAG_FULLSCREEN_MODE: on", 10, 80, 10, LIME);
-        else DrawText("[F] FLAG_FULLSCREEN_MODE: off", 10, 80, 10, MAROON);
-        if (IsWindowState(FLAG_WINDOW_RESIZABLE)) DrawText("[R] FLAG_WINDOW_RESIZABLE: on", 10, 100, 10, LIME);
-        else DrawText("[R] FLAG_WINDOW_RESIZABLE: off", 10, 100, 10, MAROON);
-        if (IsWindowState(FLAG_WINDOW_UNDECORATED)) DrawText("[D] FLAG_WINDOW_UNDECORATED: on", 10, 120, 10, LIME);
-        else DrawText("[D] FLAG_WINDOW_UNDECORATED: off", 10, 120, 10, MAROON);
-        if (IsWindowState(FLAG_WINDOW_HIDDEN)) DrawText("[H] FLAG_WINDOW_HIDDEN: on", 10, 140, 10, LIME);
-        else DrawText("[H] FLAG_WINDOW_HIDDEN: off", 10, 140, 10, MAROON);
-        if (IsWindowState(FLAG_WINDOW_MINIMIZED)) DrawText("[N] FLAG_WINDOW_MINIMIZED: on", 10, 160, 10, LIME);
-        else DrawText("[N] FLAG_WINDOW_MINIMIZED: off", 10, 160, 10, MAROON);
-        if (IsWindowState(FLAG_WINDOW_MAXIMIZED)) DrawText("[M] FLAG_WINDOW_MAXIMIZED: on", 10, 180, 10, LIME);
-        else DrawText("[M] FLAG_WINDOW_MAXIMIZED: off", 10, 180, 10, MAROON);
-        if (IsWindowState(FLAG_WINDOW_UNFOCUSED)) DrawText("[G] FLAG_WINDOW_UNFOCUSED: on", 10, 200, 10, LIME);
-        else DrawText("[U] FLAG_WINDOW_UNFOCUSED: off", 10, 200, 10, MAROON);
-        if (IsWindowState(FLAG_WINDOW_TOPMOST)) DrawText("[T] FLAG_WINDOW_TOPMOST: on", 10, 220, 10, LIME);
-        else DrawText("[T] FLAG_WINDOW_TOPMOST: off", 10, 220, 10, MAROON);
-        if (IsWindowState(FLAG_WINDOW_ALWAYS_RUN)) DrawText("[A] FLAG_WINDOW_ALWAYS_RUN: on", 10, 240, 10, LIME);
-        else DrawText("[A] FLAG_WINDOW_ALWAYS_RUN: off", 10, 240, 10, MAROON);
-        if (IsWindowState(FLAG_VSYNC_HINT)) DrawText("[V] FLAG_VSYNC_HINT: on", 10, 260, 10, LIME);
-        else DrawText("[V] FLAG_VSYNC_HINT: off", 10, 260, 10, MAROON);
+        rlDrawText("Following flags can be set after window creation:", 10, 60, 10, GRAY);
+        if (rlIsWindowState(FLAG_FULLSCREEN_MODE)) rlDrawText("[F] FLAG_FULLSCREEN_MODE: on", 10, 80, 10, LIME);
+        else rlDrawText("[F] FLAG_FULLSCREEN_MODE: off", 10, 80, 10, MAROON);
+        if (rlIsWindowState(FLAG_WINDOW_RESIZABLE)) rlDrawText("[R] FLAG_WINDOW_RESIZABLE: on", 10, 100, 10, LIME);
+        else rlDrawText("[R] FLAG_WINDOW_RESIZABLE: off", 10, 100, 10, MAROON);
+        if (rlIsWindowState(FLAG_WINDOW_UNDECORATED)) rlDrawText("[D] FLAG_WINDOW_UNDECORATED: on", 10, 120, 10, LIME);
+        else rlDrawText("[D] FLAG_WINDOW_UNDECORATED: off", 10, 120, 10, MAROON);
+        if (rlIsWindowState(FLAG_WINDOW_HIDDEN)) rlDrawText("[H] FLAG_WINDOW_HIDDEN: on", 10, 140, 10, LIME);
+        else rlDrawText("[H] FLAG_WINDOW_HIDDEN: off", 10, 140, 10, MAROON);
+        if (rlIsWindowState(FLAG_WINDOW_MINIMIZED)) rlDrawText("[N] FLAG_WINDOW_MINIMIZED: on", 10, 160, 10, LIME);
+        else rlDrawText("[N] FLAG_WINDOW_MINIMIZED: off", 10, 160, 10, MAROON);
+        if (rlIsWindowState(FLAG_WINDOW_MAXIMIZED)) rlDrawText("[M] FLAG_WINDOW_MAXIMIZED: on", 10, 180, 10, LIME);
+        else rlDrawText("[M] FLAG_WINDOW_MAXIMIZED: off", 10, 180, 10, MAROON);
+        if (rlIsWindowState(FLAG_WINDOW_UNFOCUSED)) rlDrawText("[G] FLAG_WINDOW_UNFOCUSED: on", 10, 200, 10, LIME);
+        else rlDrawText("[U] FLAG_WINDOW_UNFOCUSED: off", 10, 200, 10, MAROON);
+        if (rlIsWindowState(FLAG_WINDOW_TOPMOST)) rlDrawText("[T] FLAG_WINDOW_TOPMOST: on", 10, 220, 10, LIME);
+        else rlDrawText("[T] FLAG_WINDOW_TOPMOST: off", 10, 220, 10, MAROON);
+        if (rlIsWindowState(FLAG_WINDOW_ALWAYS_RUN)) rlDrawText("[A] FLAG_WINDOW_ALWAYS_RUN: on", 10, 240, 10, LIME);
+        else rlDrawText("[A] FLAG_WINDOW_ALWAYS_RUN: off", 10, 240, 10, MAROON);
+        if (rlIsWindowState(FLAG_VSYNC_HINT)) rlDrawText("[V] FLAG_VSYNC_HINT: on", 10, 260, 10, LIME);
+        else rlDrawText("[V] FLAG_VSYNC_HINT: off", 10, 260, 10, MAROON);
 
-        DrawText("Following flags can only be set before window creation:", 10, 300, 10, GRAY);
-        if (IsWindowState(FLAG_WINDOW_HIGHDPI)) DrawText("FLAG_WINDOW_HIGHDPI: on", 10, 320, 10, LIME);
-        else DrawText("FLAG_WINDOW_HIGHDPI: off", 10, 320, 10, MAROON);
-        if (IsWindowState(FLAG_WINDOW_TRANSPARENT)) DrawText("FLAG_WINDOW_TRANSPARENT: on", 10, 340, 10, LIME);
-        else DrawText("FLAG_WINDOW_TRANSPARENT: off", 10, 340, 10, MAROON);
-        if (IsWindowState(FLAG_MSAA_4X_HINT)) DrawText("FLAG_MSAA_4X_HINT: on", 10, 360, 10, LIME);
-        else DrawText("FLAG_MSAA_4X_HINT: off", 10, 360, 10, MAROON);
+        rlDrawText("Following flags can only be set before window creation:", 10, 300, 10, GRAY);
+        if (rlIsWindowState(FLAG_WINDOW_HIGHDPI)) rlDrawText("FLAG_WINDOW_HIGHDPI: on", 10, 320, 10, LIME);
+        else rlDrawText("FLAG_WINDOW_HIGHDPI: off", 10, 320, 10, MAROON);
+        if (rlIsWindowState(FLAG_WINDOW_TRANSPARENT)) rlDrawText("FLAG_WINDOW_TRANSPARENT: on", 10, 340, 10, LIME);
+        else rlDrawText("FLAG_WINDOW_TRANSPARENT: off", 10, 340, 10, MAROON);
+        if (rlIsWindowState(FLAG_MSAA_4X_HINT)) rlDrawText("FLAG_MSAA_4X_HINT: on", 10, 360, 10, LIME);
+        else rlDrawText("FLAG_MSAA_4X_HINT: off", 10, 360, 10, MAROON);
 
-        EndDrawing();
+        rlEndDrawing();
         //-----------------------------------------------------
     }
 
     // De-Initialization
     //---------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //----------------------------------------------------------
 
     return 0;

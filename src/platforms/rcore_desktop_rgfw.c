@@ -50,8 +50,8 @@
     #define RGFW_OPENGL_ES2
 #endif
 
-void ShowCursor(void);
-void CloseWindow(void);
+void rlShowCursor(void);
+void rlCloseWindow(void);
 
 #if defined(__linux__)
     #define _INPUT_EVENT_CODES_H
@@ -65,9 +65,9 @@ void CloseWindow(void);
 
 #if defined(__WIN32) || defined(__WIN64)
     #define WIN32_LEAN_AND_MEAN
-    #define Rectangle rectangle_win32
-    #define CloseWindow CloseWindow_win32
-    #define ShowCursor __imp_ShowCursor
+    #define rlRectangle rectangle_win32
+    #define rlCloseWindow CloseWindow_win32
+    #define rlShowCursor __imp_ShowCursor
     #define _APISETSTRING_
     __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int CodePage, unsigned long dwFlags, const char *lpMultiByteStr, int cbMultiByte, wchar_t *lpWideCharStr, int cchWideChar);
 #endif
@@ -80,10 +80,10 @@ void CloseWindow(void);
 #include "../external/RGFW.h"
 
 #if defined(__WIN32) || defined(__WIN64)
-    #undef DrawText
-    #undef ShowCursor
-    #undef CloseWindow
-    #undef Rectangle
+    #undef rlDrawText
+    #undef rlShowCursor
+    #undef rlCloseWindow
+    #undef rlRectangle
 #endif
 
 #if defined(__APPLE__)
@@ -230,7 +230,7 @@ bool InitGraphicsDevice(void);   // Initialize graphics device
 //----------------------------------------------------------------------------------
 
 // Check if application should close
-bool WindowShouldClose(void)
+bool rlWindowShouldClose(void)
 {
     if (CORE.Window.shouldClose == false)
         CORE.Window.shouldClose = RGFW_window_shouldClose(platform.window);
@@ -239,14 +239,14 @@ bool WindowShouldClose(void)
 }
 
 // Toggle fullscreen mode
-void ToggleFullscreen(void)
+void rlToggleFullscreen(void)
 {   
     RGFW_window_maximize(platform.window);
-    ToggleBorderlessWindowed();
+    rlToggleBorderlessWindowed();
 }
 
 // Toggle borderless windowed mode
-void ToggleBorderlessWindowed(void)
+void rlToggleBorderlessWindowed(void)
 {
     if (platform.window != NULL)
     {
@@ -255,25 +255,25 @@ void ToggleBorderlessWindowed(void)
 }
 
 // Set window state: maximized, if resizable
-void MaximizeWindow(void)
+void rlMaximizeWindow(void)
 {
     RGFW_window_maximize(platform.window);
 }
 
 // Set window state: minimized
-void MinimizeWindow(void)
+void rlMinimizeWindow(void)
 {
     RGFW_window_minimize(platform.window);
 }
 
 // Set window state: not minimized/maximized
-void RestoreWindow(void)
+void rlRestoreWindow(void)
 {
     RGFW_window_restore(platform.window);
 }
 
 // Set window configuration state using flags
-void SetWindowState(unsigned int flags)
+void rlSetWindowState(unsigned int flags)
 {
     CORE.Window.flags |= flags;
 
@@ -284,7 +284,7 @@ void SetWindowState(unsigned int flags)
     if (flags & FLAG_FULLSCREEN_MODE)
     {
         RGFW_window_maximize(platform.window);
-        ToggleBorderlessWindowed();
+        rlToggleBorderlessWindowed();
     }
     if (flags & FLAG_WINDOW_RESIZABLE)
     {
@@ -293,7 +293,7 @@ void SetWindowState(unsigned int flags)
     }
     if (flags & FLAG_WINDOW_UNDECORATED)
     {
-        ToggleBorderlessWindowed();
+        rlToggleBorderlessWindowed();
     }
     if (flags & FLAG_WINDOW_HIDDEN)
     {
@@ -309,23 +309,23 @@ void SetWindowState(unsigned int flags)
     }
     if (flags & FLAG_WINDOW_UNFOCUSED)
     {
-        TRACELOG(LOG_WARNING, "SetWindowState() - FLAG_WINDOW_UNFOCUSED is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlSetWindowState() - FLAG_WINDOW_UNFOCUSED is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_TOPMOST)
     {
-        TRACELOG(LOG_WARNING, "SetWindowState() - FLAG_WINDOW_TOPMOST is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlSetWindowState() - FLAG_WINDOW_TOPMOST is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_ALWAYS_RUN)
     {
-        TRACELOG(LOG_WARNING, "SetWindowState() - FLAG_WINDOW_ALWAYS_RUN is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlSetWindowState() - FLAG_WINDOW_ALWAYS_RUN is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_TRANSPARENT)
     {
-        TRACELOG(LOG_WARNING, "SetWindowState() - FLAG_WINDOW_TRANSPARENT post window creation post window creation is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlSetWindowState() - FLAG_WINDOW_TRANSPARENT post window creation post window creation is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_HIGHDPI)
     {
-        TRACELOG(LOG_WARNING, "SetWindowState() - FLAG_WINDOW_HIGHDPI is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlSetWindowState() - FLAG_WINDOW_HIGHDPI is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_MOUSE_PASSTHROUGH)
     {
@@ -333,7 +333,7 @@ void SetWindowState(unsigned int flags)
     }
     if (flags & FLAG_BORDERLESS_WINDOWED_MODE)
     {
-        ToggleBorderlessWindowed();
+        rlToggleBorderlessWindowed();
     }
     if (flags & FLAG_MSAA_4X_HINT)
     {
@@ -341,12 +341,12 @@ void SetWindowState(unsigned int flags)
     }
     if (flags & FLAG_INTERLACED_HINT)
     {
-        TRACELOG(LOG_WARNING, "SetWindowState() - FLAG_INTERLACED_HINT is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlSetWindowState() - FLAG_INTERLACED_HINT is not supported on PLATFORM_DESKTOP_RGFW");
     }
 }
 
 // Clear window configuration state flags
-void ClearWindowState(unsigned int flags)
+void rlClearWindowState(unsigned int flags)
 {
     CORE.Window.flags &= ~flags;
 
@@ -356,7 +356,7 @@ void ClearWindowState(unsigned int flags)
     }
     if (flags & FLAG_FULLSCREEN_MODE)
     {
-        ToggleBorderlessWindowed();
+        rlToggleBorderlessWindowed();
         RGFW_window_restore(platform.window);
         CORE.Window.fullscreen = false;
     }
@@ -367,7 +367,7 @@ void ClearWindowState(unsigned int flags)
     }
     if (flags & FLAG_WINDOW_UNDECORATED)
     {
-        ToggleBorderlessWindowed();
+        rlToggleBorderlessWindowed();
     }
     if (flags & FLAG_WINDOW_HIDDEN)
     {
@@ -383,33 +383,33 @@ void ClearWindowState(unsigned int flags)
     }
     if (flags & FLAG_WINDOW_UNFOCUSED)
     {
-        TRACELOG(LOG_WARNING, "ClearWindowState() - FLAG_WINDOW_UNFOCUSED is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlClearWindowState() - FLAG_WINDOW_UNFOCUSED is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_TOPMOST)
     {
-        TRACELOG(LOG_WARNING, "ClearWindowState() - FLAG_WINDOW_TOPMOST is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlClearWindowState() - FLAG_WINDOW_TOPMOST is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_ALWAYS_RUN)
     {
-        TRACELOG(LOG_WARNING, "ClearWindowState() - FLAG_WINDOW_ALWAYS_RUN is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlClearWindowState() - FLAG_WINDOW_ALWAYS_RUN is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_TRANSPARENT)
     {
-        TRACELOG(LOG_WARNING, "ClearWindowState() - FLAG_WINDOW_TRANSPARENT is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlClearWindowState() - FLAG_WINDOW_TRANSPARENT is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_HIGHDPI)
     {
         // NOTE: There also doesn't seem to be a feature to disable high DPI once enabled
-        TRACELOG(LOG_WARNING, "ClearWindowState() - FLAG_WINDOW_HIGHDPI is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlClearWindowState() - FLAG_WINDOW_HIGHDPI is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_WINDOW_MOUSE_PASSTHROUGH)
     {
         RGFW_window_setMousePassthrough(platform.window, flags & FLAG_WINDOW_MOUSE_PASSTHROUGH);
-        TRACELOG(LOG_WARNING, "ClearWindowState() - FLAG_WINDOW_MOUSE_PASSTHROUGH is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlClearWindowState() - FLAG_WINDOW_MOUSE_PASSTHROUGH is not supported on PLATFORM_DESKTOP_RGFW");
     }
     if (flags & FLAG_BORDERLESS_WINDOWED_MODE)
     {
-        ToggleFullscreen();
+        rlToggleFullscreen();
     }
     if (flags & FLAG_MSAA_4X_HINT)
     {
@@ -417,12 +417,12 @@ void ClearWindowState(unsigned int flags)
     }
     if (flags & FLAG_INTERLACED_HINT)
     {
-        TRACELOG(LOG_WARNING, "ClearWindowState() - FLAG_INTERLACED_HINT is not supported on PLATFORM_DESKTOP_RGFW");
+        TRACELOG(LOG_WARNING, "rlClearWindowState() - FLAG_INTERLACED_HINT is not supported on PLATFORM_DESKTOP_RGFW");
     }
 }
 
 // Set icon for window
-void SetWindowIcon(Image image)
+void rlSetWindowIcon(rlImage image)
 {
     i32 channels = 4;
 
@@ -471,32 +471,32 @@ void SetWindowIcon(Image image)
 }
 
 // Set icon for window
-void SetWindowIcons(Image *images, int count)
+void rlSetWindowIcons(rlImage *images, int count)
 {
-    TRACELOG(LOG_WARNING, "SetWindowIcons() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowIcons() not available on target platform");
 }
 
 // Set title for window
-void SetWindowTitle(const char *title)
+void rlSetWindowTitle(const char *title)
 {
     RGFW_window_setName(platform.window, (char*)title);
     CORE.Window.title = title;
 }
 
 // Set window position on screen (windowed mode)
-void SetWindowPosition(int x, int y)
+void rlSetWindowPosition(int x, int y)
 {
     RGFW_window_move(platform.window, RGFW_POINT(x, y));
 }
 
 // Set monitor for the current window
-void SetWindowMonitor(int monitor)
+void rlSetWindowMonitor(int monitor)
 {
     RGFW_window_moveToMonitor(platform.window, RGFW_getMonitors()[monitor]);
 }
 
 // Set window minimum dimensions (FLAG_WINDOW_RESIZABLE)
-void SetWindowMinSize(int width, int height)
+void rlSetWindowMinSize(int width, int height)
 {
     RGFW_window_setMinSize(platform.window, RGFW_AREA(width, height));
     CORE.Window.screenMin.width = width;
@@ -504,7 +504,7 @@ void SetWindowMinSize(int width, int height)
 }
 
 // Set window maximum dimensions (FLAG_WINDOW_RESIZABLE)
-void SetWindowMaxSize(int width, int height)
+void rlSetWindowMaxSize(int width, int height)
 {
     RGFW_window_setMaxSize(platform.window, RGFW_AREA(width, height));
     CORE.Window.screenMax.width = width;
@@ -512,25 +512,25 @@ void SetWindowMaxSize(int width, int height)
 }
 
 // Set window dimensions
-void SetWindowSize(int width, int height)
+void rlSetWindowSize(int width, int height)
 {
     RGFW_window_resize(platform.window, RGFW_AREA(width, height));
 }
 
 // Set window opacity, value opacity is between 0.0 and 1.0
-void SetWindowOpacity(float opacity)
+void rlSetWindowOpacity(float opacity)
 {
-    TRACELOG(LOG_WARNING, "SetWindowOpacity() not available on target platform");
+    TRACELOG(LOG_WARNING, "rlSetWindowOpacity() not available on target platform");
 }
 
 // Set window focused
-void SetWindowFocused(void)
+void rlSetWindowFocused(void)
 {
     RGFW_window_show(platform.window);
 }
 
 // Get native window handle
-void *GetWindowHandle(void)
+void *rlGetWindowHandle(void)
 {
 #ifdef RGFW_WEBASM
     return (void*)platform.window->src.ctx;
@@ -540,7 +540,7 @@ void *GetWindowHandle(void)
 }
 
 // Get number of monitors
-int GetMonitorCount(void)
+int rlGetMonitorCount(void)
 {
     #define MAX_MONITORS_SUPPORTED 6
 
@@ -560,7 +560,7 @@ int GetMonitorCount(void)
 }
 
 // Get number of monitors
-int GetCurrentMonitor(void)
+int rlGetCurrentMonitor(void)
 {
     RGFW_monitor *mons = RGFW_getMonitors();
     RGFW_monitor mon = RGFW_window_getMonitor(platform.window);
@@ -574,15 +574,15 @@ int GetCurrentMonitor(void)
 }
 
 // Get selected monitor position
-Vector2 GetMonitorPosition(int monitor)
+rlVector2 rlGetMonitorPosition(int monitor)
 {
     RGFW_monitor *mons = RGFW_getMonitors();
 
-    return (Vector2){mons[monitor].rect.x, mons[monitor].rect.y};
+    return (rlVector2){mons[monitor].rect.x, mons[monitor].rect.y};
 }
 
 // Get selected monitor width (currently used by monitor)
-int GetMonitorWidth(int monitor)
+int rlGetMonitorWidth(int monitor)
 {
     RGFW_monitor *mons = RGFW_getMonitors();
 
@@ -590,7 +590,7 @@ int GetMonitorWidth(int monitor)
 }
 
 // Get selected monitor height (currently used by monitor)
-int GetMonitorHeight(int monitor)
+int rlGetMonitorHeight(int monitor)
 {
     RGFW_monitor *mons = RGFW_getMonitors();
 
@@ -598,7 +598,7 @@ int GetMonitorHeight(int monitor)
 }
 
 // Get selected monitor physical width in millimetres
-int GetMonitorPhysicalWidth(int monitor)
+int rlGetMonitorPhysicalWidth(int monitor)
 {
     RGFW_monitor* mons = RGFW_getMonitors();
 
@@ -606,7 +606,7 @@ int GetMonitorPhysicalWidth(int monitor)
 }
 
 // Get selected monitor physical height in millimetres
-int GetMonitorPhysicalHeight(int monitor)
+int rlGetMonitorPhysicalHeight(int monitor)
 {
     RGFW_monitor *mons = RGFW_getMonitors();
 
@@ -614,14 +614,14 @@ int GetMonitorPhysicalHeight(int monitor)
 }
 
 // Get selected monitor refresh rate
-int GetMonitorRefreshRate(int monitor)
+int rlGetMonitorRefreshRate(int monitor)
 {
-    TRACELOG(LOG_WARNING, "GetMonitorRefreshRate() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlGetMonitorRefreshRate() not implemented on target platform");
     return 0;
 }
 
 // Get the human-readable, UTF-8 encoded name of the selected monitor
-const char *GetMonitorName(int monitor)
+const char *rlGetMonitorName(int monitor)
 {
     RGFW_monitor *mons = RGFW_getMonitors();
 
@@ -629,70 +629,70 @@ const char *GetMonitorName(int monitor)
 }
 
 // Get window position XY on monitor
-Vector2 GetWindowPosition(void)
+rlVector2 rlGetWindowPosition(void)
 {
-    return (Vector2){ platform.window->r.x, platform.window->r.y };
+    return (rlVector2){ platform.window->r.x, platform.window->r.y };
 }
 
 // Get window scale DPI factor for current monitor
-Vector2 GetWindowScaleDPI(void)
+rlVector2 rlGetWindowScaleDPI(void)
 {
     RGFW_monitor monitor = RGFW_window_getMonitor(platform.window);
 
-    return (Vector2){monitor.scaleX, monitor.scaleX};
+    return (rlVector2){monitor.scaleX, monitor.scaleX};
 }
 
 // Set clipboard text content
-void SetClipboardText(const char *text)
+void rlSetClipboardText(const char *text)
 {
     RGFW_writeClipboard(text, strlen(text));
 }
 
 // Get clipboard text content
 // NOTE: returned string is allocated and freed by GLFW
-const char *GetClipboardText(void)
+const char *rlGetClipboardText(void)
 {
     return RGFW_readClipboard(NULL);
 }
 
 // Show mouse cursor
-void ShowCursor(void)
+void rlShowCursor(void)
 {
     RGFW_window_showMouse(platform.window, true);
     CORE.Input.Mouse.cursorHidden = false;
 }
 
 // Hides mouse cursor
-void HideCursor(void)
+void rlHideCursor(void)
 {
     RGFW_window_showMouse(platform.window, false);
     CORE.Input.Mouse.cursorHidden = true;
 }
 
 // Enables cursor (unlock cursor)
-void EnableCursor(void)
+void rlEnableCursor(void)
 {
     RGFW_disableCursor = false;
     RGFW_window_mouseUnhold(platform.window);
 
     // Set cursor position in the middle
-    SetMousePosition(CORE.Window.screen.width/2, CORE.Window.screen.height/2);
+    rlSetMousePosition(CORE.Window.screen.width/2, CORE.Window.screen.height/2);
     RGFW_window_showMouse(platform.window, true);
     CORE.Input.Mouse.cursorHidden = false;
 }
 
 // Disables cursor (lock cursor)
-void DisableCursor(void)
+void rlDisableCursor(void)
 {
     RGFW_disableCursor = true;
 
     RGFW_window_mouseHold(platform.window, RGFW_AREA(0, 0));
 
-    HideCursor();
+    rlHideCursor();
 }
 
 // Swap back buffer with front buffer (screen drawing)
-void SwapScreenBuffer(void)
+void rlSwapScreenBuffer(void)
 {
     RGFW_window_swapBuffers(platform.window);
 }
@@ -702,7 +702,7 @@ void SwapScreenBuffer(void)
 //----------------------------------------------------------------------------------
 
 // Get elapsed time measure in seconds since InitTimer()
-double GetTime(void)
+double rlGetTime(void)
 {
     double time = 0.0;
     unsigned long long int nanoSeconds = RGFW_getTimeNS();
@@ -716,7 +716,7 @@ double GetTime(void)
 // A user could craft a malicious string performing another action.
 // Only call this function yourself not with user input or make sure to check the string yourself.
 // Ref: https://github.com/raysan5/raylib/issues/686
-void OpenURL(const char *url)
+void rlOpenURL(const char *url)
 {
     // Security check to (partially) avoid malicious code on target platform
     if (strchr(url, '\'') != NULL) TRACELOG(LOG_WARNING, "SYSTEM: Provided URL could be potentially malicious, avoid [\'] character");
@@ -731,22 +731,22 @@ void OpenURL(const char *url)
 //----------------------------------------------------------------------------------
 
 // Set internal gamepad mappings
-int SetGamepadMappings(const char *mappings)
+int rlSetGamepadMappings(const char *mappings)
 {
-    TRACELOG(LOG_WARNING, "SetGamepadMappings() not implemented on target platform");
+    TRACELOG(LOG_WARNING, "rlSetGamepadMappings() not implemented on target platform");
     return 0;
 }
 
 // Set mouse position XY
-void SetMousePosition(int x, int y)
+void rlSetMousePosition(int x, int y)
 {
     RGFW_window_moveMouse(platform.window, RGFW_POINT(x, y));
-    CORE.Input.Mouse.currentPosition = (Vector2){ (float)x, (float)y };
+    CORE.Input.Mouse.currentPosition = (rlVector2){ (float)x, (float)y };
     CORE.Input.Mouse.previousPosition = CORE.Input.Mouse.currentPosition;
 }
 
 // Set mouse cursor
-void SetMouseCursor(int cursor)
+void rlSetMouseCursor(int cursor)
 {
     RGFW_window_setMouseStandard(platform.window, cursor);
 }
@@ -813,7 +813,7 @@ char RSGL_keystrToChar(const char *str)
 }
 
 // Register all input events
-void PollInputEvents(void)
+void rlPollInputEvents(void)
 {
 #if defined(SUPPORT_GESTURES_SYSTEM)
     // NOTE: Gestures update must be called every frame to reset gestures correctly
@@ -874,8 +874,8 @@ void PollInputEvents(void)
     #define RGFW_HOLD_MOUSE     (1L<<2)
     if (platform.window->_winArgs & RGFW_HOLD_MOUSE)
     {
-        CORE.Input.Mouse.previousPosition = (Vector2){ 0.0f, 0.0f };
-        CORE.Input.Mouse.currentPosition = (Vector2){ 0.0f, 0.0f };
+        CORE.Input.Mouse.previousPosition = (rlVector2){ 0.0f, 0.0f };
+        CORE.Input.Mouse.currentPosition = (rlVector2){ 0.0f, 0.0f };
     }
     else
     {
@@ -1177,11 +1177,11 @@ void PollInputEvents(void)
 
             // Register touch points position, only one point registered
             if (touchAction == 2 || realTouch) gestureEvent.position[0] = CORE.Input.Touch.position[0];
-            else gestureEvent.position[0] = GetMousePosition();
+            else gestureEvent.position[0] = rlGetMousePosition();
 
             // Normalize gestureEvent.position[0] for CORE.Window.screen.width and CORE.Window.screen.height
-            gestureEvent.position[0].x /= (float)GetScreenWidth();
-            gestureEvent.position[0].y /= (float)GetScreenHeight();
+            gestureEvent.position[0].x /= (float)rlGetScreenWidth();
+            gestureEvent.position[0].y /= (float)rlGetScreenHeight();
 
             // Gesture data is sent to gestures-system for processing
             ProcessGestureEvent(gestureEvent);
@@ -1299,7 +1299,7 @@ int InitPlatform(void)
     // TODO: Initialize input events system
     // It could imply keyboard, mouse, gamepad, touch...
     // Depending on the platform libraries/SDK it could use a callback mechanism
-    // For system events and inputs evens polling on a per-frame basis, use PollInputEvents()
+    // For system events and inputs evens polling on a per-frame basis, use rlPollInputEvents()
     //----------------------------------------------------------------------------
     // ...
     //----------------------------------------------------------------------------
@@ -1311,7 +1311,7 @@ int InitPlatform(void)
 
     // Initialize storage system
     //----------------------------------------------------------------------------
-    CORE.Storage.basePath = GetWorkingDirectory();
+    CORE.Storage.basePath = rlGetWorkingDirectory();
     //----------------------------------------------------------------------------
 
 #ifdef RGFW_X11

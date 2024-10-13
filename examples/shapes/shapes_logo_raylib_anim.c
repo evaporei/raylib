@@ -23,7 +23,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shapes] example - raylib logo animation");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shapes] example - raylib logo animation");
 
     int logoPositionX = screenWidth/2 - 128;
     int logoPositionY = screenHeight/2 - 128;
@@ -40,11 +40,11 @@ int main(void)
     int state = 0;                  // Tracking animation states (State Machine)
     float alpha = 1.0f;             // Useful for fading
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ int main(void)
         }
         else if (state == 4)            // State 4: Reset and Replay
         {
-            if (IsKeyPressed(KEY_R))
+            if (rlIsKeyPressed(KEY_R))
             {
                 framesCounter = 0;
                 lettersCount = 0;
@@ -114,51 +114,51 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
             if (state == 0)
             {
-                if ((framesCounter/15)%2) DrawRectangle(logoPositionX, logoPositionY, 16, 16, BLACK);
+                if ((framesCounter/15)%2) rlDrawRectangle(logoPositionX, logoPositionY, 16, 16, BLACK);
             }
             else if (state == 1)
             {
-                DrawRectangle(logoPositionX, logoPositionY, topSideRecWidth, 16, BLACK);
-                DrawRectangle(logoPositionX, logoPositionY, 16, leftSideRecHeight, BLACK);
+                rlDrawRectangle(logoPositionX, logoPositionY, topSideRecWidth, 16, BLACK);
+                rlDrawRectangle(logoPositionX, logoPositionY, 16, leftSideRecHeight, BLACK);
             }
             else if (state == 2)
             {
-                DrawRectangle(logoPositionX, logoPositionY, topSideRecWidth, 16, BLACK);
-                DrawRectangle(logoPositionX, logoPositionY, 16, leftSideRecHeight, BLACK);
+                rlDrawRectangle(logoPositionX, logoPositionY, topSideRecWidth, 16, BLACK);
+                rlDrawRectangle(logoPositionX, logoPositionY, 16, leftSideRecHeight, BLACK);
 
-                DrawRectangle(logoPositionX + 240, logoPositionY, 16, rightSideRecHeight, BLACK);
-                DrawRectangle(logoPositionX, logoPositionY + 240, bottomSideRecWidth, 16, BLACK);
+                rlDrawRectangle(logoPositionX + 240, logoPositionY, 16, rightSideRecHeight, BLACK);
+                rlDrawRectangle(logoPositionX, logoPositionY + 240, bottomSideRecWidth, 16, BLACK);
             }
             else if (state == 3)
             {
-                DrawRectangle(logoPositionX, logoPositionY, topSideRecWidth, 16, Fade(BLACK, alpha));
-                DrawRectangle(logoPositionX, logoPositionY + 16, 16, leftSideRecHeight - 32, Fade(BLACK, alpha));
+                rlDrawRectangle(logoPositionX, logoPositionY, topSideRecWidth, 16, rlFade(BLACK, alpha));
+                rlDrawRectangle(logoPositionX, logoPositionY + 16, 16, leftSideRecHeight - 32, rlFade(BLACK, alpha));
 
-                DrawRectangle(logoPositionX + 240, logoPositionY + 16, 16, rightSideRecHeight - 32, Fade(BLACK, alpha));
-                DrawRectangle(logoPositionX, logoPositionY + 240, bottomSideRecWidth, 16, Fade(BLACK, alpha));
+                rlDrawRectangle(logoPositionX + 240, logoPositionY + 16, 16, rightSideRecHeight - 32, rlFade(BLACK, alpha));
+                rlDrawRectangle(logoPositionX, logoPositionY + 240, bottomSideRecWidth, 16, rlFade(BLACK, alpha));
 
-                DrawRectangle(GetScreenWidth()/2 - 112, GetScreenHeight()/2 - 112, 224, 224, Fade(RAYWHITE, alpha));
+                rlDrawRectangle(rlGetScreenWidth()/2 - 112, rlGetScreenHeight()/2 - 112, 224, 224, rlFade(RAYWHITE, alpha));
 
-                DrawText(TextSubtext("raylib", 0, lettersCount), GetScreenWidth()/2 - 44, GetScreenHeight()/2 + 48, 50, Fade(BLACK, alpha));
+                rlDrawText(rlTextSubtext("raylib", 0, lettersCount), rlGetScreenWidth()/2 - 44, rlGetScreenHeight()/2 + 48, 50, rlFade(BLACK, alpha));
             }
             else if (state == 4)
             {
-                DrawText("[R] REPLAY", 340, 200, 20, GRAY);
+                rlDrawText("[R] REPLAY", 340, 200, 20, GRAY);
             }
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

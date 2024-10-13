@@ -27,12 +27,12 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - input virtual controls");
+    rlInitWindow(screenWidth, screenHeight, "raylib [core] example - input virtual controls");
 
     const int dpadX = 90;
     const int dpadY = 300;
     const int dpadRad = 25;//radius of each pad
-    Color dpadColor = BLUE;
+    rlColor dpadColor = BLUE;
     int dpadKeydown = -1;//-1 if not down, else 0,1,2,3 
 
     
@@ -48,26 +48,26 @@ int main(void)
     float playerX=100;
     float playerY=100;
 
-    SetTargetFPS(60);
+    rlSetTargetFPS(60);
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
 	// Update 
 	//--------------------------------------------------------------------------
         dpadKeydown = -1; //reset
         float inputX=0;
         float inputY=0;
-        if(GetTouchPointCount()>0)
+        if(rlGetTouchPointCount()>0)
         {//use touch pos
-            inputX = GetTouchX();
-            inputY = GetTouchY();
+            inputX = rlGetTouchX();
+            inputY = rlGetTouchY();
         }
         else
         {//use mouse pos
-            inputX = GetMouseX();
-            inputY = GetMouseY();
+            inputX = rlGetMouseX();
+            inputY = rlGetMouseY();
         }
         for(int i=0;i<4;i++)
         {
@@ -80,42 +80,42 @@ int main(void)
         }
         // move player
         switch(dpadKeydown){
-            case 0: playerY -= 50*GetFrameTime();
+            case 0: playerY -= 50*rlGetFrameTime();
             break;
-            case 1: playerX -= 50*GetFrameTime();
+            case 1: playerX -= 50*rlGetFrameTime();
             break;
-            case 2: playerX += 50*GetFrameTime();
+            case 2: playerX += 50*rlGetFrameTime();
             break;
-            case 3: playerY += 50*GetFrameTime();
+            case 3: playerY += 50*rlGetFrameTime();
             default:;
         };
 	//--------------------------------------------------------------------------
 	    
 	// Draw 
 	//--------------------------------------------------------------------------
-       BeginDrawing();
-            ClearBackground(RAYWHITE);
+       rlBeginDrawing();
+            rlClearBackground(RAYWHITE);
             for(int i=0;i<4;i++)
             {
                 //draw all pad
-                DrawCircle(dpadCollider[i][0],dpadCollider[i][1],dpadRad,dpadColor);
+                rlDrawCircle(dpadCollider[i][0],dpadCollider[i][1],dpadRad,dpadColor);
                 if(i!=dpadKeydown)
                 {
                     //draw label
-                    DrawText(TextSubtext(dpadLabel,i,1),
+                    rlDrawText(rlTextSubtext(dpadLabel,i,1),
                              dpadCollider[i][0]-5,
                              dpadCollider[i][1]-5,16,BLACK);
                 }
 
             }
-            DrawText("Player",playerX,playerY,16,BLACK);
-        EndDrawing();
+            rlDrawText("Player",playerX,playerY,16,BLACK);
+        rlEndDrawing();
 	//--------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

@@ -43,19 +43,19 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shaders] example - Sieve of Eratosthenes");
+    rlInitWindow(screenWidth, screenHeight, "raylib [shaders] example - Sieve of Eratosthenes");
 
-    RenderTexture2D target = LoadRenderTexture(screenWidth, screenHeight);
+    RenderTexture2D target = rlLoadRenderTexture(screenWidth, screenHeight);
 
     // Load Eratosthenes shader
     // NOTE: Defining 0 (NULL) for vertex shader forces usage of internal default vertex shader
-    Shader shader = LoadShader(0, TextFormat("resources/shaders/glsl%i/eratosthenes.fs", GLSL_VERSION));
+    rlShader shader = rlLoadShader(0, rlTextFormat("resources/shaders/glsl%i/eratosthenes.fs", GLSL_VERSION));
 
-    SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())        // Detect window close button or ESC key
+    while (!rlWindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -64,33 +64,33 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginTextureMode(target);       // Enable drawing to texture
-            ClearBackground(BLACK);     // Clear the render texture
+        rlBeginTextureMode(target);       // Enable drawing to texture
+            rlClearBackground(BLACK);     // Clear the render texture
 
             // Draw a rectangle in shader mode to be used as shader canvas
-            // NOTE: Rectangle uses font white character texture coordinates,
+            // NOTE: rlRectangle uses font white character texture coordinates,
             // so shader can not be applied here directly because input vertexTexCoord
             // do not represent full screen coordinates (space where want to apply shader)
-            DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
-        EndTextureMode();               // End drawing to texture (now we have a blank texture available for the shader)
+            rlDrawRectangle(0, 0, rlGetScreenWidth(), rlGetScreenHeight(), BLACK);
+        rlEndTextureMode();               // End drawing to texture (now we have a blank texture available for the shader)
 
-        BeginDrawing();
-            ClearBackground(RAYWHITE);  // Clear screen background
+        rlBeginDrawing();
+            rlClearBackground(RAYWHITE);  // Clear screen background
 
-            BeginShaderMode(shader);
+            rlBeginShaderMode(shader);
                 // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
-                DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0.0f, 0.0f }, WHITE);
-            EndShaderMode();
-        EndDrawing();
+                rlDrawTextureRec(target.texture, (rlRectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (rlVector2){ 0.0f, 0.0f }, WHITE);
+            rlEndShaderMode();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadShader(shader);               // Unload shader
-    UnloadRenderTexture(target);        // Unload render texture
+    rlUnloadShader(shader);               // Unload shader
+    rlUnloadRenderTexture(target);        // Unload render texture
 
-    CloseWindow();                      // Close window and OpenGL context
+    rlCloseWindow();                      // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

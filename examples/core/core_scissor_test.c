@@ -25,51 +25,51 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - scissor test");
+    rlInitWindow(screenWidth, screenHeight, "raylib [core] example - scissor test");
 
-    Rectangle scissorArea = { 0, 0, 300, 300 };
+    rlRectangle scissorArea = { 0, 0, 300, 300 };
     bool scissorMode = true;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        if (IsKeyPressed(KEY_S)) scissorMode = !scissorMode;
+        if (rlIsKeyPressed(KEY_S)) scissorMode = !scissorMode;
 
         // Centre the scissor area around the mouse position
-        scissorArea.x = GetMouseX() - scissorArea.width/2;
-        scissorArea.y = GetMouseY() - scissorArea.height/2;
+        scissorArea.x = rlGetMouseX() - scissorArea.width/2;
+        scissorArea.y = rlGetMouseY() - scissorArea.height/2;
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            if (scissorMode) BeginScissorMode((int)scissorArea.x, (int)scissorArea.y, (int)scissorArea.width, (int)scissorArea.height);
+            if (scissorMode) rlBeginScissorMode((int)scissorArea.x, (int)scissorArea.y, (int)scissorArea.width, (int)scissorArea.height);
 
             // Draw full screen rectangle and some text
             // NOTE: Only part defined by scissor area will be rendered
-            DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), RED);
-            DrawText("Move the mouse around to reveal this text!", 190, 200, 20, LIGHTGRAY);
+            rlDrawRectangle(0, 0, rlGetScreenWidth(), rlGetScreenHeight(), RED);
+            rlDrawText("Move the mouse around to reveal this text!", 190, 200, 20, LIGHTGRAY);
 
-            if (scissorMode) EndScissorMode();
+            if (scissorMode) rlEndScissorMode();
 
-            DrawRectangleLinesEx(scissorArea, 1, BLACK);
-            DrawText("Press S to toggle scissor test", 10, 10, 20, BLACK);
+            rlDrawRectangleLinesEx(scissorArea, 1, BLACK);
+            rlDrawText("Press S to toggle scissor test", 10, 10, 20, BLACK);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    rlCloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

@@ -1,6 +1,6 @@
 /*******************************************************************************************
 *
-*   raylib [textures] example - Retrieve image data from texture: LoadImageFromTexture()
+*   raylib [textures] example - Retrieve image data from texture: rlLoadImageFromTexture()
 *
 *   NOTE: Images are loaded in CPU memory (RAM); textures are loaded in GPU memory (VRAM)
 *
@@ -25,25 +25,25 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [textures] example - texture to image");
+    rlInitWindow(screenWidth, screenHeight, "raylib [textures] example - texture to image");
 
     // NOTE: Textures MUST be loaded after Window initialization (OpenGL context is required)
 
-    Image image = LoadImage("resources/raylib_logo.png");  // Load image data into CPU memory (RAM)
-    Texture2D texture = LoadTextureFromImage(image);       // Image converted to texture, GPU memory (RAM -> VRAM)
-    UnloadImage(image);                                    // Unload image data from CPU memory (RAM)
+    rlImage image = rlLoadImage("resources/raylib_logo.png");  // Load image data into CPU memory (RAM)
+    Texture2D texture = rlLoadTextureFromImage(image);       // rlImage converted to texture, GPU memory (RAM -> VRAM)
+    rlUnloadImage(image);                                    // Unload image data from CPU memory (RAM)
 
-    image = LoadImageFromTexture(texture);                 // Load image from GPU texture (VRAM -> RAM)
+    image = rlLoadImageFromTexture(texture);                 // Load image from GPU texture (VRAM -> RAM)
     UnloadTexture(texture);                                // Unload texture from GPU memory (VRAM)
 
-    texture = LoadTextureFromImage(image);                 // Recreate texture from retrieved image data (RAM -> VRAM)
-    UnloadImage(image);                                    // Unload retrieved image data from CPU memory (RAM)
+    texture = rlLoadTextureFromImage(image);                 // Recreate texture from retrieved image data (RAM -> VRAM)
+    rlUnloadImage(image);                                    // Unload retrieved image data from CPU memory (RAM)
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    rlSetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //---------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!rlWindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -52,23 +52,23 @@ int main(void)
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
+        rlBeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            rlClearBackground(RAYWHITE);
 
-            DrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
+            rlDrawTexture(texture, screenWidth/2 - texture.width/2, screenHeight/2 - texture.height/2, WHITE);
 
-            DrawText("this IS a texture loaded from an image!", 300, 370, 10, GRAY);
+            rlDrawText("this IS a texture loaded from an image!", 300, 370, 10, GRAY);
 
-        EndDrawing();
+        rlEndDrawing();
         //----------------------------------------------------------------------------------
     }
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    UnloadTexture(texture);       // Texture unloading
+    UnloadTexture(texture);       // rlTexture unloading
 
-    CloseWindow();                // Close window and OpenGL context
+    rlCloseWindow();                // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;
